@@ -5,7 +5,7 @@
 
 DynamicGui_C::DynamicGui_C()
 {
-
+    _rxBufferSize = 2048;
 }
 
 
@@ -106,6 +106,8 @@ bool DynamicGui_C::Initialize()
 
 bool DynamicGui_C::ShowGui()
 {
+    std::thread guiServerThread(&DynamicGui_C::RunGuiServer, this);
+
     bool retVal = false;
 
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
@@ -219,37 +221,37 @@ bool DynamicGui_C::ShowGui()
             ImGui::ShowDemoWindow(&show_demo_window);*/
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-        //{
-        //    static float f = 0.0f;
-        //    static int counter = 0;
+        {
+           static float f = 0.0f;
+           static int counter = 0;
 
-        //    ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+           ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
-        //    ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-        //    ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-        //    ImGui::Checkbox("Another Window", &show_another_window);
+           ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+           ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+           ImGui::Checkbox("Another Window", &show_another_window);
 
-        //    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-        //    ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+           ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+           ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
-        //    if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-        //        counter++;
-        //    ImGui::SameLine();
-        //    ImGui::Text("counter = %d", counter);
+           if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+               counter++;
+           ImGui::SameLine();
+           ImGui::Text("counter = %d", counter);
 
-        //    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-        //    ImGui::End();
-        // }
+           ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+           ImGui::End();
+        }
 
         // 3. Show another simple window.
-        //if (show_another_window)
-        //{
-        //    ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        //    ImGui::Text("Hello from another window!");
-        //    if (ImGui::Button("Close Me"))
-        //        show_another_window = false;
-        //    ImGui::End();
-        //}
+        if (show_another_window)
+        {
+           ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+           ImGui::Text("Hello from another window!");
+           if (ImGui::Button("Close Me"))
+               show_another_window = false;
+           ImGui::End();
+        }
 
         // Rendering
         ImGui::Render();
@@ -262,21 +264,25 @@ bool DynamicGui_C::ShowGui()
 #ifdef __EMSCRIPTEN__
     EMSCRIPTEN_MAINLOOP_END;
 #endif
+    guiServerThread.join();
     return true;
 }
 
 void DynamicGui_C::ParseJsonData()
 {
+    std::vector<GuiProtocol::WidgetDescriptor_T> widgetDescList;
     _mainWindowName = _jsonData["Title"];
+    uint16_t numWindows = 0;
     // _widgetWindowName = _jsonData["MainWindow"]["Title"];
     for (const auto& window : _jsonData["Windows"])
     {
-        GuiWindow_C newWindow(window["Title"]);
+        GuiWindow_C newWindow(window["Title"], numWindows);
 
         for (const auto& widget : window["WidgetList"])
         {
             // WidgetInfo_T widgetInfo;
             std::string widgetTypeStr = widget["Type"];
+            std::string widgetName = widget["Name"];
             std::regex textBoxRegex("text", std::regex_constants::icase);
 
             if (true == std::regex_search(widgetTypeStr, textBoxRegex))
@@ -286,17 +292,23 @@ void DynamicGui_C::ParseJsonData()
 
                 auto newWidget = std::make_shared<TextWidget_C>();
                 newWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
-                newWindow.AddWidget(newWidget);
+                auto widgetId = newWindow.AddWidget(newWidget);
 
                 // std::cout << "Adding text widget to Main Window " << std::any_cast<std::string>(widgetInfo.value) << "\n";
                 std::cout << "Adding text widget to Main Window\n";
+
+                auto widgetDes = GuiServer_GetWidgetDesc(numWindows, widgetId, false, false, WidgetTypes_E::TEXT, GuiProtocol::WidgetDataTypes_E::STRING, widgetName);
+                widgetDescList.push_back(widgetDes);
             }
             // _widgetMap[_widgetKeyCount] = widgetInfo;
             // _widgetKeyCount++;
             // std::cout << "Widget Count: " << _widgetKeyCount << "\n";
         }
         _windowList.push_back(newWindow);
+        numWindows++;
     }
+
+    GuiServer_SetWidgetList(widgetDescList);
 }
 
 void DynamicGui_C::DeInitialize()
@@ -312,4 +324,31 @@ void DynamicGui_C::DeInitialize()
     SDL_Quit();
 
     _initialized = false;
+}
+
+void DynamicGui_C::RunGuiServer()
+{
+    while (true == _isRunning)
+    {
+        if (true == _transport->PollReceiveSocket())
+        {
+            std::string senderIp;
+            uint16_t senderPort;
+            auto msgBuf = std::make_unique<char []>(_rxBufferSize);
+            auto msgSize = _transport->ReceiveMessage(msgBuf, _rxBufferSize, senderIp, senderPort);
+
+            GuiServer_ProcessReceivedMessage(msgBuf, msgSize);
+        }
+        GuiServer_ProcessTimedActivities();
+    }
+}
+
+void DynamicGui_C::GuiServer_OnWidgetListRequestReceived()
+{
+    std::cout << "Widget List Request Received\n";
+}
+
+int32_t DynamicGui_C::GuiServer_SendMessage(const std::vector<uint8_t>& message)
+{
+    return _transport->TransportSendMessage(_guiClientPortInfo.destIp, _guiClientPortInfo.destPort, message);
 }

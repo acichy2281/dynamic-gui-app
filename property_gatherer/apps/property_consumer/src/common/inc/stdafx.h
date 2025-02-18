@@ -24,6 +24,7 @@
 
 /* Project includes */
 #include "property_consumer_api.h"
+#include "gui_client_api.h"
 
 /* Shared includes */
 #include "common_functions.h"

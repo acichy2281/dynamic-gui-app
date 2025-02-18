@@ -1,18 +1,18 @@
-#include "messages.h"
+#include "property_gatherer_messages.h"
 
 namespace PropertyGatherer
 {
-    MessageSerializer::MessageSerializer()
+    PropertyGathererMessageSerializer::PropertyGathererMessageSerializer()
     {
 
     }
 
-    MessageSerializer::~MessageSerializer()
+    PropertyGathererMessageSerializer::~PropertyGathererMessageSerializer()
     {
 
     }
 
-    void MessageSerializer::SerializeHeader(Header_T& header, std::vector<uint8_t>& outBuff)
+    void PropertyGathererMessageSerializer::SerializeHeader(Header_T& header, std::vector<uint8_t>& outBuff)
     {
         uint8_t bufSize = outBuff.size();
 
@@ -32,7 +32,7 @@ namespace PropertyGatherer
         bufSize = outBuff.size(); 
     }
 
-    uint16_t MessageSerializer::Serialize(GetValueReq_T& pMessage, std::vector<uint8_t>& outBuff)
+    uint16_t PropertyGathererMessageSerializer::Serialize(GetValueReq_T& pMessage, std::vector<uint8_t>& outBuff)
     {
         SerializeHeader(pMessage.header, outBuff);
         uint16_t bufSize = outBuff.size();
@@ -58,7 +58,7 @@ namespace PropertyGatherer
         return bufSize;
     }
 
-    uint16_t MessageSerializer::Serialize(GetValueReply_T& pMessage, std::vector<uint8_t>& outBuff)
+    uint16_t PropertyGathererMessageSerializer::Serialize(GetValueReply_T& pMessage, std::vector<uint8_t>& outBuff)
     {
         SerializeHeader(pMessage.header, outBuff);
         uint16_t bufSize = outBuff.size();
@@ -78,7 +78,7 @@ namespace PropertyGatherer
         return bufSize;
     }
 
-    uint16_t MessageSerializer::SerializeVariant(const PropertyStorageVariant& variant, std::vector<uint8_t>& outBuff)
+    uint16_t PropertyGathererMessageSerializer::SerializeVariant(const PropertyStorageVariant& variant, std::vector<uint8_t>& outBuff)
     {
         // Serialize the type index (or type identifier)
          uint8_t typeIndex = static_cast<uint8_t>(variant.index());
@@ -115,7 +115,7 @@ namespace PropertyGatherer
         }, variant);
     }
 
-    void MessageSerializer::DeserializeHeader(Header_T& header, std::vector<uint8_t>& msgBuf)
+    void PropertyGathererMessageSerializer::DeserializeHeader(Header_T& header, std::vector<uint8_t>& msgBuf)
     {
         uint8_t bufIndex = 0;
 
@@ -132,7 +132,7 @@ namespace PropertyGatherer
         bufIndex += sizeof(header.messageId);
     }
 
-    bool MessageSerializer::Deserialize(GetValueReq_T& pMessage, std::vector<uint8_t>& msgBuf)
+    bool PropertyGathererMessageSerializer::Deserialize(GetValueReq_T& pMessage, std::vector<uint8_t>& msgBuf)
     {
         DeserializeHeader(pMessage.header, msgBuf);
         uint16_t bufIndex = sizeof(pMessage.header);
@@ -156,7 +156,7 @@ namespace PropertyGatherer
         return true;
     }
 
-    bool MessageSerializer::Deserialize(GetValueReply_T& pMessage, std::vector<uint8_t>& msgBuf)
+    bool PropertyGathererMessageSerializer::Deserialize(GetValueReply_T& pMessage, std::vector<uint8_t>& msgBuf)
     {
         DeserializeHeader(pMessage.header, msgBuf);
         uint16_t bufIndex = sizeof(pMessage.header);
@@ -174,7 +174,7 @@ namespace PropertyGatherer
         return true;
     }
 
-    PropertyStorageVariant MessageSerializer::DeserializeVariant(std::vector<uint8_t>& inBuff, uint16_t& index)
+    PropertyStorageVariant PropertyGathererMessageSerializer::DeserializeVariant(std::vector<uint8_t>& inBuff, uint16_t& index)
     {
         // Read the type index (which type was serialized)
         uint8_t typeIndex = inBuff[index++];

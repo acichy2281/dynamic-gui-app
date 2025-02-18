@@ -11,7 +11,7 @@
 #include <inttypes.h>
 
 /* Project Includes */
-#include "messages.h"
+#include "property_gatherer_messages.h"
 
 namespace PropertyGatherer
 {
@@ -22,7 +22,7 @@ namespace PropertyGatherer
             ~PropertyConsumer_C();
 
         private:
-            MessageSerializer _msgSerializer; 
+            PropertyGathererMessageSerializer _msgSerializer; 
     };
 }
 

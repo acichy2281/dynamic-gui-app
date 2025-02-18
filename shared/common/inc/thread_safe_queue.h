@@ -6,6 +6,12 @@
 #include <memory>
 #include <iostream>
 
+struct Message_T
+{
+    std::unique_ptr<char[]> data;
+    uint16_t size;
+};
+
 template <typename QueueType>
 class ThreadSafeQueue_C
 {

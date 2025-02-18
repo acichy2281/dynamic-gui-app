@@ -1,6 +1,11 @@
 #ifndef CUSTOM_TYPES_H
 #define CUSTOM_TYPES_H
 
+#define GUI_PROTOCOL_ID_HIGH 0
+#define GUI_PROTOCOL_ID_LOW 0x0F
+#define PROPERTY_GATHERER_PROTOCOL_ID_HIGH 0
+#define PROPERTY_GATHERER_PROTOCOL_ID_LOW 0xFF
+
 /* System includes */
 #include <any>
 
@@ -21,5 +26,12 @@ struct WidgetInfo_T
 {
     WidgetTypes_E   type; 
     std::any        value;
+};
+
+
+struct PortInfo_T
+{
+    std::string destIp;
+    uint16_t destPort;
 };
 #endif // CUSTOM_TYPES_H

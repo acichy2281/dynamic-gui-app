@@ -4,7 +4,8 @@
 #include "stdafx.h"
 #include "gui_window.h"
 
-class DynamicGui_C 
+
+class DynamicGui_C : GuiProtocol::GuiServer_C
 {
     public: 
         DynamicGui_C();
@@ -57,9 +58,15 @@ class DynamicGui_C
          */
         void DeInitialize();
 
+        /* Gui Server functions  */
+        void RunGuiServer();
+        void GuiServer_OnWidgetListRequestReceived() override;
+        int32_t GuiServer_SendMessage(const std::vector<uint8_t>& message) override;
+
         /* Variables */
         bool                                                    _isRunning                      = false;
         bool                                                    _initialized                    = false;
+        std::shared_ptr<TransportInterface>                     _transport;
         // uint16_t                                                _widgetKeyCount                 = 0;
         // std::map<uint16_t, WidgetInfo_T>                        _widgetMap;
         std::vector<GuiWindow_C>                                _windowList;
@@ -71,6 +78,8 @@ class DynamicGui_C
         // std::string                                             _widgetWindowName;
         SDL_GLContext                                           _glContext;
         SDL_Window*                                             _window;
+        PortInfo_T                                              _guiClientPortInfo;
+        uint32_t                                                _rxBufferSize;
 
 };
 

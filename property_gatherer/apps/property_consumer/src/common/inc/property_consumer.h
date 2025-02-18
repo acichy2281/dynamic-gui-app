@@ -4,27 +4,15 @@
 #include "stdafx.h"
 #include "transport_factory.h"
 
-struct PropertyProducerInfo_T
-{
-    std::string destIp;
-    uint16_t destPort;
-};
-
-struct GuiAppInfo_T
-{
-    std::string destIp;
-    uint16_t destPort;
-};
-
 struct PropertyConsumerInitParams_C
 {
-    PropertyProducerInfo_T producerInfo;
-    GuiAppInfo_T guiAppInfo;
+    PortInfo_T producerInfo;
+    PortInfo_T guiAppInfo;
     std::string myIp;
     uint16_t myPort;
 };
 
-class PropertyConsumer_C 
+class PropertyConsumer_C : GuiProtocol::GuiClient_C
 {
     public:
         PropertyConsumer_C(PropertyConsumerInitParams_C initParams);
@@ -34,10 +22,16 @@ class PropertyConsumer_C
         void UpdateGuiWidget();
 
     private:
+        int32_t GuiClient_SendMessage(const std::vector<uint8_t>& message) override;
+        void GuiClient_OnWidgetListReplyReceived(GuiProtocol::WidgetReplyStatus_E status) override;
         std::shared_ptr<TransportInterface> _transport;
-        PropertyProducerInfo_T _producerInfo;
-        GuiAppInfo_T _guiAppInfo;
+        PortInfo_T _producerInfo;
+        PortInfo_T _guiAppInfo;
         bool _isQuit = false;
+        bool _widgetListReceived = false;
+        uint32_t _rxBufferSize;
+        std::string _guiAppDevKey;
+        std::string _producerAppDevKey;
 };
 
 #endif // PROPERTY_CONSUMER_H
