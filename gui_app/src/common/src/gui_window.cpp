@@ -40,6 +40,7 @@ bool GuiWindow_C::GetWidgetAt(uint16_t key, std::shared_ptr<WidgetInterface_I>& 
 {
     bool retVal = false;
     auto it = _widgetList.find(key);
+
     if (it != _widgetList.end())
     {
         outWidget = it->second;

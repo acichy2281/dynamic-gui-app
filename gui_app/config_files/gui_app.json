@@ -21,6 +21,16 @@
                     "Value" : "Sample Text 2"
                 }
             ]
+        },
+        {
+            "Title" : "Other Type Of Widget",
+            "WidgetList":
+            [
+                {
+                    "Type": "Button",
+                    "Value": "Test Button"
+                }
+            ]
         }
     ]
 }

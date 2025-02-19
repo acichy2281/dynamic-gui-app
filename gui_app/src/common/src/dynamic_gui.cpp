@@ -2,6 +2,8 @@
 #include "stdafx.h"
 #include "dynamic_gui.h"
 #include "widget_text.h"
+#include "widget_button.h"
+#include "widget_slider.h"
 
 
 DynamicGui_C::DynamicGui_C()
@@ -174,6 +176,7 @@ bool DynamicGui_C::ShowGui()
                 _isRunning = false;
             }
         }
+        
         if (SDL_GetWindowFlags(_window) & SDL_WINDOW_MINIMIZED)
         {
             SDL_Delay(10);
@@ -206,7 +209,7 @@ bool DynamicGui_C::ShowGui()
         for (auto& window : _windowList)
         {
             std::shared_ptr<WidgetInterface_I> widget;
-
+            /*
             if (true == window.GetWidgetAt(0, widget))
             {
                 if (auto textWidget = std::dynamic_pointer_cast<WidgetText_C>(widget))
@@ -214,6 +217,14 @@ bool DynamicGui_C::ShowGui()
                     textWidget->SetWidgetValue("Updating int: %" PRIu16, testPrintInt);
                 }
             }
+            */
+           if (true == window.GetWidgetAt(0, widget))
+           {
+                if (auto buttonWidget = std::dynamic_pointer_cast<WidgetButton_C>(widget))
+                {
+                    
+                }
+           }
             window.ShowWindow();
         }
         testPrintInt++;
@@ -284,6 +295,7 @@ void DynamicGui_C::ParseJsonData()
             // WidgetInfo_T widgetInfo;
             std::string widgetTypeStr = widget["Type"];
             std::regex textBoxRegex("text", std::regex_constants::icase);
+            std::regex buttonRegex("button", std::regex_constants::icase);
 
             if (true == std::regex_search(widgetTypeStr, textBoxRegex))
             {
@@ -299,6 +311,18 @@ void DynamicGui_C::ParseJsonData()
                 // std::cout << "Adding text widget to Main Window " << std::any_cast<std::string>(widgetInfo.value) << "\n";
                 std::cout << "Adding text widget to Main Window\n";
             }
+            else if (true == std::regex_search(widgetTypeStr, buttonRegex))
+            {
+                auto newWidget = std::make_shared<WidgetButton_C>();
+                newWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
+                newWindow.AddWidget(newWidget);
+                std::cout << "Adding button widget to window\n";
+            }
+            else {
+                std::cout << "Unfamiliar widget\n";
+            }
+
+
             // _widgetMap[_widgetKeyCount] = widgetInfo;
             // _widgetKeyCount++;
             // std::cout << "Widget Count: " << _widgetKeyCount << "\n";

@@ -19,7 +19,9 @@ void WidgetButton_C::ShowWidget()
     {
         // Do button stuff 
         // I am not 100% sure how to go about this at the moment, but when the button is clicked it returns true, so button suff goes here
-        
+    }
+    else
+    {
     }
 }
 

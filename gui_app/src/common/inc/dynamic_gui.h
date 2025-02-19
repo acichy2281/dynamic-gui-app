@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "gui_window.h"
+#include "event_interface.h"
 
 class DynamicGui_C 
 {
@@ -71,6 +72,8 @@ class DynamicGui_C
         // std::string                                             _widgetWindowName;
         SDL_GLContext                                           _glContext;
         SDL_Window*                                             _window;
+
+        std::vector<EventInterface_I>                           _eventQueue;
 
 };
 
