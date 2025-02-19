@@ -292,8 +292,9 @@ void DynamicGui_C::ParseJsonData()
 
                 auto newWidget = std::make_shared<WidgetText_C>();
                 newWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
-                auto widgetId = newWindow.AddWidget(newWidget);
-                newWidget->AssignId(widgetId);
+                //auto widgetId = 
+                newWindow.AddWidget(newWidget);
+                //newWidget->AssignId(widgetId);
 
                 // std::cout << "Adding text widget to Main Window " << std::any_cast<std::string>(widgetInfo.value) << "\n";
                 std::cout << "Adding text widget to Main Window\n";
