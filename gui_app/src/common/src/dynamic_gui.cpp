@@ -1,7 +1,8 @@
 /* Project includes */
 #include "stdafx.h"
 #include "dynamic_gui.h"
-#include "text_widget.h"
+#include "widget_text.h"
+
 
 DynamicGui_C::DynamicGui_C()
 {
@@ -205,7 +206,7 @@ bool DynamicGui_C::ShowGui()
             std::shared_ptr<WidgetInterface_I> widget;
             if (true == window.GetWidgetAt(0, widget))
             {
-                if (auto textWidget = std::dynamic_pointer_cast<TextWidget_C>(widget))
+                if (auto textWidget = std::dynamic_pointer_cast<WidgetText_C>(widget))
                 {
                     textWidget->SetWidgetValue("Updating int: %" PRIu16, testPrintInt);
                 }
@@ -284,7 +285,7 @@ void DynamicGui_C::ParseJsonData()
                 // widgetInfo.type = WidgetTypes_E::TEXT;
                 // widgetInfo.value = std::string(widget["Value"]);
 
-                auto newWidget = std::make_shared<TextWidget_C>();
+                auto newWidget = std::make_shared<WidgetText_C>();
                 newWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
                 newWindow.AddWidget(newWidget);
 

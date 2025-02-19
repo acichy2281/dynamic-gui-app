@@ -4,11 +4,14 @@
 #include "stdafx.h"
 #include "widget_interface.h"
 
-class ButtonWidget_C : public WidgetInterface_I
+class WidgetButton_C : public WidgetInterface_I
 {
 public:
-    ButtonWidget_C();
-    ~ButtonWidget_C();
+    WidgetButton_C();
+    ~WidgetButton_C();
+
+    WidgetTypes_E GetType();
+
     void ShowWidget() override;
     bool SetWidgetValue(const char* label);
 

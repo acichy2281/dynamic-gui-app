@@ -4,13 +4,15 @@
 #include "stdafx.h"
 #include "widget_interface.h"
 
-class TextWidget_C : public WidgetInterface_I
+class WidgetText_C : public WidgetInterface_I
 {
     public:
-        TextWidget_C();
-        ~TextWidget_C();
+        WidgetText_C();
+        ~WidgetText_C();
         void ShowWidget() override;
         bool SetWidgetValue(const char* format, ...);
+
+        WidgetTypes_E GetType();
 
     private:
         std::string _widgetText;

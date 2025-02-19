@@ -4,11 +4,14 @@
 #include "stdafx.h"
 #include "widget_interface.h"
 
-class SliderWidget_C : public WidgetInterface_I
+class WidgetSlider_C : public WidgetInterface_I
 {
 public:
-    SliderWidget_C();
-    ~SliderWidget_C();
+    WidgetSlider_C();
+    ~WidgetSlider_C();
+
+    WidgetTypes_E GetType();
+
     void ShowWidget() override;
     bool SetWidgetValue(const char* label, float* value, float min, float max);
 

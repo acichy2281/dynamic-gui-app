@@ -1,24 +1,29 @@
 /* Project includes */
 #include "stdafx.h"
-#include "slider_widget.h"
+#include "widget_slider.h"
 
-SliderWidget_C::SliderWidget_C()
+WidgetSlider_C::WidgetSlider_C()
 {
 
 }
 
-SliderWidget_C::~SliderWidget_C()
+WidgetSlider_C::~WidgetSlider_C()
 {
 
 }
 
-void SliderWidget_C::ShowWidget()
+WidgetTypes_E WidgetSlider_C::GetType()
+{
+    return WidgetTypes_E::SLIDER;
+}
+
+void WidgetSlider_C::ShowWidget()
 {
     // ShowWidget override
     ImGui::SliderFloat(_sliderLabel.c_str(), &_sliderValue, _sliderMin, _sliderMax);
 }
 
-bool SliderWidget_C::SetWidgetValue(const char* label, float* value, float min, float max)
+bool WidgetSlider_C::SetWidgetValue(const char* label, float* value, float min, float max)
 {
     // Check for invalid input for the slider values, abort if so
     if (!label || !value || min >= max)

@@ -1,18 +1,23 @@
 /* Project includes */
 #include "stdafx.h"
-#include "button_widget.h"
+#include "widget_button.h"
 
-ButtonWidget_C::ButtonWidget_C()
+WidgetButton_C::WidgetButton_C()
 {
 
 }
 
-ButtonWidget_C::~ButtonWidget_C()
+WidgetButton_C::~WidgetButton_C()
 {
 
 }
 
-void ButtonWidget_C::ShowWidget()
+WidgetTypes_E WidgetButton_C::GetType()
+{
+    return WidgetTypes_E::BUTTON;
+}
+
+void WidgetButton_C::ShowWidget()
 {
     // ShowWidget override
     if (ImGui::Button(_buttonLabel.c_str())) 
@@ -23,7 +28,7 @@ void ButtonWidget_C::ShowWidget()
     }
 }
 
-bool ButtonWidget_C::SetWidgetValue(const char* label)
+bool WidgetButton_C::SetWidgetValue(const char* label)
 {
     if (!label)
     {
