@@ -25,7 +25,7 @@ void ButtonWidget_C::ShowWidget()
 
 bool ButtonWidget_C::SetWidgetValue(const char* label)
 {
-    if (!label || !value)
+    if (!label)
     {
         _buttonLabel.clear();
         return false;
