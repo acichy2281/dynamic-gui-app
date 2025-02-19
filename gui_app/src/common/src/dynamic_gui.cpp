@@ -222,7 +222,7 @@ bool DynamicGui_C::ShowGui()
            {
                 if (auto buttonWidget = std::dynamic_pointer_cast<WidgetButton_C>(widget))
                 {
-                    
+
                 }
            }
             window.ShowWindow();
@@ -296,6 +296,7 @@ void DynamicGui_C::ParseJsonData()
             std::string widgetTypeStr = widget["Type"];
             std::regex textBoxRegex("text", std::regex_constants::icase);
             std::regex buttonRegex("button", std::regex_constants::icase);
+            std::regex sliderRegex("slider", std::regex_constants::icase);
 
             if (true == std::regex_search(widgetTypeStr, textBoxRegex))
             {
@@ -314,9 +315,17 @@ void DynamicGui_C::ParseJsonData()
             else if (true == std::regex_search(widgetTypeStr, buttonRegex))
             {
                 auto newWidget = std::make_shared<WidgetButton_C>();
-                newWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
+                newWidget->SetWidgetValue(std::string(widget["Text"]).c_str());
                 newWindow.AddWidget(newWidget);
                 std::cout << "Adding button widget to window\n";
+            }
+            else if (true == std::regex_search(widgetTypeStr, sliderRegex))
+            {
+                auto newWidget = std::make_shared<WidgetSlider_C>();
+                float * value = new float(widget["Value"].get<float>());
+                newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), value, widget["MinValue"].get<float>(), widget["MaxValue"].get<float>());
+                newWindow.AddWidget(newWidget);
+                std::cout << "Adding slider to window\n";
             }
             else {
                 std::cout << "Unfamiliar widget\n";

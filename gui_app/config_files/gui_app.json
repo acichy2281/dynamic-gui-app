@@ -28,7 +28,20 @@
             [
                 {
                     "Type": "Button",
-                    "Value": "Test Button"
+                    "Text": "Test Button"
+                }
+            ]
+        },
+        {
+            "Title" : "Slider Demo",
+            "WidgetList":
+            [
+                {
+                    "Type": "Slider",
+                    "Text": "Slider Demo",
+                    "Value": 50.0,
+                    "MaxValue": 100.0,
+                    "MinValue": 0.0
                 }
             ]
         }
