@@ -24,10 +24,9 @@ namespace GuiProtocol
     {
         if (false == _msgQueue.IsQueueEmpty())
         {
-            auto msg = _msgQueue.GetMessageFromQueue();
-            // Process msg based on msg id 
+            ProcessReceivedMessageQueue();
         }
-        else 
+        else
         {
             ProcessStateMachine();
         }
@@ -73,17 +72,17 @@ namespace GuiProtocol
                 break;
 
             case GuiServerState_E::WIDGET_LIST_POPULATED:
-                
+
                 if (true == _widgetListReplySent)
                 {
                     _state = GuiServerState_E::WIDGET_LIST_REPLY_SENT;
-                } 
+                }
                 break;
 
             case GuiServerState_E::WIDGET_LIST_REPLY_SENT:
-                
+
                 break;
-                
+
             default:
                 break;
         }
@@ -98,7 +97,7 @@ namespace GuiProtocol
             case MessageID_E::WIDGET_LIST_REQ:
                 ProcessReceivedWidgetListRequest();
                 break;
-            
+
             default:
                 break;
         }
@@ -110,14 +109,14 @@ namespace GuiProtocol
         {
             std::vector<uint8_t> buffer;
             _msgSerializer.Serialize(GetWidgetListReply(_descList), buffer);
-            if (0 > GuiServer_SendMessage(buffer))
+            if (0 < GuiServer_SendMessage(buffer))
             {
                 _widgetListReplySent = true;
             }
         }
         else if (GuiServerState_E::WIDGET_LIST_POPULATED == _state)
         {
-            
+
         }
     }
 }

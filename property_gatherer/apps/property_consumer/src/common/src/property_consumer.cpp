@@ -17,9 +17,10 @@ PropertyConsumer_C::~PropertyConsumer_C()
 
 void PropertyConsumer_C::RunTest()
 {
-    if (GuiProtocol::GuiClientReqStatus_E::SUCCESS != GuiClient_SendWidgetListRequest())
+    auto guiClientStatus = GuiClient_SendWidgetListRequest();
+    if (GuiProtocol::GuiClientReqStatus_E::SUCCESS != guiClientStatus)
     {
-        std::cout << "Failed to request widget list\n";
+        std::cout << "Failed to request widget list, error: " << static_cast<uint8_t>(guiClientStatus) << "\n";
     }
     while (false == _isQuit)
     {
@@ -28,6 +29,7 @@ void PropertyConsumer_C::RunTest()
             HandleMessage();
         }
         GuiClient_ProcessTimedActivities();
+        _isQuit = IsUserQuit();
     }
 }
 
@@ -39,9 +41,15 @@ void PropertyConsumer_C::HandleMessage()
     auto msgSize = _transport->ReceiveMessage(msgBuf, _rxBufferSize, senderIp, senderPort);
     std::string devKey = senderIp + ":" + std::to_string(senderPort);
 
+    std::cout << "Received " << msgSize << " bytes from " << devKey << "\n";
     if (_guiAppDevKey == devKey)
     {
+        std::cout << "Processing Gui Client msg\n";
         GuiClient_ProcessReceivedMessage(msgBuf, msgSize);
+    }
+    else
+    {
+        std::cout << "Unknown sender, known senders: " << _guiAppDevKey << ", " << _producerAppDevKey << "\n";
     }
 }
 

@@ -24,14 +24,14 @@ namespace GuiProtocol
     {
         if (false == _msgQueue.IsQueueEmpty())
         {
-            auto msg = _msgQueue.GetMessageFromQueue();
-            // Process msg based on msg id 
+            ProcessReceivedMessageQueue();
+            // Process msg based on msg id
         }
         else if (false == _updatedWidgets.empty())
         {
 
         }
-        else 
+        else
         {
             ProcessStateMachine();
         }
@@ -42,12 +42,14 @@ namespace GuiProtocol
         GuiClientReqStatus_E retVal = GuiClientReqStatus_E::ERROR;
         if (GuiClientState_E::INITIALIZED == _state)
         {
+            std::cout << "Sending Widget List request\n";
             std::vector<uint8_t> buffer;
             _msgSerializer.Serialize(GetWidgetListRequest(), buffer);
-            if (0 > GuiClient_SendMessage(buffer))
+            if (0 < GuiClient_SendMessage(buffer))
             {
                 _widgetListRequested = true;
                 retVal = GuiClientReqStatus_E::SUCCESS;
+                std::cout << "Sent Widget List request\n";
             }
             else
             {
@@ -97,20 +99,20 @@ namespace GuiProtocol
                 if (true == _widgetListRequested)
                 {
                     _state = GuiClientState_E::WIDGET_LIST_REQUESTED;
-                } 
+                }
                 break;
 
             case GuiClientState_E::WIDGET_LIST_REQUESTED:
-                // Check for a timeout 
+                // Check for a timeout
                 if (true == _widgetListReceived)
                 {
                     _state = GuiClientState_E::WIDGET_LIST_RECEIVED;
-                } 
+                }
                 break;
 
             case GuiClientState_E::WIDGET_LIST_RECEIVED:
                 break;
-                
+
             default:
                 break;
         }
@@ -125,7 +127,7 @@ namespace GuiProtocol
             case MessageID_E::WIDGET_LIST_REPLY:
                 ProcessReceivedWidgetListReply(msg);
                 break;
-            
+
             default:
                 break;
         }
@@ -160,7 +162,7 @@ namespace GuiProtocol
             auto it = _widgetList.find(widget);
             if (it != _widgetList.end())
             {
-                // Send a Widget Set Value 
+                // Send a Widget Set Value
             }
         }
     }

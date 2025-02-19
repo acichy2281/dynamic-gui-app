@@ -18,12 +18,12 @@ class PropertyConsumer_C : GuiProtocol::GuiClient_C
         PropertyConsumer_C(PropertyConsumerInitParams_C initParams);
         ~PropertyConsumer_C();
         void RunTest();
-        void HandleMessage();
         void UpdateGuiWidget();
 
     private:
-        int32_t GuiClient_SendMessage(const std::vector<uint8_t>& message) override;
+        int32_t GuiClient_SendMessage(const std::vector<uint8_t> &message) override;
         void GuiClient_OnWidgetListReplyReceived(GuiProtocol::WidgetReplyStatus_E status) override;
+        void HandleMessage();
         std::shared_ptr<TransportInterface> _transport;
         PortInfo_T _producerInfo;
         PortInfo_T _guiAppInfo;

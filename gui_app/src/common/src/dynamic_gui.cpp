@@ -6,6 +6,10 @@
 DynamicGui_C::DynamicGui_C()
 {
     _rxBufferSize = 2048;
+    _transport = UdpTransportFactory::CreateTransport();
+    _transport->InitializeSocket("127.0.0.1", 8001);
+    _guiClientPortInfo.destIp = "127.0.0.1";
+    _guiClientPortInfo.destPort = 8000;
 }
 
 
@@ -28,7 +32,7 @@ bool DynamicGui_C::Run()
     {
         std::cout << "Failed to show GUI window\n";
     }
-    else 
+    else
     {
         std::cout << "Exiting GUI App\n";
         retVal = true;
@@ -38,7 +42,7 @@ bool DynamicGui_C::Run()
 
 bool DynamicGui_C::SetConfigFile(const std::string& configFilePath)
 {
-    bool retVal = false; 
+    bool retVal = false;
     _configFilePath = configFilePath;
     _configFile.open(_configFilePath);
 
@@ -46,14 +50,14 @@ bool DynamicGui_C::SetConfigFile(const std::string& configFilePath)
     {
         _jsonData = nlohmann::json::parse(_configFile);
         ParseJsonData();
-        retVal = true; 
+        retVal = true;
     }
     return retVal;
 }
 
 bool DynamicGui_C::Initialize()
 {
-    bool retVal = false; 
+    bool retVal = false;
     // Setup SDL
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
     {
@@ -106,8 +110,6 @@ bool DynamicGui_C::Initialize()
 
 bool DynamicGui_C::ShowGui()
 {
-    std::thread guiServerThread(&DynamicGui_C::RunGuiServer, this);
-
     bool retVal = false;
 
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
@@ -138,7 +140,7 @@ bool DynamicGui_C::ShowGui()
     // Setup Platform/Renderer backends
     ImGui_ImplSDL3_InitForOpenGL(_window, _glContext);
     ImGui_ImplOpenGL3_Init(_glslVersion.c_str());
-    
+
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
@@ -147,6 +149,7 @@ bool DynamicGui_C::ShowGui()
     // Main loop
     _isRunning = true;
     std::cout << "Running GUI App\n";
+    std::thread guiServerThread(&DynamicGui_C::RunGuiServer, this);
     uint16_t testPrintInt = 0;
 #ifdef __EMSCRIPTEN__
     // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
@@ -195,7 +198,7 @@ bool DynamicGui_C::ShowGui()
         //         case WidgetTypes_E::TEXT:
         //             ImGui::Text(std::any_cast<std::string>(widget.value).c_str());
         //             break;
-                
+
         //         default:
         //             break;
         //     }
@@ -328,6 +331,7 @@ void DynamicGui_C::DeInitialize()
 
 void DynamicGui_C::RunGuiServer()
 {
+    std::cout << "Running GUI Server\n";
     while (true == _isRunning)
     {
         if (true == _transport->PollReceiveSocket())
@@ -336,10 +340,12 @@ void DynamicGui_C::RunGuiServer()
             uint16_t senderPort;
             auto msgBuf = std::make_unique<char []>(_rxBufferSize);
             auto msgSize = _transport->ReceiveMessage(msgBuf, _rxBufferSize, senderIp, senderPort);
+            std::cout << "GUI Server received " << msgBuf << " bytes UDP msg from " << senderIp << ":" << senderPort << "\n";
 
             GuiServer_ProcessReceivedMessage(msgBuf, msgSize);
         }
         GuiServer_ProcessTimedActivities();
+        SleepMs(10);
     }
 }
 

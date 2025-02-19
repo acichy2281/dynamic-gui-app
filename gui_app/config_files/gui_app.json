@@ -4,7 +4,7 @@
     [
         {
             "Title" : "WidgetWindow1",
-            "WidgetList": 
+            "WidgetList":
             [
                 {
                     "Name" : "Generic Text box 1",
@@ -15,10 +15,10 @@
         },
         {
             "Title" : "WidgetWindow2",
-            "WidgetList": 
+            "WidgetList":
             [
                 {
-                    "Name" : "Generic Text box 1",
+                    "Name" : "Generic Text box 2",
                     "Type" : "Text",
                     "Value" : "Sample Text 2"
                 }

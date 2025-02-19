@@ -5,14 +5,14 @@ namespace GuiProtocol
     WidgetListRequest_T GetWidgetListRequest()
     {
         WidgetListRequest_T retVal;
-        retVal.header.messageId = static_cast<uint8_t>(MessageID_E::WIDGET_LIST_REQ);
+        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::WIDGET_LIST_REQ);
         return retVal;
     }
 
     WidgetListReply_T GetWidgetListReply(std::vector<WidgetDescriptor_T>& descList)
     {
         WidgetListReply_T retVal;
-        retVal.header.messageId = static_cast<uint8_t>(MessageID_E::WIDGET_LIST_REPLY);
+        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::WIDGET_LIST_REPLY);
         retVal.numWidgets = descList.size();
         retVal.widgetDescriptorList = descList;
         retVal.status = static_cast<uint16_t>(WidgetReplyStatus_E::SUCCESS);
@@ -36,17 +36,17 @@ namespace GuiProtocol
         /* Serialize Protocol ID High */
         outBuff.resize(bufSize + sizeof(header.protocolIdHigh));
         std::memcpy(outBuff.data() + bufSize, &header.protocolIdHigh, sizeof(header.protocolIdHigh));
-        bufSize = outBuff.size(); 
+        bufSize = outBuff.size();
 
         /* Serialize Protocol ID Low */
         outBuff.resize(bufSize + sizeof(header.protocolIdLow));
         std::memcpy(outBuff.data() + bufSize, &header.protocolIdLow, sizeof(header.protocolIdLow));
-        bufSize = outBuff.size(); 
+        bufSize = outBuff.size();
 
         /* Serialize Message ID */
         outBuff.resize(bufSize + sizeof(header.messageId));
         std::memcpy(outBuff.data() + bufSize, &header.messageId, sizeof(header.messageId));
-        bufSize = outBuff.size(); 
+        bufSize = outBuff.size();
     }
 
     uint16_t GuiProtocolMessageSerializer::Serialize(WidgetListRequest_T& pMessage, std::vector<uint8_t>& outBuff)
@@ -64,7 +64,7 @@ namespace GuiProtocol
         /* Serialize Number of Widgets */
         outBuff.resize(bufSize + sizeof(pMessage.numWidgets));
         std::memcpy(outBuff.data() + bufSize, &pMessage.numWidgets, sizeof(pMessage.numWidgets));
-        bufSize = outBuff.size(); 
+        bufSize = outBuff.size();
 
         /* Serialize List of Widget Descriptors */
         for (auto& widgetDesc : pMessage.widgetDescriptorList)
@@ -76,11 +76,11 @@ namespace GuiProtocol
         bufSize = outBuff.size();
         outBuff.resize(bufSize + sizeof(pMessage.status));
         std::memcpy(outBuff.data() + bufSize, &pMessage.status, sizeof(pMessage.status));
-        bufSize = outBuff.size(); 
-        
+        bufSize = outBuff.size();
+
         return bufSize;
     }
-    
+
     uint16_t GuiProtocolMessageSerializer::SerializeWidgetDescriptor(WidgetDescriptor_T& pDesc, std::vector<uint8_t>& outBuff)
     {
         uint16_t bufSize = outBuff.size();
@@ -91,9 +91,9 @@ namespace GuiProtocol
         bufSize = outBuff.size();
 
         /* Serialize Flags + Widget Type (2 bytes total) */
-        uint8_t packedFlags = 
-        (static_cast<uint16_t>(pDesc.isInteractable) << 7) | 
-        (static_cast<uint16_t>(pDesc.isStatic) << 6) | 
+        uint8_t packedFlags =
+        (static_cast<uint16_t>(pDesc.isInteractable) << 7) |
+        (static_cast<uint16_t>(pDesc.isStatic) << 6) |
         (pDesc.reserved & 0x3F);
         outBuff.push_back(packedFlags);
 
@@ -185,7 +185,7 @@ namespace GuiProtocol
         {
             ++offset;
         }
-    
+
         if (offset < msgBuf.size()) // If null terminator found
         {
             pDesc.widgetName = std::string(reinterpret_cast<const char*>(&msgBuf[startIdx]), offset - startIdx);
