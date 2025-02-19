@@ -13,5 +13,5 @@ EventButtonPress_C::~EventButtonPress_C()
 
 EventTypes_E EventButtonPress_C::GetType()
 {
-	return EventTypes_E::SLIDER_SET;
+	return EventTypes_E::BUTTON_PRESS;
 }

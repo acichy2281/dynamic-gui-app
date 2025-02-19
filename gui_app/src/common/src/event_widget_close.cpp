@@ -13,5 +13,5 @@ EventWidgetClose_C::~EventWidgetClose_C()
 
 EventTypes_E EventWidgetClose_C::GetType()
 {
-	return EventTypes_E::SLIDER_SET;
+	return EventTypes_E::WIDGET_CLOSE;
 }
