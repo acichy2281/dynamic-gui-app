@@ -12,8 +12,8 @@ class WidgetText_C : public WidgetInterface_I
         void ShowWidget() override;
         bool SetWidgetValue(const char* format, ...);
 
-        WidgetTypes_E GetType();
-        void AssignId(uint16_t widgetId);
+        WidgetTypes_E GetType() override;
+        void AssignId(uint16_t widgetId) override;
     
     private:
         uint16_t _id;
