@@ -5,7 +5,7 @@
 
 WidgetText_C::WidgetText_C()
 {
-
+    this->_id = -1;
 }
 
 WidgetText_C::~WidgetText_C()
@@ -13,10 +13,6 @@ WidgetText_C::~WidgetText_C()
 
 }
 
-WidgetTypes_E WidgetText_C::GetType()
-{
-    return WidgetTypes_E::TEXT;
-}
 
 void WidgetText_C::ShowWidget()
 {
@@ -47,3 +43,13 @@ bool WidgetText_C::SetWidgetValue(const char* format, ...)
     return true;
 }
 
+
+WidgetTypes_E WidgetText_C::GetType()
+{
+    return WidgetTypes_E::TEXT;
+}
+
+void WidgetText_C::AssignId(uint16_t widgetId)
+{
+    this->_id = widgetId;
+}

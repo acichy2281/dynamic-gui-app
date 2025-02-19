@@ -10,12 +10,14 @@ public:
     WidgetSlider_C();
     ~WidgetSlider_C();
 
-    WidgetTypes_E GetType();
-
     void ShowWidget() override;
     bool SetWidgetValue(const char* label, float* value, float min, float max);
 
+    WidgetTypes_E GetType();
+    void AssignId(uint16_t widgetId);
+
 private:
+    uint16_t _id;
     std::string _sliderLabel;
     float _sliderValue;
     float _sliderMin;

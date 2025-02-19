@@ -184,7 +184,8 @@ bool DynamicGui_C::ShowGui()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
-
+        
+        /*
         // ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
         // ImGui::Begin(_widgetWindowName.c_str());
         // for (const auto& [key, widget] : _widgetMap)
@@ -200,10 +201,12 @@ bool DynamicGui_C::ShowGui()
         //     }
         // }
         // ImGui::End();
+        */
 
         for (auto& window : _windowList)
         {
             std::shared_ptr<WidgetInterface_I> widget;
+
             if (true == window.GetWidgetAt(0, widget))
             {
                 if (auto textWidget = std::dynamic_pointer_cast<WidgetText_C>(widget))
@@ -215,9 +218,10 @@ bool DynamicGui_C::ShowGui()
         }
         testPrintInt++;
 
+        /*
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        /*if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);*/
+        //if (show_demo_window)
+        //  ImGui::ShowDemoWindow(&show_demo_window);
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         //{
@@ -251,6 +255,7 @@ bool DynamicGui_C::ShowGui()
         //        show_another_window = false;
         //    ImGui::End();
         //}
+        */
 
         // Rendering
         ImGui::Render();
@@ -287,7 +292,8 @@ void DynamicGui_C::ParseJsonData()
 
                 auto newWidget = std::make_shared<WidgetText_C>();
                 newWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
-                newWindow.AddWidget(newWidget);
+                auto widgetId = newWindow.AddWidget(newWidget);
+                newWidget->AssignId(widgetId);
 
                 // std::cout << "Adding text widget to Main Window " << std::any_cast<std::string>(widgetInfo.value) << "\n";
                 std::cout << "Adding text widget to Main Window\n";

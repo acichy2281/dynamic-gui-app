@@ -10,12 +10,14 @@ public:
     WidgetButton_C();
     ~WidgetButton_C();
 
-    WidgetTypes_E GetType();
-
     void ShowWidget() override;
     bool SetWidgetValue(const char* label);
 
+    WidgetTypes_E GetType();
+    void AssignId(uint16_t widgetId);
+
 private:
+    uint16_t _id;
     std::string _buttonLabel;
 };
 #endif // BUTTON_WIDGET_H

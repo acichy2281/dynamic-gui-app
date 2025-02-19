@@ -4,17 +4,12 @@
 
 WidgetSlider_C::WidgetSlider_C()
 {
-
+    this->_id = -1;
 }
 
 WidgetSlider_C::~WidgetSlider_C()
 {
 
-}
-
-WidgetTypes_E WidgetSlider_C::GetType()
-{
-    return WidgetTypes_E::SLIDER;
 }
 
 void WidgetSlider_C::ShowWidget()
@@ -37,4 +32,14 @@ bool WidgetSlider_C::SetWidgetValue(const char* label, float* value, float min, 
     _sliderMin = min;
     _sliderMax = max;
     return true;
+}
+
+WidgetTypes_E WidgetSlider_C::GetType()
+{
+    return WidgetTypes_E::SLIDER;
+}
+
+void WidgetSlider_C::AssignId(uint16_t widgetId)
+{
+    this->_id = widgetId;
 }

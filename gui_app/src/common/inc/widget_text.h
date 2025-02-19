@@ -13,8 +13,10 @@ class WidgetText_C : public WidgetInterface_I
         bool SetWidgetValue(const char* format, ...);
 
         WidgetTypes_E GetType();
-
+        void AssignId(uint16_t widgetId);
+    
     private:
+        uint16_t _id;
         std::string _widgetText;
 };
 #endif // TEXT_WIDGET_H

@@ -4,17 +4,12 @@
 
 WidgetButton_C::WidgetButton_C()
 {
-
+    this->_id = -1;
 }
 
 WidgetButton_C::~WidgetButton_C()
 {
 
-}
-
-WidgetTypes_E WidgetButton_C::GetType()
-{
-    return WidgetTypes_E::BUTTON;
 }
 
 void WidgetButton_C::ShowWidget()
@@ -37,4 +32,14 @@ bool WidgetButton_C::SetWidgetValue(const char* label)
     }
     _buttonLabel = label;
     return true;
+}
+
+WidgetTypes_E WidgetButton_C::GetType()
+{
+    return WidgetTypes_E::BUTTON;
+}
+
+void WidgetButton_C::AssignId(uint16_t widgetId)
+{
+    this->_id = widgetId;
 }
