@@ -17,11 +17,8 @@ void WidgetButton_C::ShowWidget()
     // ShowWidget override
     if (ImGui::Button(_buttonLabel.c_str())) 
     {
-        // Do button stuff 
-        // I am not 100% sure how to go about this at the moment, but when the button is clicked it returns true, so button suff goes here
-    }
-    else
-    {
+        std::cout << "Button Press!\n";
+        // TODO: How do I send the event to the main window?
     }
 }
 
