@@ -2,6 +2,9 @@
 build/
 .vscode/
 
+# Config Ignore
+imgui.ini
+
 # Prerequisites
 *.d
 
