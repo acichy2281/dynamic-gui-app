@@ -33,6 +33,9 @@ bool GuiWindow_C::ShowWindow()
         ImGui::End();
         retVal = true;
     }
+    else {
+        ImGui::End();
+    }
     return retVal;
 }
 
