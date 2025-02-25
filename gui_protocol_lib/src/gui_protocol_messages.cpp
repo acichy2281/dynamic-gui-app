@@ -32,7 +32,7 @@ namespace GuiProtocol
         retVal.header.messageId = static_cast<uint16_t>(MessageID_E::PROPERTY_LIST_REPLY);
         retVal.numProperties = descList.size();
         retVal.propertyDescriptorList = descList;
-        retVal.status = static_cast<uin16_t>(WidgetReplyStatus_E::SUCCESS);
+        retVal.status = static_cast<uint16_t>(WidgetReplyStatus_E::SUCCESS);
         return retVal;
     }
 
@@ -129,6 +129,45 @@ namespace GuiProtocol
         return bufSize;
     }
 
+    uint16_t GuiProtocolMessageSerializer::Serialize(PropertyListRequest_T& pMessage, std::vector<uint8_t>& outBuff)
+    {
+        SerializeHeader(pMessage.header, outBuff);
+        uint16_t bufSize = outBuff.size();
+        return bufSize;
+    }
+
+    uint16_t GuiProtocolMessageSerializer::Serialize(PropertyListReply_T& pMessage, std::vector<uint8_t>& outBuff)
+    {
+        /* Serialize header */
+        SerializeHeader(pMessage.header, outBuff);
+        uint16_t bufSize = outBuff.size();
+
+        /* Serialize Number of Properties */
+        outBuff.resize(bufSize + sizeof(pMessage.numProperties));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.numProperties, sizeof(pMessage.numProperties));
+        bufSize = outBuff.size();
+
+        /* Serialize List of Properties */
+        for (auto& propertyDesc : pMessage.propertyDescriptorList)
+        {
+            bufSize += SerializePropertyDescriptor(propertyDesc, outBuff);
+        }
+
+        /* Serialize status */
+        bufSize = outBuff.size();
+        outBuff.resize(bufSize + sizeof(pMessage.status));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.status, sizeof(pMessage.status));
+        bufSize = outBuff.size();
+
+        return bufSize;
+    }
+
+    uint16_t GuiProtocolMessageSerializer::SerializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint8_t>& outBuf)
+    {
+        /* TODO: Implement after discussing Property descriptor */
+        return 0;
+    }
+
     void GuiProtocolMessageSerializer::DeserializeHeader(Header_T& header, std::vector<uint8_t>& msgBuf)
     {
         uint8_t bufIndex = 0;
@@ -212,5 +251,42 @@ namespace GuiProtocol
         {
             pDesc.widgetName.clear(); // Invalid string (no null terminator found)
         }
+    }
+
+    bool GuiProtocolMessageSerializer::Deserialize(PropertyListRequest_T& pMessage, std::vector<uint8_t>& msgBuf)
+    {
+        DeserializeHeader(pMessage.header, msgBuf);
+        uint16_t bufIndex = sizeof(pMessage.header);
+
+        return true;
+    }
+
+    bool GuiProtocolMessageSerializer::Deserialize(PropertyListReply_T& pMessage, std::vector<uint8_t>& msgBuf)
+    {
+        DeserializeHeader(pMessage.header, msgBuf);
+        uint16_t bufIndex = sizeof(pMessage.header);
+
+        /* Deserialize number of widgets */
+        std::memcpy(&pMessage.numProperties, msgBuf.data() + bufIndex, sizeof(pMessage.numProperties));
+        bufIndex += sizeof(pMessage.numProperties);
+
+        /* Deserialize variants */
+        for (int i = 0; i < pMessage.numProperties; i++)
+        {
+            PropertyDescriptor_T prop;
+            DeserializePropertyDescriptor(prop, msgBuf, bufIndex);
+            pMessage.propertyDescriptorList.push_back(prop);
+        }
+
+        /* Deserialize status */
+        std::memcpy(&pMessage.status, msgBuf.data() + bufIndex, sizeof(pMessage.status));
+        bufIndex += sizeof(pMessage.status);
+
+        return true;
+    }
+
+    void GuiProtocolMessageSerializer::DeserializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint8_t>& msgBuf, uint16_t& offset)
+    {
+        /* TODO: Implement deserialization of property descriptor after struct has been discussed */
     }
 }

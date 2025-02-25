@@ -116,16 +116,22 @@ namespace GuiProtocol
             /* Serialization functions */
             uint16_t Serialize(WidgetListRequest_T& pMessage, std::vector<uint8_t>& outBuff);
             uint16_t Serialize(WidgetListReply_T& pMessage, std::vector<uint8_t>& outBuff);
+            uint16_t Serialize(PropertyListRequest_T& pMessage, std::vector<uint8_t>& outBuff);
+            uint16_t Serialize(PropertyListReply_T& pMessage, std::vector<uint8_t>& outBuff);
 
             /* Deserialization functions */
             bool Deserialize(WidgetListRequest_T& pMessage, std::vector<uint8_t>& msgBuf);
             bool Deserialize(WidgetListReply_T& pMessage, std::vector<uint8_t>& msgBuf);
+            bool Deserialize(PropertyListRequest_T& pMessage, std::vector<uint8_t>& msgBuf);
+            bool Deserialize(PropertyListReply_T& pMessage, std::vector<uint8_t>& msgBuf);
 
         private:
             void SerializeHeader(Header_T& header, std::vector<uint8_t>& outBuff);
             void DeserializeHeader(Header_T& header, std::vector<uint8_t>& msgBuf);
             uint16_t SerializeWidgetDescriptor(WidgetDescriptor_T& pDesc, std::vector<uint8_t>& outBuff);
             void DeserializeWidgetDescriptor(WidgetDescriptor_T& pDesc, std::vector<uint8_t>& msgBuf, uint16_t& offset);
+            uint16_t SerializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint8_t>& outBuf);
+            void DeserializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint8_t>& msgBuf, uint16_t& offset);
     };
 }
 
