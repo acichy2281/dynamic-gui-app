@@ -81,8 +81,28 @@ namespace GuiProtocol
         WidgetValueVariant_T val;
     };
 
+    struct PropertyListRequest_T
+    {
+        Header_T header;
+    };
+
+    struct PropertyDescriptor_T
+    {
+
+    };
+
+    struct PropertyListReply_T
+    {
+        Header_T header;
+        uint16_t numProperties;
+        std::vector<PropertyDescriptor_T> propertyDescriptorList;
+        uint16_t status;
+    };
+
     WidgetListRequest_T GetWidgetListRequest();
     WidgetListReply_T GetWidgetListReply(std::vector<WidgetDescriptor_T>& descList);
+
+    
 
     class GuiProtocolMessageSerializer
     {
