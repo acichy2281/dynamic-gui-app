@@ -27,6 +27,8 @@ namespace GuiProtocol
     {
         WIDGET_LIST_REQ,
         WIDGET_LIST_REPLY,
+        PROPERTY_LIST_REQ,
+        PROPERTY_LIST_REPLY,
     };
     enum class WidgetDataTypes_E
     {
@@ -102,7 +104,8 @@ namespace GuiProtocol
     WidgetListRequest_T GetWidgetListRequest();
     WidgetListReply_T GetWidgetListReply(std::vector<WidgetDescriptor_T>& descList);
 
-    
+    PropertyListRequest_T GetPropertyListRequest();
+    PropertyListReply_T GetPropertyListRequest(std::vector<PropertyDescriptor_T>& descList);
 
     class GuiProtocolMessageSerializer
     {
