@@ -34,4 +34,5 @@ struct PortInfo_T
     std::string destIp;
     uint16_t destPort;
 };
+
 #endif // CUSTOM_TYPES_H

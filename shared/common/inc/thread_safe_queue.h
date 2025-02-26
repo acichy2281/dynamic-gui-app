@@ -46,6 +46,11 @@ class ThreadSafeQueue_C
             std::unique_lock<std::mutex> lock(_queueMutex);
             return _messageQueue.empty();
         }
+
+        size_t Size()
+        {
+            return _messageQueue.size();
+        }
     
     private:
         // Message queue for thread-safe communication.

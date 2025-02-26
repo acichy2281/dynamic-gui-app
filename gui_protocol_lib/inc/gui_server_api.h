@@ -4,6 +4,7 @@
 /* System Includes */
 #include <memory>
 #include <inttypes.h>
+#include <map>
 
 /* Shared includes */
 #include "thread_safe_queue.h"
@@ -37,12 +38,14 @@ namespace GuiProtocol
              * 
              */
             virtual void GuiServer_OnWidgetListRequestReceived() = 0;
+            virtual WidgetReplyStatus_E  GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>& widgetSetValueList) = 0;
             
         private:
             uint64_t GetCurrentTimeMs();
             void ProcessStateMachine();
             void ProcessReceivedMessageQueue();
             void ProcessReceivedWidgetListRequest();
+            void ProcessReceivedWidgetSetValueRequest(Message_T& msg);
 
             /* Callbacks */
             virtual int32_t GuiServer_SendMessage(const std::vector<uint8_t>& message) = 0;
@@ -51,7 +54,8 @@ namespace GuiProtocol
             GuiServerState_E _state = GuiServerState_E::INITIALIZED;
             ThreadSafeQueue_C<Message_T> _msgQueue;
             GuiProtocolMessageSerializer _msgSerializer;
-            std::vector<WidgetDescriptor_T> _descList;
+            // std::vector<WidgetDescriptor_T> _descList;
+            std::map<uint32_t, WidgetDescriptor_T> _widgetMap;
             bool _widgetListPopulated = false;
             bool _widgetListReplySent = false;
 

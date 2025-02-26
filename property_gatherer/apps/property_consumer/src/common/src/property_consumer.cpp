@@ -28,6 +28,10 @@ void PropertyConsumer_C::RunTest()
         {
             HandleMessage();
         }
+        if (true == _runSetValTest)
+        {
+            RunSetValueTest();
+        }
         GuiClient_ProcessTimedActivities();
         _isQuit = IsUserQuit();
     }
@@ -53,10 +57,24 @@ void PropertyConsumer_C::HandleMessage()
     }
 }
 
-void PropertyConsumer_C::UpdateGuiWidget()
+void PropertyConsumer_C::RunSetValueTest()
 {
-    // std::vector<uint8_t> msg;
-    // _transport->TransportSendMessage(_guiAppInfo.destIp, _guiAppInfo.destPort, msg);
+    std::cout << "Running Set Value test\n";
+    std::vector<std::pair<std::string, GuiProtocol::WidgetValueVariant_T>> setWidgetList;
+    for (const auto& [widgetName, widgetDesc] : GuiClient_WidgetList())
+    {
+        std::string newWidgetValue = "Consumer Set Widget " + widgetDesc.desc.widgetName;
+        setWidgetList.push_back({widgetName, newWidgetValue});
+        std::cout << newWidgetValue << "\n";
+    }
+
+    auto setValReturn = GuiClient_SendSetValueRequest(setWidgetList);
+    if (GuiProtocol::GuiClientReqStatus_E::SUCCESS != setValReturn)
+    {
+        std::cout << "Set Value Request failed with " << static_cast<uint8_t>(setValReturn) << "\n";
+    }
+
+    _runSetValTest = false;
 }
 
 int32_t PropertyConsumer_C::GuiClient_SendMessage(const std::vector<uint8_t>& message)
@@ -66,20 +84,26 @@ int32_t PropertyConsumer_C::GuiClient_SendMessage(const std::vector<uint8_t>& me
 
 void PropertyConsumer_C::GuiClient_OnWidgetListReplyReceived(GuiProtocol::WidgetReplyStatus_E status)
 {
-    if (GuiProtocol::WidgetReplyStatus_E::SUCCESS == status)
+    if (GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS == status)
     {
-        std::vector<std::pair<std::string, GuiProtocol::WidgetValueVariant_T>> setWidgetList;
         std::cout << "Widget List reply received with status success!\n";
         _widgetListReceived = true;
-        for (const auto& [widgetName, widgetDesc] : GuiClient_WidgetList())
-        {
-            std::string newWidgetValue = "Consumer Set Widget " + std::to_string(widgetDesc.desc.widgetId) + widgetDesc.desc.widgetName;
-            // setWidgetList.push_back({widgetName, newWidgetValue});
-            std::cout << newWidgetValue << "\n";
-        }
+        _runSetValTest = true;
     }
     else
     {
         std::cout << "Widget List reply status was not success!\n";
+    }
+}
+
+void PropertyConsumer_C::GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::WidgetReplyStatus_E status, std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& setValuesList)
+{
+    if (GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS == status)
+    {
+        std::cout << "Widget Set Value reply received with status success!\n";
+    }
+    else
+    {
+        std::cout << "Widget Set Value reply status was not success!\n";
     }
 }

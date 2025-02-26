@@ -34,10 +34,10 @@ namespace GuiProtocol
             void GuiClient_ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
             void GuiClient_ProcessTimedActivities();
             GuiClientReqStatus_E GuiClient_SendWidgetListRequest();
-            bool GuiClient_SetValue(std::vector<std::pair<std::string, WidgetValueVariant_T>>& widgetKeyValPairs);
+            GuiClientReqStatus_E GuiClient_SendSetValueRequest(WidgetSetValueIdentifier_T& widgetKeyValPairs);
 
         protected:
-            const std::unordered_map<std::string, Widget_T>& GuiClient_WidgetList() const
+            const std::unordered_map<std::string, WidgetValueStorage_T>& GuiClient_WidgetList() const
             {
                 return _widgetList;
             }
@@ -47,11 +47,14 @@ namespace GuiProtocol
             void ProcessStateMachine();
             void ProcessReceivedMessageQueue();
             void ProcessReceivedWidgetListReply(Message_T& msg);
+            void ProcessReceivedWidgetSetValueReply(Message_T& msg);
             void ProcessUpdatedWidgets();
+            std::vector<WidgetValueStorage_T> GenerateWidgetValueList(WidgetSetValueIdentifier_T& widgetKeyValPairs);
 
             /* Callbacks */
             virtual int32_t GuiClient_SendMessage(const std::vector<uint8_t>& message) = 0;
             virtual void GuiClient_OnWidgetListReplyReceived(WidgetReplyStatus_E status) = 0;
+            virtual void GuiClient_OnWidgetSetValueReplyReceived(WidgetReplyStatus_E status, std::vector<WidgetSetValueReplyContainer_T>& setValuesList) = 0;
 
             /* Member Variables */
             GuiClientState_E _state = GuiClientState_E::INITIALIZED;
@@ -59,7 +62,7 @@ namespace GuiProtocol
             GuiProtocolMessageSerializer _msgSerializer;
             bool _widgetListRequested = false;
             bool _widgetListReceived = false;
-            std::unordered_map<std::string, Widget_T> _widgetList;
+            std::unordered_map<std::string, WidgetValueStorage_T> _widgetList;
             std::vector<std::string> _updatedWidgets;
     };
 }

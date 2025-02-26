@@ -16,8 +16,18 @@ namespace GuiProtocol
 
     void GuiServer_C::GuiServer_ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size)
     {
+        auto queueSizeBeforeAdd = _msgQueue.Size();
         Message_T rxMsg = {std::move(msg), size};
         _msgQueue.AddMessageToQueue(std::move(rxMsg));
+
+        if (queueSizeBeforeAdd == _msgQueue.Size())
+        {
+            std::cout << "Failed to add message to received msg queue\n";
+        }
+        else
+        {
+            std::cout << "Added message to received msg queue\n";
+        }
     }
 
     void GuiServer_C::GuiServer_ProcessTimedActivities()
@@ -38,6 +48,7 @@ namespace GuiProtocol
         retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
         retVal.isInteractable = isInteractable;
         retVal.isStatic = isStatic;
+        retVal.reserved = 0;
         retVal.widgetType = static_cast<uint8_t>(widgetType);
         retVal.dataType = static_cast<uint8_t>(widgetDataType);
         retVal.widgetName = widgetName;
@@ -46,8 +57,24 @@ namespace GuiProtocol
 
     bool GuiServer_C::GuiServer_SetWidgetList(std::vector<WidgetDescriptor_T>& descList)
     {
-        _descList = descList;
-        _widgetListPopulated = true;
+        bool retVal = false;
+
+        if (false == _widgetListPopulated)
+        {
+            for (auto& desc : descList)
+            {
+                auto it = _widgetMap.find(desc.widgetId);
+                if (it == _widgetMap.end())
+                {
+                    _widgetMap[desc.widgetId] = desc;
+                }
+                else
+                {
+                    std::cout << "Cannot add duplicate widget " << desc.widgetId << ":" << desc.widgetName << "\n";
+                }
+            }
+            _widgetListPopulated = true;
+        }
         return true;
     }
 
@@ -91,14 +118,21 @@ namespace GuiProtocol
     void GuiServer_C::ProcessReceivedMessageQueue()
     {
         auto msg = _msgQueue.GetMessageFromQueue();
-        uint16_t msgId = (static_cast<uint8_t>(msg.data[2]) << 8) | static_cast<uint8_t>(msg.data[3]);
+        uint16_t msgId = (static_cast<uint8_t>(msg.data[3]) << 8) | static_cast<uint8_t>(msg.data[2]);
         switch (static_cast<MessageID_E>(msgId))
         {
             case MessageID_E::WIDGET_LIST_REQ:
+                std::cout << "Received Widget List Request\n";
                 ProcessReceivedWidgetListRequest();
                 break;
 
+            case MessageID_E::WIDGET_SET_VALUE_REQ:
+                std::cout << "Received Set Value Request\n";
+                ProcessReceivedWidgetSetValueRequest(msg);
+                break;
+
             default:
+                std::cout << "Unknown message received with Message ID " << msgId << "\n";
                 break;
         }
     }
@@ -108,15 +142,70 @@ namespace GuiProtocol
         if (GuiServerState_E::WIDGET_LIST_POPULATED == _state)
         {
             std::vector<uint8_t> buffer;
-            _msgSerializer.Serialize(GetWidgetListReply(_descList), buffer);
+            
+            /* Construct a list of widget descriptors */
+            std::vector<WidgetDescriptor_T> descList;
+            for (auto& [widgetId, widgetDesc] : _widgetMap)
+            {
+                descList.push_back(widgetDesc);
+            }
+
+            /* Generate a WidgetListReply serialized message */
+            auto status = WidgetReplyStatus_E::SET_VAL_SUCCESS;
+            _msgSerializer.Serialize(GetWidgetListReply(descList, status), buffer);
             if (0 < GuiServer_SendMessage(buffer))
             {
                 _widgetListReplySent = true;
             }
         }
-        else if (GuiServerState_E::WIDGET_LIST_POPULATED == _state)
+        else if (GuiServerState_E::INITIALIZED == _state)
         {
+            std::cout << "Error! Widget List not populated yet!\n";
+        }
+        else
+        {
+            std::cout << "Error! Widget List already received!\n";
+        }
+    }
 
+    void GuiServer_C::ProcessReceivedWidgetSetValueRequest(Message_T& msg)
+    {
+        if (GuiServerState_E::WIDGET_LIST_POPULATED == _state)
+        {
+            WidgetSetValueRequest_T reqMsg;
+            std::vector<uint8_t> msgBuf(msg.data.get(), msg.data.get() + msg.size);
+            _msgSerializer.Deserialize(reqMsg, msgBuf);
+
+            /* Generate a list of Widget Set Value requests for widgets */
+            std::vector<GuiProtocol::WidgetSetValueResponseReturn_T> widgetSetValueResponseList;
+            for (auto& widgetToSet : reqMsg.setValuesList)
+            {
+                auto it = _widgetMap.find(widgetToSet.widgetId);
+                if (it != _widgetMap.end())
+                {
+                    /* Populate a struct to pass too the GUI app for it to use to Set value */
+                    WidgetSetValueResponseReturn_T widgetSetValueResponse;
+                    widgetSetValueResponse.windowId = static_cast<uint16_t>(widgetToSet.widgetId >> 16);
+                    widgetSetValueResponse.widgetId = static_cast<uint16_t>(widgetToSet.widgetId & 0xFFFF);
+                    widgetSetValueResponse.widgetType = it->second.widgetType;
+                    widgetSetValueResponse.dataType = it->second.dataType;
+                    widgetSetValueResponse.val = widgetToSet.value;
+                    widgetSetValueResponse.status = static_cast<uint16_t>(WidgetReplyStatus_E::SET_VAL_ERROR);
+                    widgetSetValueResponseList.push_back(widgetSetValueResponse);
+                }
+            }
+            auto status = GuiServer_OnWidgetSetValueRequestReceived(widgetSetValueResponseList);
+
+            std::vector<uint8_t> buffer;
+            _msgSerializer.Serialize(GetWidgetSetValueReply(widgetSetValueResponseList, status), buffer);
+            if (0 < GuiServer_SendMessage(buffer))
+            {
+                _widgetListReplySent = true;
+            }
+        }
+        else 
+        {
+            std::cout << "Error! Widget List not received\n";
         }
     }
 }

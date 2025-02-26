@@ -18,11 +18,12 @@ class PropertyConsumer_C : GuiProtocol::GuiClient_C
         PropertyConsumer_C(PropertyConsumerInitParams_C initParams);
         ~PropertyConsumer_C();
         void RunTest();
-        void UpdateGuiWidget();
+        void RunSetValueTest();
 
     private:
         int32_t GuiClient_SendMessage(const std::vector<uint8_t> &message) override;
         void GuiClient_OnWidgetListReplyReceived(GuiProtocol::WidgetReplyStatus_E status) override;
+        void GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::WidgetReplyStatus_E status, std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& setValuesList) override;
         void HandleMessage();
         std::shared_ptr<TransportInterface> _transport;
         PortInfo_T _producerInfo;
@@ -32,6 +33,7 @@ class PropertyConsumer_C : GuiProtocol::GuiClient_C
         uint32_t _rxBufferSize;
         std::string _guiAppDevKey;
         std::string _producerAppDevKey;
+        bool _runSetValTest = false;
 };
 
 #endif // PROPERTY_CONSUMER_H

@@ -17,7 +17,7 @@
 
 namespace PropertyGatherer
 {
-    enum VariantType_E 
+    enum PropertyStorageVariantType_E 
     {
         UNSIGNED_8_BIT_INT,
         STRING,
