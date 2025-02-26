@@ -53,23 +53,6 @@ namespace GuiProtocol
         return retVal;
     }
 
-    PropertyListRequest_T GetPropertyListRequest()
-    {
-        PropertyListRequest_T retVal;
-        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::PROPERTY_LIST_REQ);
-        return retVal;
-    }
-
-    PropertyListReply_T GetPropertyListRequest(std::vector<PropertyDescriptor_T>& descList)
-    {
-        PropertyListReply_T retVal;
-        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::PROPERTY_LIST_REPLY);
-        retVal.numProperties = descList.size();
-        retVal.propertyDescriptorList = descList;
-        retVal.status = static_cast<uint16_t>(WidgetReplyStatus_E::SET_VAL_SUCCESS);
-        return retVal;
-    }
-
     GuiProtocolMessageSerializer::GuiProtocolMessageSerializer()
     {
 
