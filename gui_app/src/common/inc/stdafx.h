@@ -23,10 +23,12 @@
 #include <inttypes.h>
 
 /* Project includes */
-#include "custom_types.h"
+#include "gui_server_api.h"
 
 /* Shared includes */
 #include "common_functions.h"
+#include "custom_types.h"
+#include "transport_factory.h"
 
 /* 3rd party includes */
 #include <nlohmann/json.hpp>

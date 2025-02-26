@@ -6,6 +6,12 @@
 #include <memory>
 #include <iostream>
 
+struct Message_T
+{
+    std::unique_ptr<char[]> data;
+    uint16_t size;
+};
+
 template <typename QueueType>
 class ThreadSafeQueue_C
 {
@@ -39,6 +45,11 @@ class ThreadSafeQueue_C
         {
             std::unique_lock<std::mutex> lock(_queueMutex);
             return _messageQueue.empty();
+        }
+
+        size_t Size()
+        {
+            return _messageQueue.size();
         }
     
     private:

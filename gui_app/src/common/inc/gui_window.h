@@ -8,7 +8,7 @@
 class GuiWindow_C
 {
     public:
-        GuiWindow_C(std::string windowName);
+        GuiWindow_C(std::string windowName, uint16_t windowId);
         ~GuiWindow_C();
 
         /**
@@ -39,9 +39,12 @@ class GuiWindow_C
          */
         bool GetWidgetAt(uint16_t key, std::shared_ptr<WidgetInterface_I>& outWidget);
 
+        const uint16_t GetWindowId() { return _windowId; }
+
     private:
         std::string                                             _windowName;
         std::map<uint16_t, std::shared_ptr<WidgetInterface_I>>  _widgetList;
         uint16_t                                                _widgetKeyCount                 = 0;
+        uint16_t                                                _windowId;
 };
 #endif // GUI_WINDOW_H

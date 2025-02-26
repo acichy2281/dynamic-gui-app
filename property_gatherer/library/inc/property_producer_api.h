@@ -10,6 +10,9 @@
 #include <memory>
 #include <inttypes.h>
 
+/* Project Includes */
+#include "property_gatherer_messages.h"
+
 namespace PropertyGatherer
 {
     class PropertyProducer_C

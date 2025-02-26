@@ -1,5 +1,5 @@
-#ifndef MESSAGES_H
-#define MESSAGES_H
+#ifndef PROPERTY_GATHERER_MESSAGES_H
+#define PROPERTY_GATHERER_MESSAGES_H
 
 /* System Includes */
 #include <string.h>
@@ -17,7 +17,7 @@
 
 namespace PropertyGatherer
 {
-    enum VariantType_E 
+    enum PropertyStorageVariantType_E 
     {
         UNSIGNED_8_BIT_INT,
         STRING,
@@ -73,11 +73,11 @@ namespace PropertyGatherer
         uint16_t status;
     };
 
-    class MessageSerializer
+    class PropertyGathererMessageSerializer
     {
         public:
-            MessageSerializer();
-            ~MessageSerializer();
+            PropertyGathererMessageSerializer();
+            ~PropertyGathererMessageSerializer();
 
             /* Serialization functions */
             uint16_t Serialize(GetValueReq_T& pMessage, std::vector<uint8_t>& outBuff);
@@ -95,4 +95,4 @@ namespace PropertyGatherer
     };
 }
 
-#endif // MESSAGES_H
+#endif // PROPERTY_GATHERER_MESSAGES_H

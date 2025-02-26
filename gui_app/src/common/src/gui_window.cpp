@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include "gui_window.h"
 
-GuiWindow_C::GuiWindow_C(std::string windowName) : _windowName(windowName)
+GuiWindow_C::GuiWindow_C(std::string windowName, uint16_t windowId) : _windowName(windowName), _windowId(windowId)
 {
 
 }

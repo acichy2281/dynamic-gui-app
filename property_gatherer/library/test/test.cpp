@@ -6,7 +6,7 @@ namespace PropertyGatherer
         GetValueReq_T message = {{0x01, 0x02, 0x1234}, 100, 2, {10, 20}};
         std::vector<uint8_t> outBuff;
 
-        MessageSerializer serializer;
+        PropertyGathererMessageSerializer serializer;
         uint16_t size = serializer.Serialize(message, outBuff);
 
         // Manually check the serialized buffer
@@ -22,7 +22,7 @@ namespace PropertyGatherer
         GetValueReply_T message = { {0x01, 0x02, 0x1234}, {PropertyStorageVariant{uint8_t(1)}, PropertyStorageVariant{std::string("Test")}}, 0 };
         std::vector<uint8_t> outBuff;
 
-        MessageSerializer serializer;
+        PropertyGathererMessageSerializer serializer;
         uint16_t size = serializer.Serialize(message, outBuff);
 
         // You would manually need to construct the expected serialized data based on the variant types
@@ -38,7 +38,7 @@ namespace PropertyGatherer
         std::vector<uint8_t> inBuff = {0x01, 0x02, 0x34, 0x12, 100, 0, 2, 0, 10, 0, 20, 0};
         GetValueReq_T message;
 
-        MessageSerializer serializer;
+        PropertyGathererMessageSerializer serializer;
         bool success = serializer.Deserialize(message, inBuff);
 
         if (success && message.header.protocolIdHigh == 0x01 && message.header.protocolIdLow == 0x02 &&
@@ -54,7 +54,7 @@ namespace PropertyGatherer
         std::vector<uint8_t> inBuff = { 0x01, 0x02, 0x34, 0x12, 0, 1, 1, 'T', 'e', 's', 't', 0, 0, 0};
         GetValueReply_T message;
 
-        MessageSerializer serializer;
+        PropertyGathererMessageSerializer serializer;
         bool success = serializer.Deserialize(message, inBuff);
         std::vector<PropertyStorageVariant> expectedPropList = { PropertyStorageVariant{uint8_t(1)}, PropertyStorageVariant{std::string("Test")} };
 
