@@ -1,24 +1,24 @@
 /* Project includes */
 #include "stdafx.h"
-#include "slider_widget.h"
+#include "widget_slider.h"
 
-SliderWidget_C::SliderWidget_C()
+WidgetSlider_C::WidgetSlider_C()
+{
+    this->_id = -1;
+}
+
+WidgetSlider_C::~WidgetSlider_C()
 {
 
 }
 
-SliderWidget_C::~SliderWidget_C()
-{
-
-}
-
-void SliderWidget_C::ShowWidget()
+void WidgetSlider_C::ShowWidget()
 {
     // ShowWidget override
     ImGui::SliderFloat(_sliderLabel.c_str(), &_sliderValue, _sliderMin, _sliderMax);
 }
 
-bool SliderWidget_C::SetWidgetValue(const char* label, float* value, float min, float max)
+bool WidgetSlider_C::SetWidgetValue(const char* label, float* value, float min, float max)
 {
     // Check for invalid input for the slider values, abort if so
     if (!label || !value || min >= max)
@@ -32,4 +32,14 @@ bool SliderWidget_C::SetWidgetValue(const char* label, float* value, float min, 
     _sliderMin = min;
     _sliderMax = max;
     return true;
+}
+
+WidgetTypes_E WidgetSlider_C::GetType()
+{
+    return WidgetTypes_E::SLIDER;
+}
+
+void WidgetSlider_C::AssignId(uint16_t widgetId)
+{
+    this->_id = widgetId;
 }

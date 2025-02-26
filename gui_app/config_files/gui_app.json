@@ -23,6 +23,31 @@
                     "Value" : "Sample Text 2"
                 }
             ]
+        },
+        {
+            "Title" : "Other Type Of Widget",
+            "WidgetList":
+            [
+                {
+                    "Name": "Generic button 1",
+                    "Type": "Button",
+                    "Text": "Test Button"
+                }
+            ]
+        },
+        {
+            "Title" : "Slider Demo",
+            "WidgetList":
+            [
+                {
+                    "Name": "Generic slider 1",
+                    "Type": "Slider",
+                    "Text": "Slider Demo",
+                    "Value": 50.0,
+                    "MaxValue": 100.0,
+                    "MinValue": 0.0
+                }
+            ]
         }
     ]
 }

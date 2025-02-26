@@ -177,6 +177,7 @@ bool DynamicGui_C::ShowGui()
                 _isRunning = false;
             }
         }
+        
         if (SDL_GetWindowFlags(_window) & SDL_WINDOW_MINIMIZED)
         {
             SDL_Delay(10);
@@ -187,7 +188,8 @@ bool DynamicGui_C::ShowGui()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
-
+        
+        /*
         // ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
         // ImGui::Begin(_widgetWindowName.c_str());
         // for (const auto& [key, widget] : _widgetMap)
@@ -203,24 +205,34 @@ bool DynamicGui_C::ShowGui()
         //     }
         // }
         // ImGui::End();
+        */
 
         for (auto& window : _windowList)
         {
             std::shared_ptr<WidgetInterface_I> widget;
+            /*
             if (true == window.GetWidgetAt(0, widget))
             {
-                if (auto textWidget = std::dynamic_pointer_cast<TextWidget_C>(widget))
+                if (auto textWidget = std::dynamic_pointer_cast<WidgetText_C>(widget))
                 {
                     // textWidget->SetWidgetValue("Updating int: %" PRIu16, testPrintInt);
                 }
             }
+            */
+           if (true == window.GetWidgetAt(0, widget))
+           {
+                if (auto buttonWidget = std::dynamic_pointer_cast<WidgetButton_C>(widget))
+                {
+
+                }
+           }
             window.ShowWindow();
         }
         testPrintInt++;
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        /*if (show_demo_window)*/
-            // ImGui::ShowDemoWindow(&show_demo_window);
+        // if (show_demo_window)
+        // ImGui::ShowDemoWindow(&show_demo_window);
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         {
@@ -246,14 +258,14 @@ bool DynamicGui_C::ShowGui()
         }
 
         // 3. Show another simple window.
-        if (show_another_window)
-        {
-           ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-           ImGui::Text("Hello from another window!");
-           if (ImGui::Button("Close Me"))
-               show_another_window = false;
-           ImGui::End();
-        }
+        // if (show_another_window)
+        // {
+        //    ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        //    ImGui::Text("Hello from another window!");
+        //    if (ImGui::Button("Close Me"))
+        //        show_another_window = false;
+        //    ImGui::End();
+        // }
 
         // Rendering
         ImGui::Render();
@@ -286,22 +298,42 @@ void DynamicGui_C::ParseJsonData()
             std::string widgetTypeStr = widget["Type"];
             std::string widgetName = widget["Name"];
             std::regex textBoxRegex("text", std::regex_constants::icase);
+            std::regex buttonRegex("button", std::regex_constants::icase);
+            std::regex sliderRegex("slider", std::regex_constants::icase);
 
             if (true == std::regex_search(widgetTypeStr, textBoxRegex))
             {
                 // widgetInfo.type = WidgetTypes_E::TEXT;
                 // widgetInfo.value = std::string(widget["Value"]);
 
-                auto newWidget = std::make_shared<TextWidget_C>();
+                auto newWidget = std::make_shared<WidgetText_C>();
                 newWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
                 auto widgetId = newWindow.AddWidget(newWidget);
-
-                // std::cout << "Adding text widget to Main Window " << std::any_cast<std::string>(widgetInfo.value) << "\n";
                 std::cout << "Adding text widget to Main Window\n";
 
                 auto widgetDes = GuiServer_GetWidgetDesc(numWindows, widgetId, false, false, WidgetTypes_E::TEXT, GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING, widgetName);
                 widgetDescList.push_back(widgetDes);
             }
+            else if (true == std::regex_search(widgetTypeStr, buttonRegex))
+            {
+                auto newWidget = std::make_shared<WidgetButton_C>();
+                newWidget->SetWidgetValue(std::string(widget["Text"]).c_str());
+                newWindow.AddWidget(newWidget);
+                std::cout << "Adding button widget to window\n";
+            }
+            else if (true == std::regex_search(widgetTypeStr, sliderRegex))
+            {
+                auto newWidget = std::make_shared<WidgetSlider_C>();
+                float * value = new float(widget["Value"].get<float>());
+                newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), value, widget["MinValue"].get<float>(), widget["MaxValue"].get<float>());
+                newWindow.AddWidget(newWidget);
+                std::cout << "Adding slider to window\n";
+            }
+            else {
+                std::cout << "Unfamiliar widget\n";
+            }
+
+
             // _widgetMap[_widgetKeyCount] = widgetInfo;
             // _widgetKeyCount++;
             // std::cout << "Widget Count: " << _widgetKeyCount << "\n";
@@ -409,7 +441,7 @@ GuiProtocol::WidgetReplyStatus_E DynamicGui_C::SetValueReq_UpdateWidget(std::sha
     switch (static_cast<WidgetTypes_E>(type))
     {
         case WidgetTypes_E::TEXT:
-            if (auto textWidget = std::dynamic_pointer_cast<TextWidget_C>(widget))
+            if (auto textWidget = std::dynamic_pointer_cast<WidgetText_C>(widget))
             {
                 retVal = SetValueReq_UpdateTextWidget(textWidget, dataType, val);
             }
@@ -421,7 +453,7 @@ GuiProtocol::WidgetReplyStatus_E DynamicGui_C::SetValueReq_UpdateWidget(std::sha
     return retVal;
 }
 
-GuiProtocol::WidgetReplyStatus_E DynamicGui_C::SetValueReq_UpdateTextWidget(std::shared_ptr<TextWidget_C> textWidget, 
+GuiProtocol::WidgetReplyStatus_E DynamicGui_C::SetValueReq_UpdateTextWidget(std::shared_ptr<WidgetText_C> textWidget, 
                                                                             GuiProtocol::WidgetDataTypes_E dataType, 
                                                                             GuiProtocol::WidgetValueVariant_T val)
 {

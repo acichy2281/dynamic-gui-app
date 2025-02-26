@@ -1,24 +1,26 @@
 /* Project includes */
 #include "stdafx.h"
-#include "text_widget.h"
+#include "widget_text.h"
+#include "custom_types.h"
 
-TextWidget_C::TextWidget_C()
+WidgetText_C::WidgetText_C()
+{
+    this->_id = -1;
+}
+
+WidgetText_C::~WidgetText_C()
 {
 
 }
 
-TextWidget_C::~TextWidget_C()
-{
 
-}
-
-void TextWidget_C::ShowWidget()
+void WidgetText_C::ShowWidget()
 {
     //std::cout << "Showing text widget with value: " << _widgetText << "\n";
     ImGui::Text(_widgetText.c_str());
 }
 
-bool TextWidget_C::SetWidgetValue(const char* format, ...)
+bool WidgetText_C::SetWidgetValue(const char* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -39,4 +41,15 @@ bool TextWidget_C::SetWidgetValue(const char* format, ...)
 
     _widgetText = buffer.data();  // Assign formatted text
     return true;
+}
+
+
+WidgetTypes_E WidgetText_C::GetType()
+{
+    return WidgetTypes_E::TEXT;
+}
+
+void WidgetText_C::AssignId(uint16_t widgetId)
+{
+    this->_id = widgetId;
 }

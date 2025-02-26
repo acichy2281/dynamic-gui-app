@@ -17,6 +17,7 @@ uint16_t GuiWindow_C::AddWidget(const std::shared_ptr<WidgetInterface_I>& widget
     uint16_t retVal = _widgetKeyCount;
     _widgetList[_widgetKeyCount] = widget;
     _widgetKeyCount++;
+    widget->AssignId(retVal);
     return retVal;
 }
 
@@ -42,6 +43,7 @@ bool GuiWindow_C::GetWidgetAt(uint16_t key, std::shared_ptr<WidgetInterface_I>& 
 {
     bool retVal = false;
     auto it = _widgetList.find(key);
+
     if (it != _widgetList.end())
     {
         outWidget = it->second;
