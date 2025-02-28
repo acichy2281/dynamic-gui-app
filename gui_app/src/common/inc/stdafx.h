@@ -1,5 +1,5 @@
 #ifndef STDAFX_H
-#define STADFX_H
+#define STDAFX_H
 
 /* System includes */
 #include <string>
