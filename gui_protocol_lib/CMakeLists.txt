@@ -24,3 +24,5 @@ target_sources(${PROJECT_NAME} PUBLIC
     ${GUI_PROTOCOL_LIBRARY_WIN}
     ${GUI_PROTOCOL_LIBRARY_LINUX}
 )
+
+add_subdirectory(unit_test)
