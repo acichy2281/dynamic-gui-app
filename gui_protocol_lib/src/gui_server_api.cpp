@@ -152,7 +152,8 @@ namespace GuiProtocol
 
             /* Generate a WidgetListReply serialized message */
             auto status = WidgetReplyStatus_E::SET_VAL_SUCCESS;
-            _msgSerializer.Serialize(GetWidgetListReply(descList, status), buffer);
+            auto widgetListReply = GetWidgetListReply(descList, status);
+            _msgSerializer.Serialize(widgetListReply, buffer);
             if (0 < GuiServer_SendMessage(buffer))
             {
                 _widgetListReplySent = true;
@@ -197,7 +198,8 @@ namespace GuiProtocol
             auto status = GuiServer_OnWidgetSetValueRequestReceived(widgetSetValueResponseList);
 
             std::vector<uint8_t> buffer;
-            _msgSerializer.Serialize(GetWidgetSetValueReply(widgetSetValueResponseList, status), buffer);
+            auto widgetSetValReply = GetWidgetSetValueReply(widgetSetValueResponseList, status);
+            _msgSerializer.Serialize(widgetSetValReply, buffer);
             if (0 < GuiServer_SendMessage(buffer))
             {
                 _widgetListReplySent = true;

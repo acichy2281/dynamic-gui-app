@@ -17,7 +17,7 @@ WidgetText_C::~WidgetText_C()
 void WidgetText_C::ShowWidget()
 {
     //std::cout << "Showing text widget with value: " << _widgetText << "\n";
-    ImGui::Text(_widgetText.c_str());
+    ImGui::Text("%s", _widgetText.c_str());
 }
 
 bool WidgetText_C::SetWidgetValue(const char* format, ...)

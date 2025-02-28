@@ -49,7 +49,8 @@ namespace GuiProtocol
         {
             std::cout << "Sending Widget List request\n";
             std::vector<uint8_t> buffer;
-            _msgSerializer.Serialize(GetWidgetListRequest(), buffer);
+            auto widgetListReq = GetWidgetListRequest();
+            _msgSerializer.Serialize(widgetListReq, buffer);
             if (0 < GuiClient_SendMessage(buffer))
             {
                 _widgetListRequested = true;
@@ -73,7 +74,8 @@ namespace GuiProtocol
 
             std::cout << "Sending Widget Set Value request\n";
             std::vector<uint8_t> buffer;
-            _msgSerializer.Serialize(GetWidgetSetValueRequest(widgetValList), buffer);
+            auto widgetSetValReq = GetWidgetSetValueRequest(widgetValList);
+            _msgSerializer.Serialize(widgetSetValReq, buffer);
             if (0 < GuiClient_SendMessage(buffer))
             {
                 retVal = GuiClientReqStatus_E::SUCCESS;
