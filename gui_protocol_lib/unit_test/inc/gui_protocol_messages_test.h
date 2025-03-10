@@ -36,6 +36,9 @@ namespace GuiProtocolTest
 
         private:
             bool TestSerializeWidgetListRequest();
+            bool TestSerializeWidgetListReply();
+            bool TestSerializeWidgetSetValueRequest();
+            bool TestSerializeWidgetSetValueReply();
             GuiProtocol::GuiProtocolMessageSerializer _msgSerializer;
 
     };
