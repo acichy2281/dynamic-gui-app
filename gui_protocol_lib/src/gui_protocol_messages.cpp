@@ -476,6 +476,7 @@ namespace GuiProtocol
                 break;
             }
             default:
+                std::cout << "Unknown type index during deserialization.\n";
                 throw std::runtime_error("Unknown type index during deserialization.");
         }
 
