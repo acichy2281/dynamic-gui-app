@@ -38,6 +38,9 @@ namespace PropertyGatherer
             PropertyConsumer_C();
             ~PropertyConsumer_C();
 
+            void PropertyConsumer_ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
+            void PropertyConsumer_ProcessTimedActivities();
+
             PropertyConsumerReqStatus_E PropertyConsumer_SendPropertyListRequest();
             PropertyConsumerReqStatus_E PropertyConsumer_SendGetValueRequest();
         private:
