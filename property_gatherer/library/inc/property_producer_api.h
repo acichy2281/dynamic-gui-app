@@ -21,6 +21,9 @@ namespace PropertyGatherer
             PropertyProducer_C();
             ~PropertyProducer_C();
 
+            virtual void PropertyProducer_OnPropertyListRequestRecieved() = 0;
+            virtual void PropertyProducer_OnPropertyGetValueRequestRecieved() = 0;
+
         private:
 
     };
