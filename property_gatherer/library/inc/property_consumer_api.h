@@ -11,10 +11,20 @@
 #include <inttypes.h>
 
 /* Project Includes */
+#include "thread_safe_queue.h"
 #include "property_gatherer_messages.h"
 
 namespace PropertyGatherer
 {
+    enum class PropertyConsumerState_E
+    {
+        INITIALIZED,
+        PROPERTY_LIST_REQUESTED,
+        PROPERTY_LIST_RECEIVED,
+        PROPERTY_VALUE_REQUESTED,
+        PROPERTY_VALUE_RECEIVED,
+    };
+
     enum class PropertyConsumerReqStatus_E
     {
         SUCCESS,
@@ -31,11 +41,23 @@ namespace PropertyGatherer
             PropertyConsumerReqStatus_E PropertyConsumer_SendPropertyListRequest();
             PropertyConsumerReqStatus_E PropertyConsumer_SendGetValueRequest();
         private:
-            PropertyGathererMessageSerializer _msgSerializer; 
+            uint16_t GetCurrentTimeMs();
+            void ProcessStateMachine();
+            void ProcessReceivedMessageQueue();
+            void ProcessReceivedPropertyListReply(Message_T& msg);
+            void ProcessReceivedPropertyGetValueReply(Message_T& msg);
+
 
             /* Callbacks */
             virtual void PropertyConsumer_OnPropertyListReplyReceived() = 0;
             virtual void PropertyConsumer_OnPropertyGetValueReplyRecieved() = 0;
+
+            /* Member Variables */
+            PropertyConsumerState_E _state = PropertyConsumerState_E::INITIALIZED;
+            ThreadSafeQueue_C<Message_T> _msgQueue;
+            PropertyGathererMessageSerializer _msgSerializer;
+            bool _propertyListRequested = false;
+            bool _propertyListReceived = false;
     };
 }
 
