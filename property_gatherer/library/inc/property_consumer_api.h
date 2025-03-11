@@ -58,6 +58,7 @@ namespace PropertyGatherer
             PropertyGathererMessageSerializer _msgSerializer;
             bool _propertyListRequested = false;
             bool _propertyListReceived = false;
+
     };
 }
 
