@@ -14,7 +14,7 @@ namespace GuiProtocol
 
     }
 
-    void GuiServer_C::GuiServer_ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size)
+    void GuiServer_C::ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size)
     {
         auto queueSizeBeforeAdd = _msgQueue.Size();
         Message_T rxMsg = {std::move(msg), size};
@@ -30,7 +30,7 @@ namespace GuiProtocol
         }
     }
 
-    void GuiServer_C::GuiServer_ProcessTimedActivities()
+    void GuiServer_C::ProcessTimedActivities()
     {
         if (false == _msgQueue.IsQueueEmpty())
         {
@@ -42,7 +42,7 @@ namespace GuiProtocol
         }
     }
 
-    WidgetDescriptor_T GuiServer_C::GuiServer_GetWidgetDesc(uint16_t windowId, uint16_t widgetId, bool isInteractable, bool isStatic, WidgetTypes_E widgetType, WidgetDataTypes_E widgetDataType, std::string& widgetName)
+    WidgetDescriptor_T GuiServer_C::GetWidgetDesc(uint16_t windowId, uint16_t widgetId, bool isInteractable, bool isStatic, WidgetTypes_E widgetType, WidgetDataTypes_E widgetDataType, std::string& widgetName)
     {
         WidgetDescriptor_T retVal;
         retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
@@ -55,7 +55,7 @@ namespace GuiProtocol
         return retVal;
     }
 
-    bool GuiServer_C::GuiServer_SetWidgetList(std::vector<WidgetDescriptor_T>& descList)
+    bool GuiServer_C::SetWidgetList(std::vector<WidgetDescriptor_T>& descList)
     {
         bool retVal = false;
 
@@ -154,7 +154,7 @@ namespace GuiProtocol
             auto status = WidgetReplyStatus_E::SET_VAL_SUCCESS;
             auto widgetListReply = GetWidgetListReply(descList, status);
             _msgSerializer.Serialize(widgetListReply, buffer);
-            if (0 < GuiServer_SendMessage(buffer))
+            if (0 < SendMessage(buffer))
             {
                 _widgetListReplySent = true;
             }
@@ -195,12 +195,12 @@ namespace GuiProtocol
                     widgetSetValueResponseList.push_back(widgetSetValueResponse);
                 }
             }
-            auto status = GuiServer_OnWidgetSetValueRequestReceived(widgetSetValueResponseList);
+            auto status = OnWidgetSetValueRequestReceived(widgetSetValueResponseList);
 
             std::vector<uint8_t> buffer;
             auto widgetSetValReply = GetWidgetSetValueReply(widgetSetValueResponseList, status);
             _msgSerializer.Serialize(widgetSetValReply, buffer);
-            if (0 < GuiServer_SendMessage(buffer))
+            if (0 < SendMessage(buffer))
             {
                 _widgetListReplySent = true;
             }

@@ -5,6 +5,7 @@
 #include <memory>
 #include <inttypes.h>
 #include <map>
+#include <functional>
 
 /* Shared includes */
 #include "thread_safe_queue.h"
@@ -27,18 +28,19 @@ namespace GuiProtocol
         public:
             GuiServer_C();
             ~GuiServer_C();
-            void GuiServer_ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
-            void GuiServer_ProcessTimedActivities();
-            WidgetDescriptor_T GuiServer_GetWidgetDesc(uint16_t windowId, uint16_t widgetId, bool isInteractable, bool isStatic, WidgetTypes_E widgetType, WidgetDataTypes_E widgetDataType, std::string& widgetName);
-            bool GuiServer_SetWidgetList(std::vector<WidgetDescriptor_T>& descList);
+            void ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
+            void ProcessTimedActivities();
+            WidgetDescriptor_T GetWidgetDesc(uint16_t windowId, uint16_t widgetId, bool isInteractable, bool isStatic, WidgetTypes_E widgetType, WidgetDataTypes_E widgetDataType, std::string& widgetName);
+            bool SetWidgetList(std::vector<WidgetDescriptor_T>& descList);
 
             /* Callbacks */
             /**
              * @brief User is expected to
              * 
              */
-            virtual void GuiServer_OnWidgetListRequestReceived() = 0;
-            virtual WidgetReplyStatus_E  GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>& widgetSetValueList) = 0;
+            std::function<int32_t(const std::vector<uint8_t>&)> SendMessage;
+            std::function<void()> OnWidgetListRequestReceived;
+            std::function<WidgetReplyStatus_E(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>&)>  OnWidgetSetValueRequestReceived;
             
         private:
             uint64_t GetCurrentTimeMs();
@@ -48,7 +50,6 @@ namespace GuiProtocol
             void ProcessReceivedWidgetSetValueRequest(Message_T& msg);
 
             /* Callbacks */
-            virtual int32_t GuiServer_SendMessage(const std::vector<uint8_t>& message) = 0;
 
             /* Member Variables */
             GuiServerState_E _state = GuiServerState_E::INITIALIZED;
