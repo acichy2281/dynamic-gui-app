@@ -32,6 +32,92 @@ namespace PropertyGatherer
         bufSize = outBuff.size(); 
     }
 
+    uint16_t PropertyGathererMessageSerializer::Serialize(PropertyListRequest_T& pMessage, std::vector<uint8_t>& outBuff)
+    {
+        SerializeHeader(pMessage.header, outBuff);
+        uint16_t bufSize = outBuff.size();
+        return bufSize;
+    }
+
+    uint16_t PropertyGathererMessageSerializer::Serialize(PropertyListReply_T& pMessage, std::vector<uint8_t>& outBuff)
+    {
+        SerializeHeader(pMessage.header, outBuff);
+        uint16_t bufSize = outBuff.size();
+
+        /* Serialize Number of properties */
+        outBuff.resize(bufSize + sizeof(pMessage.numProperties));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.numProperties, sizeof(pMessage.numProperties));
+        bufSize = outBuff.size();
+
+        /* Serialize property descriptors */
+        for (auto& propDescriptor : pMessage.propertyDescriptorList)
+        {
+            bufSize += SerializePropertyDescriptor(propDescriptor, outBuff);
+        }
+
+        /* Serialize status */
+        bufSize = outBuff.size();
+        outBuff.resize(bufSize + sizeof(pMessage.status));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.status, sizeof(pMessage.status));
+        bufSize = outBuff.size();
+
+        return bufSize;
+    }
+
+    uint16_t PropertyGathererMessageSerializer::SerializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint8_t>& outBuff)
+    {
+        uint16_t bufSize = outBuff.size();
+
+        /* Serialize property descriptor length */
+        outBuff.resize(bufSize + sizeof(pDesc.propertyDescriptorLength));
+        std::memcpy(outBuff.data() + bufSize, &pDesc.propertyDescriptorLength, sizeof(pDesc.propertyDescriptorLength));
+        bufSize = outBuff.size();
+
+        /* Serialize property id */
+        outBuff.resize(bufSize + sizeof(pDesc.propertyId));
+        std::memcpy(outBuff.data() + bufSize, &pDesc.propertyId, sizeof(pDesc.propertyId));
+        bufSize = outBuff.size();
+
+        /* Serialize property id */
+        outBuff.resize(bufSize + sizeof(pDesc.propertyId));
+        std::memcpy(outBuff.data() + bufSize, &pDesc.propertyId, sizeof(pDesc.propertyId));
+        bufSize = outBuff.size();
+
+        /* Serialize property flags */
+        uint16_t packedFlags = 
+        (static_cast<uint16_t>(pDesc.isWriteable) << 15) |
+        (static_cast<uint16_t>(pDesc.isReadable) << 14) |
+        (static_cast<uint16_t>(pDesc.isSubscribable) << 13) |
+        (static_cast<uint16_t>(pDesc.isStatic) << 12) |
+        (pDesc.reservedForFlags & 0xFFF);
+
+        outBuff.resize(bufSize + sizeof(packedFlags));
+        std::memcpy(outBuff.data() + bufSize, &packedFlags, sizeof(packedFlags));
+        bufSize = outBuff.size();
+
+        /* Serialize property type */
+        outBuff.resize(bufSize + sizeof(pDesc.propertyType));
+        std::memcpy(outBuff.data() + bufSize, &pDesc.propertyType, sizeof(pDesc.propertyType));
+        bufSize = outBuff.size();
+
+        /* Serialize property length */
+        outBuff.resize(bufSize + sizeof(pDesc.propertyLength));
+        std::memcpy(outBuff.data() + bufSize, &pDesc.propertyLength, sizeof(pDesc.propertyLength));
+        bufSize = outBuff.size();
+
+        /* Serialize property name */
+        outBuff.insert(outBuff.end(), pDesc.propertyName.begin(), pDesc.propertyName.end());
+        outBuff.push_back('\0');
+        bufSize = outBuff.size();
+
+        /* Serialize property units */
+        outBuff.resize(bufSize + sizeof(pDesc.propertyUnits));
+        std::memcpy(outBuff.data() + bufSize, &pDesc.propertyUnits, sizeof(pDesc.propertyUnits));
+        bufSize = outBuff.size();
+
+        return bufSize;
+    }
+
     uint16_t PropertyGathererMessageSerializer::Serialize(GetValueReq_T& pMessage, std::vector<uint8_t>& outBuff)
     {
         SerializeHeader(pMessage.header, outBuff);

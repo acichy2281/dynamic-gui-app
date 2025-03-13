@@ -62,7 +62,11 @@ namespace PropertyGatherer
     {
         uint16_t propertyDescriptorLength;
         uint16_t propertyId;
-        uint16_t reservedForFlags : 16;
+        bool isWriteable : 1;
+        bool isReadable : 1;
+        bool isSubscribable : 1;
+        bool isStatic : 1;
+        uint16_t reservedForFlags : 12;
         uint8_t propertyType;
         uint8_t reserved : 8;
         uint16_t propertyLength;
@@ -79,7 +83,7 @@ namespace PropertyGatherer
     {
         Header_T header;
         uint16_t numProperties;
-        std::vector<PropertyDescriptor_T>;
+        std::vector<PropertyDescriptor_T> propertyDescriptorList;
         uint16_t status;
     };
 
@@ -100,8 +104,8 @@ namespace PropertyGatherer
 
     PropertyListRequest_T GetPropertyListRequest();
     PropertyListReply_T GetPropertyListReply();
-    GetValueReq_T GetValueRequest();
-    GetValueReply_T GetValueReply();
+    GetValueReq_T GetPropertyGetValueRequest();
+    GetValueReply_T GetPropertyGetValueReply();
 
     class PropertyGathererMessageSerializer
     {
@@ -110,8 +114,8 @@ namespace PropertyGatherer
             ~PropertyGathererMessageSerializer();
 
             /* Serialization functions */
-            uint16_t Serialize(PropertyListRequest_T pMessage, std::vector<uint8_t>& outBuff);
-            uint16_t Serialize(PropertyListReply_T pMessage, std::vector<uint8_t>& outBuff);
+            uint16_t Serialize(PropertyListRequest_T& pMessage, std::vector<uint8_t>& outBuff);
+            uint16_t Serialize(PropertyListReply_T& pMessage, std::vector<uint8_t>& outBuff);
             uint16_t Serialize(GetValueReq_T& pMessage, std::vector<uint8_t>& outBuff);
             uint16_t Serialize(GetValueReply_T& pMessage, std::vector<uint8_t>& outBuff);
 
@@ -124,6 +128,9 @@ namespace PropertyGatherer
         private:
             void SerializeHeader(Header_T& header, std::vector<uint8_t>& outBuff);
             void DeserializeHeader(Header_T& header, std::vector<uint8_t>& msgBuf);
+
+            uint16_t SerializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint8_t>& outBuff);
+            void DeserializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint_t>& msgBuff, uint16_t& offset);
 
             uint16_t SerializeVariant(const PropertyStorageVariant& variant, std::vector<uint8_t>& outBuf);
             PropertyStorageVariant DeserializeVariant(std::vector<uint8_t>& inBuff, uint16_t& index);
