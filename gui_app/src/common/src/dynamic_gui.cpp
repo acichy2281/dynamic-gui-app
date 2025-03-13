@@ -2,13 +2,17 @@
 #include "stdafx.h"
 #include "dynamic_gui.h"
 
-DynamicGui_C::DynamicGui_C()
+DynamicGui_C::DynamicGui_C() : _guiServer(std::make_shared<GuiProtocol::GuiServer_C>())
 {
     _rxBufferSize = 2048;
     _transport = UdpTransportFactory::CreateTransport();
     _transport->InitializeSocket("127.0.0.1", 8001);
     _guiClientPortInfo.destIp = "127.0.0.1";
     _guiClientPortInfo.destPort = 8000;
+
+    _guiServer->SendMessage = std::bind(&DynamicGui_C::GuiServer_SendMessage, this, std::placeholders::_1);
+    _guiServer->OnWidgetListRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetListRequestReceived, this);
+    _guiServer->OnWidgetSetValueRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived, this, std::placeholders::_1);
 }
 
 
@@ -311,7 +315,7 @@ void DynamicGui_C::ParseJsonData()
                 auto widgetId = newWindow.AddWidget(newWidget);
                 std::cout << "Adding text widget to Main Window\n";
 
-                auto widgetDes = GuiServer_GetWidgetDesc(numWindows, widgetId, false, false, WidgetTypes_E::TEXT, GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING, widgetName);
+                auto widgetDes = _guiServer->GetWidgetDesc(numWindows, widgetId, false, false, WidgetTypes_E::TEXT, GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING, widgetName);
                 widgetDescList.push_back(widgetDes);
             }
             else if (true == std::regex_search(widgetTypeStr, buttonRegex))
@@ -342,7 +346,7 @@ void DynamicGui_C::ParseJsonData()
         numWindows++;
     }
 
-    GuiServer_SetWidgetList(widgetDescList);
+    _guiServer->SetWidgetList(widgetDescList);
 }
 
 void DynamicGui_C::DeInitialize()
@@ -373,9 +377,9 @@ void DynamicGui_C::RunGuiServer()
             auto msgSize = _transport->ReceiveMessage(msgBuf, _rxBufferSize, senderIp, senderPort);
             std::cout << "GUI Server received " << msgSize << " bytes UDP msg from " << senderIp << ":" << senderPort << "\n";
 
-            GuiServer_ProcessReceivedMessage(msgBuf, msgSize);
+            _guiServer->ProcessReceivedMessage(msgBuf, msgSize);
         }
-        GuiServer_ProcessTimedActivities();
+        _guiServer->ProcessTimedActivities();
         SleepMs(10);
     }
 }

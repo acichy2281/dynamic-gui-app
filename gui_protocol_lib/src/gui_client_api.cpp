@@ -14,7 +14,7 @@ namespace GuiProtocol
 
     }
 
-    void GuiClient_C::GuiClient_ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size)
+    void GuiClient_C::ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size)
     {        
         auto queueSizeBeforeAdd = _msgQueue.Size();
         Message_T rxMsg = {std::move(msg), size};
@@ -26,7 +26,7 @@ namespace GuiProtocol
         }
     }
 
-    void GuiClient_C::GuiClient_ProcessTimedActivities()
+    void GuiClient_C::ProcessTimedActivities()
     {
         if (false == _msgQueue.IsQueueEmpty())
         {
@@ -42,7 +42,7 @@ namespace GuiProtocol
         }
     }
 
-    GuiClientReqStatus_E GuiClient_C::GuiClient_SendWidgetListRequest()
+    GuiClientReqStatus_E GuiClient_C::SendWidgetListRequest()
     {
         GuiClientReqStatus_E retVal = GuiClientReqStatus_E::ERROR;
         if (GuiClientState_E::INITIALIZED == _state)
@@ -51,7 +51,7 @@ namespace GuiProtocol
             std::vector<uint8_t> buffer;
             auto widgetListReq = GetWidgetListRequest();
             _msgSerializer.Serialize(widgetListReq, buffer);
-            if (0 < GuiClient_SendMessage(buffer))
+            if (0 < SendMessage(buffer))
             {
                 _widgetListRequested = true;
                 retVal = GuiClientReqStatus_E::SUCCESS;
@@ -65,7 +65,7 @@ namespace GuiProtocol
         return retVal;
     }
 
-    GuiClientReqStatus_E GuiClient_C::GuiClient_SendSetValueRequest(WidgetSetValueIdentifier_T& widgetKeyValPairs)
+    GuiClientReqStatus_E GuiClient_C::SendSetValueRequest(WidgetSetValueIdentifier_T& widgetKeyValPairs)
     {
         GuiClientReqStatus_E retVal = GuiClientReqStatus_E::ERROR;
         if (GuiClientState_E::WIDGET_LIST_RECEIVED == _state)
@@ -76,7 +76,7 @@ namespace GuiProtocol
             std::vector<uint8_t> buffer;
             auto widgetSetValReq = GetWidgetSetValueRequest(widgetValList);
             _msgSerializer.Serialize(widgetSetValReq, buffer);
-            if (0 < GuiClient_SendMessage(buffer))
+            if (0 < SendMessage(buffer))
             {
                 retVal = GuiClientReqStatus_E::SUCCESS;
                 std::cout << "Sent Widget Set Value request\n";
@@ -173,7 +173,7 @@ namespace GuiProtocol
             ProcessStateMachine();
         }
         /* Call user callback */
-        GuiClient_OnWidgetListReplyReceived(static_cast<WidgetReplyStatus_E>(reply.status));
+        OnWidgetListReplyReceived(static_cast<WidgetReplyStatus_E>(reply.status));
     }
 
     void GuiClient_C::ProcessReceivedWidgetSetValueReply(Message_T& msg)
@@ -187,7 +187,7 @@ namespace GuiProtocol
             // Do something
         }
         /* Call user callback */
-        GuiClient_OnWidgetSetValueReplyReceived(static_cast<WidgetReplyStatus_E>(reply.status), reply.setValuesList);
+        OnWidgetSetValueReplyReceived(static_cast<WidgetReplyStatus_E>(reply.status), reply.setValuesList);
     }
 
     void GuiClient_C::ProcessUpdatedWidgets()

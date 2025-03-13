@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "transport_factory.h"
+#include "gui_client_api.h"
 
 struct PropertyConsumerInitParams_C
 {
@@ -12,7 +13,7 @@ struct PropertyConsumerInitParams_C
     uint16_t myPort;
 };
 
-class PropertyConsumer_C : GuiProtocol::GuiClient_C
+class PropertyConsumer_C
 {
     public:
         PropertyConsumer_C(PropertyConsumerInitParams_C initParams);
@@ -21,11 +22,12 @@ class PropertyConsumer_C : GuiProtocol::GuiClient_C
         void RunSetValueTest();
 
     private:
-        int32_t GuiClient_SendMessage(const std::vector<uint8_t> &message) override;
-        void GuiClient_OnWidgetListReplyReceived(GuiProtocol::WidgetReplyStatus_E status) override;
-        void GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::WidgetReplyStatus_E status, std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& setValuesList) override;
+        int32_t GuiClient_SendMessage(const std::vector<uint8_t> &message);
+        void GuiClient_OnWidgetListReplyReceived(GuiProtocol::WidgetReplyStatus_E status);
+        void GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::WidgetReplyStatus_E status, std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& setValuesList);
         void HandleMessage();
         std::shared_ptr<TransportInterface> _transport;
+        std::shared_ptr<GuiProtocol::GuiClient_C> _guiClient;
         PortInfo_T _producerInfo;
         PortInfo_T _guiAppInfo;
         bool _isQuit = false;

@@ -66,9 +66,9 @@ class DynamicGui_C : GuiProtocol::GuiServer_C
 
         /* Gui Server functions  */
         void RunGuiServer();
-        void GuiServer_OnWidgetListRequestReceived() override;
-        int32_t GuiServer_SendMessage(const std::vector<uint8_t>& message) override;
-        GuiProtocol::WidgetReplyStatus_E GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>& widgetSetValueList) override;
+        void GuiServer_OnWidgetListRequestReceived();
+        int32_t GuiServer_SendMessage(const std::vector<uint8_t>& message);
+        GuiProtocol::WidgetReplyStatus_E GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>& widgetSetValueList);
         GuiProtocol::WidgetReplyStatus_E SetValueReq_UpdateWidget(std::shared_ptr<WidgetInterface_I> widget, WidgetTypes_E type, GuiProtocol::WidgetDataTypes_E dataType, GuiProtocol::WidgetValueVariant_T val);
         GuiProtocol::WidgetReplyStatus_E SetValueReq_UpdateTextWidget(std::shared_ptr<WidgetText_C> textWidget, GuiProtocol::WidgetDataTypes_E dataType, GuiProtocol::WidgetValueVariant_T val);
 
@@ -76,6 +76,7 @@ class DynamicGui_C : GuiProtocol::GuiServer_C
         bool                                                    _isRunning                      = false;
         bool                                                    _initialized                    = false;
         std::shared_ptr<TransportInterface>                     _transport;
+        std::shared_ptr<GuiProtocol::GuiServer_C>               _guiServer;
         // uint16_t                                                _widgetKeyCount                 = 0;
         // std::map<uint16_t, WidgetInfo_T>                        _widgetMap;
         std::vector<GuiWindow_C>                                _windowList;

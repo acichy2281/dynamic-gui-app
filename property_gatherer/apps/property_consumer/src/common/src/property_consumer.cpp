@@ -1,13 +1,18 @@
 #include "stdafx.h"
 #include "property_consumer.h"
 
-PropertyConsumer_C::PropertyConsumer_C(PropertyConsumerInitParams_C initParams) : _producerInfo(initParams.producerInfo), _guiAppInfo(initParams.guiAppInfo)
+PropertyConsumer_C::PropertyConsumer_C(PropertyConsumerInitParams_C initParams) : _producerInfo(initParams.producerInfo), _guiAppInfo(initParams.guiAppInfo), _guiClient(std::make_shared<GuiProtocol::GuiClient_C>())
 {
     _transport = UdpTransportFactory::CreateTransport();
     _transport->InitializeSocket(initParams.myIp, initParams.myPort);
     _rxBufferSize = 2048;
     _guiAppDevKey = _guiAppInfo.destIp + ":" + std::to_string(_guiAppInfo.destPort);
     _producerAppDevKey = _producerInfo.destIp + ":" + std::to_string(_producerInfo.destPort);
+
+    /* Set GUI Client Callbacks */
+    _guiClient->SendMessage = std::bind(&PropertyConsumer_C::GuiClient_SendMessage, this, std::placeholders::_1);
+    _guiClient->OnWidgetListReplyReceived = std::bind(&PropertyConsumer_C::GuiClient_OnWidgetListReplyReceived, this, std::placeholders::_1);
+    _guiClient->OnWidgetSetValueReplyReceived = std::bind(&PropertyConsumer_C::GuiClient_OnWidgetSetValueReplyReceived, this, std::placeholders::_1, std::placeholders::_2); 
 }
 
 PropertyConsumer_C::~PropertyConsumer_C()
@@ -17,7 +22,7 @@ PropertyConsumer_C::~PropertyConsumer_C()
 
 void PropertyConsumer_C::RunTest()
 {
-    auto guiClientStatus = GuiClient_SendWidgetListRequest();
+    auto guiClientStatus = _guiClient->SendWidgetListRequest();
     if (GuiProtocol::GuiClientReqStatus_E::SUCCESS != guiClientStatus)
     {
         std::cout << "Failed to request widget list, error: " << static_cast<uint8_t>(guiClientStatus) << "\n";
@@ -32,7 +37,7 @@ void PropertyConsumer_C::RunTest()
         {
             RunSetValueTest();
         }
-        GuiClient_ProcessTimedActivities();
+        _guiClient->ProcessTimedActivities();
         _isQuit = IsUserQuit();
     }
 }
@@ -49,7 +54,7 @@ void PropertyConsumer_C::HandleMessage()
     if (_guiAppDevKey == devKey)
     {
         std::cout << "Processing Gui Client msg\n";
-        GuiClient_ProcessReceivedMessage(msgBuf, msgSize);
+        _guiClient->ProcessReceivedMessage(msgBuf, msgSize);
     }
     else
     {
@@ -61,14 +66,14 @@ void PropertyConsumer_C::RunSetValueTest()
 {
     std::cout << "Running Set Value test\n";
     std::vector<std::pair<std::string, GuiProtocol::WidgetValueVariant_T>> setWidgetList;
-    for (const auto& [widgetName, widgetDesc] : GuiClient_WidgetList())
+    for (const auto& [widgetName, widgetDesc] : _guiClient->WidgetList())
     {
         std::string newWidgetValue = "Consumer Set Widget " + widgetDesc.desc.widgetName;
         setWidgetList.push_back({widgetName, newWidgetValue});
         std::cout << newWidgetValue << "\n";
     }
 
-    auto setValReturn = GuiClient_SendSetValueRequest(setWidgetList);
+    auto setValReturn = _guiClient->SendSetValueRequest(setWidgetList);
     if (GuiProtocol::GuiClientReqStatus_E::SUCCESS != setValReturn)
     {
         std::cout << "Set Value Request failed with " << static_cast<uint8_t>(setValReturn) << "\n";
@@ -77,6 +82,7 @@ void PropertyConsumer_C::RunSetValueTest()
     _runSetValTest = false;
 }
 
+/* GUI Client callback implementations */
 int32_t PropertyConsumer_C::GuiClient_SendMessage(const std::vector<uint8_t>& message)
 {
     return _transport->TransportSendMessage(_guiAppInfo.destIp, _guiAppInfo.destPort, message);
