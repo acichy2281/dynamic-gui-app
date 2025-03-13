@@ -60,13 +60,14 @@ namespace PropertyGatherer
 
     struct PropertyDescriptor_T
     {
-        // Property Descriptor Length
+        uint16_t propertyDescriptorLength;
         uint16_t propertyId;
-        // Property Flags
-        PropertyStorageVariantType_E propertyType;
-        // PropertyLength
+        uint16_t reservedForFlags : 16;
+        uint8_t propertyType;
+        uint8_t reserved : 8;
+        uint16_t propertyLength;
         std::string propertyName;
-        // Property Units
+        uint16_t propertyUnits;
     };
 
     struct PropertyListRequest_T
@@ -78,7 +79,7 @@ namespace PropertyGatherer
     {
         Header_T header;
         uint16_t numProperties;
-        std::vector<PropertyDescriptor_T>
+        std::vector<PropertyDescriptor_T>;
         uint16_t status;
     };
 
