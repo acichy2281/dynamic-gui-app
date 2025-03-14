@@ -100,6 +100,11 @@ namespace PropertyGatherer
         std::memcpy(outBuff.data() + bufSize, &pDesc.propertyType, sizeof(pDesc.propertyType));
         bufSize = outBuff.size();
 
+        /* Serialize reserved bits (1 byte) */
+        outBuff.resize(bufSize + sizeof(pDesc.reserved));
+        std::memcpy(outBuff.data() + bufSize, &pDesc.reserved, sizeof(pDesc.reserved));
+        bufSize = outBuff.size();
+
         /* Serialize property length */
         outBuff.resize(bufSize + sizeof(pDesc.propertyLength));
         std::memcpy(outBuff.data() + bufSize, &pDesc.propertyLength, sizeof(pDesc.propertyLength));
@@ -216,6 +221,91 @@ namespace PropertyGatherer
         /* Deserialize Message ID */
         std::memcpy(&header.messageId, msgBuf.data() + bufIndex, sizeof(header.messageId));
         bufIndex += sizeof(header.messageId);
+    }
+
+    bool PropertyGathererMessageSerializer::Deserialize(PropertyListRequest_T& pMessage, std::vector<uint_t>& msgBuf) 
+    {
+        DeserializeHeader(pMessage.header, msgBuf);
+        uint16_t bufIndex = sizeof(pMessage.header);
+
+        return true;
+    }
+
+    bool PropertyGathererMessageSerializer::Deserialize(PropertyListReply_T& pMessage, std::vector<uint16_t>& msgBuf)
+    {
+        DeserializeHeader(pMessage.header, msgBuf);
+        uint16_t bufIndex = sizeof(pMessage.header);
+
+
+        /* Deserialize number of properties */
+        std::memcpy(&pMessage.numProperties, msgBuf.data() + bufIndex, sizeof(pMessage.numProperties));
+        bufIndex += sizeof(pMessage.numProperties);
+
+        /* Deserialize property descriptors */
+        for (int i = 0; i < pMessage.numProperties; i++) {
+            PropertyDescriptor_T propDesc;
+            DeserializePropertyDescriptor(propDesc, msgBuf, bufIndex);
+            pMessage.propertyDescriptorList.push_back(propDesc);
+        }
+
+        /* Deserialzie status */
+        std::memcpy(&pMessage.status, msgBuf.data() + bufIndex, sizeof(pMessage.status));
+        bufIndex += sizeof(pMessage.status);
+
+        return true;
+    }
+
+    void PropertyGathererMessageSerializer::DeserializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint_t>& msgBuff, uint16_t& offset)
+    {
+        /* Deserialize property descriptor length */
+        std::memcpy(&pDesc.propertyDescriptorLength, msgBuff.data + offset, sizeof(pDesc.propertyDescriptorLength));
+        offset += sizeof(pDesc.propertyDescriptorLength);
+
+        /* Deserialize property id */
+        std::memcpy(&pDesc.propertyId, msgBuff.data + offset, sizeof(pDesc.propertyId));
+        offset += sizeof(pDesc.propertyId);
+
+        /* Deserialize flags and reserved space */
+        uint16_t packedFlags = msgBuff[offset];
+        pDesc.isWriteable = (packedFlags >> 15) & 0x01;
+        pDesc.isReadable = (packedFlags >> 14) & 0x01;
+        pDesc.isSubscribable = (packedFlags >> 13) & 0x01;
+        pDesc.isStatic = (packedFlags >> 12) & 0x01;
+        pDesc.reservedForFlags = packedFlags & 0xFFF;
+        offset += sizeof(packedFlags);
+
+        /* Deserialize property type */
+        pDesc.propertyType = msgBuff[offset];
+        offset += 1;
+
+        /* Deserialize reserved bits */
+        pDesc.reserved = msgBuff[offset];
+        offset += 1;
+
+        /* Deserialize property length */
+        std::memcpy(&pDesc.propertyLength, msgBuff.data + offset, sizeof(pDesc.propertyLength));
+        offset += sizeof(pDesc.propertyLength);
+
+        /* Deserialize property name */
+        size_t startIdx = offset;
+        while (offset < msgBuff.size() && msgBuff[offset] != '\0') 
+        {
+            ++offset;
+        }
+
+        if (offset < msgBuff.size())
+        {
+            pDesc.propertyName = std::string(reinterpret_cast<const char*>(&msgBuff[startIdx], offset - startIdx));
+            ++offset;
+        }
+        else
+        {
+            pDesc.propertyName.clear();
+        }
+
+        /* Deserialize property units */
+        std::memcpy(&pDesc.propertyUnits, msgBuff.data + offset, sizeof(pDesc.propertyUnits));
+        offset += sizeof(pDesc.propertyUnits);
     }
 
     bool PropertyGathererMessageSerializer::Deserialize(GetValueReq_T& pMessage, std::vector<uint8_t>& msgBuf)
