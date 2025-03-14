@@ -2,17 +2,17 @@
 #include "stdafx.h"
 #include "dynamic_gui.h"
 
-DynamicGui_C::DynamicGui_C() : _guiServer(std::make_shared<GuiProtocol::GuiServer_C>())
+DynamicGui_C::DynamicGui_C() : _guiServer(std::make_shared<GuiProtocol::GuiServer_C>(
+    std::bind(&DynamicGui_C::GuiServer_SendMessage, this, std::placeholders::_1),
+    std::bind(&DynamicGui_C::GuiServer_OnWidgetListRequestReceived, this),
+    std::bind(&DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived, this, std::placeholders::_1),
+    std::bind(&DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)))
 {
     _rxBufferSize = 2048;
     _transport = UdpTransportFactory::CreateTransport();
     _transport->InitializeSocket("127.0.0.1", 8001);
     _guiClientPortInfo.destIp = "127.0.0.1";
     _guiClientPortInfo.destPort = 8000;
-
-    _guiServer->SendMessage = std::bind(&DynamicGui_C::GuiServer_SendMessage, this, std::placeholders::_1);
-    _guiServer->OnWidgetListRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetListRequestReceived, this);
-    _guiServer->OnWidgetSetValueRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived, this, std::placeholders::_1);
 }
 
 
@@ -379,7 +379,24 @@ void DynamicGui_C::RunGuiServer()
 
             _guiServer->ProcessReceivedMessage(msgBuf, msgSize);
         }
-        _guiServer->ProcessTimedActivities();
+        else if (0 != _eventQueue.size() /*|| true == _testEventNotification*/)
+        {
+            std::cout << "Sending Widget Event Notification\n";
+            GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(0, 0, "UpdateTest");
+            if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
+            {
+                std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
+            }
+            else
+            {
+                std::cout << "Widget Event Notification sent\n";
+            }
+            _testEventNotification = false;
+        }
+        else 
+        {
+            _guiServer->ProcessTimedActivities();
+        }
         SleepMs(10);
     }
 }
@@ -387,6 +404,7 @@ void DynamicGui_C::RunGuiServer()
 void DynamicGui_C::GuiServer_OnWidgetListRequestReceived()
 {
     std::cout << "Widget List Request Received\n";
+    _testEventNotification = true;
 }
 
 int32_t DynamicGui_C::GuiServer_SendMessage(const std::vector<uint8_t>& message)
@@ -490,4 +508,16 @@ GuiProtocol::WidgetReplyStatus_E DynamicGui_C::SetValueReq_UpdateTextWidget(std:
         retVal = GuiProtocol::WidgetReplyStatus_E::SET_VAL_FAILED_TO_SET;
     }
     return retVal;
+}
+
+void DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived(GuiProtocol::WidgetReplyStatus_E status, uint16_t windowId, uint16_t widgetId)
+{
+    if (GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS == status)
+    {
+        std::cout << "Widget Event Notification Ack Success\n";
+    }
+    else 
+    {
+        std::cout << "Error! Widget Event Notification Ack Failed\n";
+    }
 }

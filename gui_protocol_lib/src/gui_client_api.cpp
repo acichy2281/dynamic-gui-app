@@ -4,7 +4,15 @@
 #include <chrono>
 namespace GuiProtocol
 {
-    GuiClient_C::GuiClient_C()
+    GuiClient_C::GuiClient_C(
+        std::function<int32_t(const std::vector<uint8_t>&)> sendMessage,
+        std::function<void(WidgetReplyStatus_E)> onWidgetListReplyReceived,
+        std::function<void(WidgetReplyStatus_E, std::vector<WidgetSetValueReplyContainer_T>&)> onWidgetSetValueReplyReceived,
+        std::function<void(uint32_t, WidgetValueVariant_T)> onWidgetEventNotificationReceived
+    ) : SendMessage(sendMessage),
+        OnWidgetListReplyReceived(onWidgetListReplyReceived),
+        OnWidgetSetValueReplyReceived(onWidgetSetValueReplyReceived),
+        OnWidgetEventNotificationReceived(onWidgetEventNotificationReceived)
     {
 
     }
@@ -36,10 +44,7 @@ namespace GuiProtocol
         {
 
         }
-        else
-        {
-            ProcessStateMachine();
-        }
+        ProcessStateMachine();
     }
 
     GuiClientReqStatus_E GuiClient_C::SendWidgetListRequest()
@@ -146,6 +151,11 @@ namespace GuiProtocol
                 ProcessReceivedWidgetSetValueReply(msg);
                 break;
 
+            case MessageID_E::WIDGET_EVENT_NOTIFICATION:
+                std::cout << "Received a Widget Event Notification\n";
+                ProcessReceivedWidgetEventNotification(msg);
+                break;
+
             default:
                 std::cout << "Error! Unknown message received\n";
                 break;
@@ -167,7 +177,7 @@ namespace GuiProtocol
             {
                 WidgetValueStorage_T widget;
                 widget.desc = desc;
-                _widgetList[desc.widgetName] = widget;
+                _widgetList[desc.widgetId] = widget;
             }
 
             ProcessStateMachine();
@@ -190,16 +200,29 @@ namespace GuiProtocol
         OnWidgetSetValueReplyReceived(static_cast<WidgetReplyStatus_E>(reply.status), reply.setValuesList);
     }
 
+    void GuiClient_C::ProcessReceivedWidgetEventNotification(Message_T& msg)
+    {
+        WidgetEventNotification_T notification;
+        std::vector<uint8_t> msgBuf(msg.data.get(), msg.data.get() + msg.size);
+        _msgSerializer.Deserialize(notification, msgBuf);
+
+        /* Call user callback */
+        OnWidgetEventNotificationReceived(notification.widgetId, notification.updatedValue);
+
+        /* Send the Ack */
+        WidgetEventNotificationAck_T ack;
+    }
+
     void GuiClient_C::ProcessUpdatedWidgets()
     {
-        for (auto widget : _updatedWidgets)
-        {
-            auto it = _widgetList.find(widget);
-            if (it != _widgetList.end())
-            {
-                // Send a Widget Set Value
-            }
-        }
+        // for (auto widget : _updatedWidgets)
+        // {
+        //     auto it = _widgetList.find(widget);
+        //     if (it != _widgetList.end())
+        //     {
+        //         // Send a Widget Set Value
+        //     }
+        // }
     }
 
     std::vector<WidgetValueStorage_T> GuiClient_C::GenerateWidgetValueList(WidgetSetValueIdentifier_T& widgetKeyValPairs)

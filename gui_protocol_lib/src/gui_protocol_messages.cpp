@@ -222,6 +222,40 @@ namespace GuiProtocol
         return bufSize;
     }
 
+    uint16_t GuiProtocolMessageSerializer::Serialize(WidgetEventNotification_T& pMessage, std::vector<uint8_t>& outBuff)
+    {
+        SerializeHeader(pMessage.header, outBuff);
+        uint16_t bufSize = outBuff.size();
+
+        /* Serialize Widget Id */
+        outBuff.resize(bufSize + sizeof(pMessage.widgetId));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.widgetId, sizeof(pMessage.widgetId));
+        bufSize = outBuff.size();
+
+        SerializeVariant(pMessage.updatedValue, outBuff);
+
+        return bufSize;
+    }
+
+    uint16_t GuiProtocolMessageSerializer::Serialize(WidgetEventNotificationAck_T& pMessage, std::vector<uint8_t>& outBuff)
+    {
+        SerializeHeader(pMessage.header, outBuff);
+        uint16_t bufSize = outBuff.size();
+
+        /* Serialize Widget Id */
+        outBuff.resize(bufSize + sizeof(pMessage.widgetId));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.widgetId, sizeof(pMessage.widgetId));
+        bufSize = outBuff.size();
+
+        /* Serialize status */
+        bufSize = outBuff.size();
+        outBuff.resize(bufSize + sizeof(pMessage.status));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.status, sizeof(pMessage.status));
+        bufSize = outBuff.size();
+
+        return bufSize;
+    }
+
     uint16_t GuiProtocolMessageSerializer::SerializeVariant(const WidgetValueVariant_T& variant, std::vector<uint8_t>& outBuf)
     {
         // Serialize the type index (or type identifier)
@@ -399,6 +433,36 @@ namespace GuiProtocol
         /* Deserialize status */
         std::memcpy(&pCont.status, msgBuf.data() + offset, sizeof(pCont.status));
         offset += sizeof(pCont.status);
+    }
+
+    bool GuiProtocolMessageSerializer::Deserialize(WidgetEventNotification_T& pMessage, std::vector<uint8_t>& msgBuf)
+    {
+        DeserializeHeader(pMessage.header, msgBuf);
+        uint16_t bufIndex = sizeof(pMessage.header);
+
+        /* Deserialize Widget ID */
+        std::memcpy(&pMessage.widgetId, msgBuf.data() + bufIndex, sizeof(pMessage.widgetId));
+        bufIndex += sizeof(pMessage.widgetId);
+
+        pMessage.updatedValue = DeserializeVariant(msgBuf, bufIndex);
+
+        return true;
+    }
+
+    bool GuiProtocolMessageSerializer::Deserialize(WidgetEventNotificationAck_T& pMessage, std::vector<uint8_t>& msgBuf)
+    {
+        DeserializeHeader(pMessage.header, msgBuf);
+        uint16_t bufIndex = sizeof(pMessage.header);
+
+        /* Deserialize Widget ID */
+        std::memcpy(&pMessage.widgetId, msgBuf.data() + bufIndex, sizeof(pMessage.widgetId));
+        bufIndex += sizeof(pMessage.widgetId);
+
+        /* Deserialize status */
+        std::memcpy(&pMessage.status, msgBuf.data() + bufIndex, sizeof(pMessage.status));
+        bufIndex += sizeof(pMessage.status);
+
+        return true;
     }
     
     WidgetValueVariant_T GuiProtocolMessageSerializer::DeserializeVariant(std::vector<uint8_t>& inBuff, uint16_t& index)
