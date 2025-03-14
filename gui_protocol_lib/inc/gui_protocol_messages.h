@@ -19,8 +19,7 @@
 #include "custom_types.h"
 
 namespace GuiProtocol
-{    
-
+{
     /* Enum classes */
     enum class MessageID_E
     {
@@ -28,6 +27,8 @@ namespace GuiProtocol
         WIDGET_LIST_REPLY,
         WIDGET_SET_VALUE_REQ,
         WIDGET_SET_VALUE_REPLY,
+        WIDGET_EVENT_NOTIFICATION,
+        WIDGET_EVENT_NOTIFICATION_ACK,
     };
     enum class WidgetDataTypes_E
     {
@@ -51,7 +52,7 @@ namespace GuiProtocol
 
     /* Type defs */
     using WidgetValueVariant_T = std::variant<std::string, int, float>;
-    typedef std::vector<std::pair<std::string, WidgetValueVariant_T>> WidgetSetValueIdentifier_T;
+    typedef std::vector<std::pair<uint32_t, WidgetValueVariant_T>> WidgetSetValueIdentifier_T; 
 
     /* Structs */
 
@@ -65,6 +66,9 @@ namespace GuiProtocol
         uint16_t messageId;
     };
 
+    /**
+     * @brief Contains widget information such as ID, type, and interactability status
+     */
     struct WidgetDescriptor_T
     {
         uint32_t widgetId;
@@ -76,11 +80,16 @@ namespace GuiProtocol
         std::string widgetName;
     };
 
+    /**
+     * @brief Message structure for requesting list of available widgets
+     */
     struct WidgetListRequest_T
     {
         Header_T header;
     };
-
+    /**
+     * @brief Message structure containing reply to widget list request
+     */
     struct WidgetListReply_T
     {
         Header_T header;
@@ -89,12 +98,21 @@ namespace GuiProtocol
         uint16_t status;
     };
 
-    /* Set Value Request Structs */
+    /* 
+        Set Value Request Structs 
+    */
+
+    /**
+     * @brief Container for widget value update request data
+     */
     struct WidgetSetValueRequestContainer_T
     {
         uint32_t widgetId;
         WidgetValueVariant_T value;
-    };
+    };    
+    /**
+    * @brief Message structure for requesting widget value updates
+    */
     struct WidgetSetValueRequest_T
     {
         Header_T header;
@@ -102,13 +120,23 @@ namespace GuiProtocol
         std::vector<WidgetSetValueRequestContainer_T> setValuesList;
     };
 
-    /* Set Value Reply Structs */
+    /*
+        Set Value Reply Structs 
+    */
+
+    /**
+     * @brief Container for widget value update reply data
+     */
     struct WidgetSetValueReplyContainer_T
     {
         uint32_t widgetId;
         WidgetValueVariant_T value;
         uint16_t status;
     };
+    
+    /**
+     * @brief Message structure containing reply to widget value update request
+     */
     struct WidgetSetValueReply_T
     {
         Header_T header;
@@ -116,6 +144,9 @@ namespace GuiProtocol
         std::vector<WidgetSetValueReplyContainer_T> setValuesList;
         uint16_t status;
     };
+    /**
+     * @brief Structure containing widget value update response information
+     */
     struct WidgetSetValueResponseReturn_T
     {
         uint16_t windowId;
@@ -126,10 +157,29 @@ namespace GuiProtocol
         uint16_t status;
     };
 
+    /**
+     * @brief Structure for storing widget descriptor and its current value
+     */
     struct WidgetValueStorage_T
     {
         WidgetDescriptor_T desc;
         WidgetValueVariant_T val;
+    };
+
+    /* Widget Event Notification */
+    struct WidgetEventNotification_T
+    {
+        Header_T header;
+        uint32_t widgetId;
+        WidgetValueVariant_T updatedValue;
+    };
+
+    /* Widget Event Notification Ack */
+    struct WidgetEventNotificationAck_T
+    {
+        Header_T header;
+        uint32_t widgetId;
+        uint16_t status;
     };
 
 
@@ -149,12 +199,16 @@ namespace GuiProtocol
             uint16_t Serialize(WidgetListReply_T& pMessage, std::vector<uint8_t>& outBuff);
             uint16_t Serialize(WidgetSetValueRequest_T& pMessage, std::vector<uint8_t>& outBuff);
             uint16_t Serialize(WidgetSetValueReply_T& pMessage, std::vector<uint8_t>& outBuff);
+            uint16_t Serialize(WidgetEventNotification_T& pMessage, std::vector<uint8_t>& outBuff);
+            uint16_t Serialize(WidgetEventNotificationAck_T& pMessage, std::vector<uint8_t>& outBuff);
 
             /* Deserialization functions */
             bool Deserialize(WidgetListRequest_T& pMessage, std::vector<uint8_t>& msgBuf);
             bool Deserialize(WidgetListReply_T& pMessage, std::vector<uint8_t>& msgBuf);
             bool Deserialize(WidgetSetValueRequest_T& pMessage, std::vector<uint8_t>& msgBuf);
             bool Deserialize(WidgetSetValueReply_T& pMessage, std::vector<uint8_t>& msgBuf);
+            bool Deserialize(WidgetEventNotification_T& pMessage, std::vector<uint8_t>& msgBuf);
+            bool Deserialize(WidgetEventNotificationAck_T& pMessage, std::vector<uint8_t>& msgBuf);
 
         private:
             void SerializeHeader(Header_T& header, std::vector<uint8_t>& outBuff);

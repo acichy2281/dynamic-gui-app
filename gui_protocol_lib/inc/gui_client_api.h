@@ -31,22 +31,22 @@ namespace GuiProtocol
     class GuiClient_C
     {
         public:
-            GuiClient_C();
+            GuiClient_C(
+                std::function<int32_t(const std::vector<uint8_t>&)> sendMessage,
+                std::function<void(WidgetReplyStatus_E)> onWidgetListReplyReceived,
+                std::function<void(WidgetReplyStatus_E, std::vector<WidgetSetValueReplyContainer_T>&)> onWidgetSetValueReplyReceived,
+                std::function<void(uint32_t, WidgetValueVariant_T)> onWidgetEventNotificationReceived
+            );
             ~GuiClient_C();
             void ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
             void ProcessTimedActivities();
             GuiClientReqStatus_E SendWidgetListRequest();
             GuiClientReqStatus_E SendSetValueRequest(WidgetSetValueIdentifier_T& widgetKeyValPairs);
 
-            const std::unordered_map<std::string, WidgetValueStorage_T>& WidgetList() const
+            const std::unordered_map<uint32_t, WidgetValueStorage_T>& WidgetList() const
             {
                 return _widgetList;
             }
-
-            /* Callbacks */
-            std::function<int32_t(const std::vector<uint8_t>&)> SendMessage;
-            std::function<void(WidgetReplyStatus_E)> OnWidgetListReplyReceived;
-            std::function<void(WidgetReplyStatus_E, std::vector<WidgetSetValueReplyContainer_T>&)> OnWidgetSetValueReplyReceived;
 
         private:
             uint64_t GetCurrentTimeMs();
@@ -54,8 +54,15 @@ namespace GuiProtocol
             void ProcessReceivedMessageQueue();
             void ProcessReceivedWidgetListReply(Message_T& msg);
             void ProcessReceivedWidgetSetValueReply(Message_T& msg);
+            void ProcessReceivedWidgetEventNotification(Message_T& msg);   
             void ProcessUpdatedWidgets();
             std::vector<WidgetValueStorage_T> GenerateWidgetValueList(WidgetSetValueIdentifier_T& widgetKeyValPairs);
+
+            /* Callbacks */
+            std::function<int32_t(const std::vector<uint8_t>&)> SendMessage;
+            std::function<void(WidgetReplyStatus_E)> OnWidgetListReplyReceived;
+            std::function<void(WidgetReplyStatus_E, std::vector<WidgetSetValueReplyContainer_T>&)> OnWidgetSetValueReplyReceived;
+            std::function<void(uint32_t, WidgetValueVariant_T)> OnWidgetEventNotificationReceived;
 
             /* Member Variables */
             GuiClientState_E _state = GuiClientState_E::INITIALIZED;
@@ -63,7 +70,7 @@ namespace GuiProtocol
             GuiProtocolMessageSerializer _msgSerializer;
             bool _widgetListRequested = false;
             bool _widgetListReceived = false;
-            std::unordered_map<std::string, WidgetValueStorage_T> _widgetList;
+            std::unordered_map<uint32_t, WidgetValueStorage_T> _widgetList;
             std::vector<std::string> _updatedWidgets;
     };
 }

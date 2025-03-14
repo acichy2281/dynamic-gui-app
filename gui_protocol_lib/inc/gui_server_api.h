@@ -20,27 +20,38 @@ namespace GuiProtocol
     {
         INITIALIZED,
         WIDGET_LIST_POPULATED,
-        WIDGET_LIST_REPLY_SENT,
+        READY,
+        WIDGET_EVENT_NOTIFICATION_SENT,
+    };
+
+    enum class GuiServerReqStatus_E
+    {
+        SUCCESS,
+        FAILED_TO_SEND_MSG,
+        ERROR,
     };
 
     class GuiServer_C
     {   
-        public:
-            GuiServer_C();
+        public:            
+            GuiServer_C(
+                std::function<int32_t(const std::vector<uint8_t>&)> sendMessage,
+                std::function<void()> onWidgetListRequestReceived,
+                std::function<WidgetReplyStatus_E(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>&)> onWidgetSetValueRequestReceived,
+                std::function<void(WidgetReplyStatus_E, uint16_t, uint16_t)> onWidgetEventNotificationAckReceived
+            );
             ~GuiServer_C();
             void ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
             void ProcessTimedActivities();
             WidgetDescriptor_T GetWidgetDesc(uint16_t windowId, uint16_t widgetId, bool isInteractable, bool isStatic, WidgetTypes_E widgetType, WidgetDataTypes_E widgetDataType, std::string& widgetName);
             bool SetWidgetList(std::vector<WidgetDescriptor_T>& descList);
+            GuiServerReqStatus_E SendWidgetEventNotification(uint16_t windowId, uint16_t widgetId, WidgetValueVariant_T val);
 
             /* Callbacks */
             /**
              * @brief User is expected to
              * 
              */
-            std::function<int32_t(const std::vector<uint8_t>&)> SendMessage;
-            std::function<void()> OnWidgetListRequestReceived;
-            std::function<WidgetReplyStatus_E(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>&)>  OnWidgetSetValueRequestReceived;
             
         private:
             uint64_t GetCurrentTimeMs();
@@ -48,8 +59,13 @@ namespace GuiProtocol
             void ProcessReceivedMessageQueue();
             void ProcessReceivedWidgetListRequest();
             void ProcessReceivedWidgetSetValueRequest(Message_T& msg);
+            void ProcessReceivedWidgetEventNotificationAck(Message_T& msg);
 
             /* Callbacks */
+            std::function<int32_t(const std::vector<uint8_t>&)> SendMessage;
+            std::function<void()> OnWidgetListRequestReceived;
+            std::function<WidgetReplyStatus_E(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>&)>  OnWidgetSetValueRequestReceived;
+            std::function<void(WidgetReplyStatus_E, uint16_t, uint16_t)> OnWidgetEventNotificationAckReceived;
 
             /* Member Variables */
             GuiServerState_E _state = GuiServerState_E::INITIALIZED;
@@ -59,6 +75,9 @@ namespace GuiProtocol
             std::map<uint32_t, WidgetDescriptor_T> _widgetMap;
             bool _widgetListPopulated = false;
             bool _widgetListReplySent = false;
+            bool _widgetSetValueReplySent = false;
+            bool _widgetEventNotificationSent = false;
+            bool _widgetEventNotificationAckReceived = false;
 
     };
 }
