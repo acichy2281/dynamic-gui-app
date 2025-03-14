@@ -35,6 +35,8 @@ namespace GuiProtocol
         WIDGET_DATA_TYPE_STRING, 
         WIDGET_DATA_TYPE_INT,
         WIDGET_DATA_TYPE_FLOAT,
+        WIDGET_DATA_TYPE_BOOL,
+        WIDGET_DATA_TYPE_UNKNOWN,
     };
     enum class WidgetReplyStatus_E
     {
@@ -48,10 +50,13 @@ namespace GuiProtocol
     enum WidgetValueVariantType_E 
     {
         WIDGET_VARIANT_TYPE_STRING,
+        WIDGET_VARIANT_TYPE_INT,
+        WIDGET_VARIANT_TYPE_FLOAT,
+        WIDGET_VARIANT_TYPE_BOOL,
     };
 
     /* Type defs */
-    using WidgetValueVariant_T = std::variant<std::string, int, float>;
+    using WidgetValueVariant_T = std::variant<std::string, int, float, bool>;
     typedef std::vector<std::pair<uint32_t, WidgetValueVariant_T>> WidgetSetValueIdentifier_T; 
 
     /* Structs */
@@ -74,7 +79,9 @@ namespace GuiProtocol
         uint32_t widgetId;
         bool isInteractable : 1;
         bool isStatic : 1;
-        uint8_t reserved : 6;
+        bool isReadable : 1;
+        bool isWritable : 1;
+        uint8_t reserved : 4; // Reserved for future use
         uint8_t widgetType;
         uint8_t dataType; 
         std::string widgetName;
@@ -182,11 +189,18 @@ namespace GuiProtocol
         uint16_t status;
     };
 
+    /* Widget Descriptor Creator functions*/
+    WidgetDescriptor_T GetTextWidgetDescriptor(uint16_t windowId, uint16_t widgetId, bool isReadable, bool isWritable, std::string& widgetName);
+    WidgetDescriptor_T GetButtonWidgetDescriptor(uint16_t windowId, uint16_t widgetId, std::string& widgetName);
+    WidgetDescriptor_T GetSliderWidgetDescriptor(uint16_t windowId, uint16_t widgetId, std::string& widgetName);
 
+    /* Request Reply Creator functions */
     WidgetListRequest_T GetWidgetListRequest();
     WidgetListReply_T GetWidgetListReply(std::vector<WidgetDescriptor_T>& descList, WidgetReplyStatus_E status);
     WidgetSetValueRequest_T GetWidgetSetValueRequest(std::vector<WidgetValueStorage_T>& widgetSetVals);
     WidgetSetValueReply_T GetWidgetSetValueReply(std::vector<WidgetSetValueResponseReturn_T>& widgetSetVals, WidgetReplyStatus_E status);
+    WidgetEventNotification_T GetWidgetEventNotification(uint16_t windowId, uint16_t widgetId, WidgetValueVariant_T updatedValue);
+    WidgetEventNotificationAck_T GetWidgetEventNotificationAck(uint32_t widgetId, uint16_t status);
 
     class GuiProtocolMessageSerializer
     {

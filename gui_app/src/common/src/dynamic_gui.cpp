@@ -310,24 +310,45 @@ void DynamicGui_C::ParseJsonData()
                 // widgetInfo.type = WidgetTypes_E::TEXT;
                 // widgetInfo.value = std::string(widget["Value"]);
 
-                auto newWidget = std::make_shared<WidgetText_C>();
-                newWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
-                auto widgetId = newWindow.AddWidget(newWidget);
-                std::cout << "Adding text widget to Main Window\n";
+                // auto newWidget = std::make_shared<WidgetText_C>();
 
-                auto widgetDes = _guiServer->GetWidgetDesc(numWindows, widgetId, false, false, WidgetTypes_E::TEXT, GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING, widgetName);
-                widgetDescList.push_back(widgetDes);
+                auto widgetId = newWindow.AddWidget(std::make_shared<WidgetText_C>(numWindows));
+                std::shared_ptr<WidgetInterface_I> newWidget;
+                newWindow.GetWidgetAt(widgetId, newWidget);
+
+                if (auto newTextWidget = std::dynamic_pointer_cast<WidgetText_C>(newWidget))
+                {
+                    newTextWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
+                    std::cout << "Adding text widget to Main Window, Window ID: " << numWindows << " Widget ID: " << widgetId << "\n";
+                    auto widgetDes = GuiProtocol::GetTextWidgetDescriptor(numWindows, widgetId, true, true, widgetName);
+                    widgetDescList.push_back(widgetDes);
+                }
+                else
+                {
+                    std::cout << "Failed to add " << widgetName << " as a text widget to window\n";
+                }
             }
             else if (true == std::regex_search(widgetTypeStr, buttonRegex))
             {
-                auto newWidget = std::make_shared<WidgetButton_C>();
-                newWidget->SetWidgetValue(std::string(widget["Text"]).c_str());
-                newWindow.AddWidget(newWidget);
-                std::cout << "Adding button widget to window\n";
+                auto widgetId = newWindow.AddWidget(std::make_shared<WidgetButton_C>(_eventQueue, numWindows));
+                std::shared_ptr<WidgetInterface_I> newWidget;
+                newWindow.GetWidgetAt(widgetId, newWidget);
+
+                if (auto newButtonWidget = std::dynamic_pointer_cast<WidgetButton_C>(newWidget))
+                {
+                    newButtonWidget->SetWidgetValue(std::string(widget["Text"]).c_str());
+                    auto widgetDes = GuiProtocol::GetButtonWidgetDescriptor(numWindows, widgetId, widgetName);
+                    widgetDescList.push_back(widgetDes);
+                    std::cout << "Adding button widget to Main Window, Window ID: " << numWindows << " Widget ID: " << widgetId << "\n";
+                }
+                else
+                {
+                    std::cout << "Failed to add " << widgetName << " as a button widget to window\n";
+                }
             }
             else if (true == std::regex_search(widgetTypeStr, sliderRegex))
             {
-                auto newWidget = std::make_shared<WidgetSlider_C>();
+                auto newWidget = std::make_shared<WidgetSlider_C>(numWindows);
                 float * value = new float(widget["Value"].get<float>());
                 newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), value, widget["MinValue"].get<float>(), widget["MaxValue"].get<float>());
                 newWindow.AddWidget(newWidget);
@@ -379,19 +400,29 @@ void DynamicGui_C::RunGuiServer()
 
             _guiServer->ProcessReceivedMessage(msgBuf, msgSize);
         }
-        else if (0 != _eventQueue.size() /*|| true == _testEventNotification*/)
+        else if (0 != _eventQueue.Size())
         {
             std::cout << "Sending Widget Event Notification\n";
-            GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(0, 0, "UpdateTest");
-            if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
+            auto event = _eventQueue.Dequeue();
+            if (EventTypes_E::BUTTON_PRESS == event->GetType())
             {
-                std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
+                auto buttonEvent = std::dynamic_pointer_cast<EventButtonPress_C>(event);
+                if (buttonEvent)
+                {
+                    // Handle button press event
+                    std::cout << "GUI Server: Button pressed, window ID: " << buttonEvent->GetWindowId() << ", widget ID: " << buttonEvent->GetWidgetId() << "\n";
+                    GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(buttonEvent->GetWindowId(), buttonEvent->GetWidgetId(), true);
+                    if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
+                    {
+                        std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
+                    }
+                    else
+                    {
+                        std::cout << "Widget Event Notification sent\n";
+                    }
+                }
             }
-            else
-            {
-                std::cout << "Widget Event Notification sent\n";
-            }
-            _testEventNotification = false;
+            // _testEventNotification = false;
         }
         else 
         {

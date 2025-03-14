@@ -8,6 +8,7 @@
 
 /* System includes */
 #include <any>
+#include <string>
 
 /**
  * @brief Used to define the type of a widget (i.e Text Box, Slider, Button, etc..)
@@ -50,6 +51,12 @@ struct PortInfo_T
 {
     std::string destIp;
     uint16_t destPort;
+};
+
+struct Message_T
+{
+    std::unique_ptr<char[]> data;
+    uint16_t size;
 };
 
 #endif // CUSTOM_TYPES_H

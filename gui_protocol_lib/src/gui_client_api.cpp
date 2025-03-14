@@ -26,7 +26,7 @@ namespace GuiProtocol
     {        
         auto queueSizeBeforeAdd = _msgQueue.Size();
         Message_T rxMsg = {std::move(msg), size};
-        _msgQueue.AddMessageToQueue(std::move(rxMsg));
+        _msgQueue.Enqueue(std::move(rxMsg));
 
         if (queueSizeBeforeAdd == _msgQueue.Size())
         {
@@ -77,19 +77,27 @@ namespace GuiProtocol
         {
             auto widgetValList = GenerateWidgetValueList(widgetKeyValPairs);
 
-            std::cout << "Sending Widget Set Value request\n";
-            std::vector<uint8_t> buffer;
-            auto widgetSetValReq = GetWidgetSetValueRequest(widgetValList);
-            _msgSerializer.Serialize(widgetSetValReq, buffer);
-            if (0 < SendMessage(buffer))
+            if (widgetValList.size() != widgetKeyValPairs.size())
             {
-                retVal = GuiClientReqStatus_E::SUCCESS;
-                std::cout << "Sent Widget Set Value request\n";
+                std::cout << "Error! Widget value list size mismatch\n";
+                retVal = GuiClientReqStatus_E::FAILED_TO_CREATE_REQUEST;
             }
             else
             {
-                retVal = GuiClientReqStatus_E::FAILED_TO_SEND_MSG;
-                std::cout << "Failed to send Widget Set Value request\n";
+                std::cout << "Sending Widget Set Value request\n";
+                std::vector<uint8_t> buffer;
+                auto widgetSetValReq = GetWidgetSetValueRequest(widgetValList);
+                _msgSerializer.Serialize(widgetSetValReq, buffer);
+                if (0 < SendMessage(buffer))
+                {
+                    retVal = GuiClientReqStatus_E::SUCCESS;
+                    std::cout << "Sent Widget Set Value request\n";
+                }
+                else
+                {
+                    retVal = GuiClientReqStatus_E::FAILED_TO_SEND_MSG;
+                    std::cout << "Failed to send Widget Set Value request\n";
+                }
             }
         }
         else
@@ -137,7 +145,7 @@ namespace GuiProtocol
 
     void GuiClient_C::ProcessReceivedMessageQueue()
     {
-        auto msg = _msgQueue.GetMessageFromQueue();
+        auto msg = _msgQueue.Dequeue();
         uint16_t msgId = (static_cast<uint8_t>(msg.data[3]) << 8) | static_cast<uint8_t>(msg.data[2]);
         switch (static_cast<MessageID_E>(msgId))
         {
@@ -210,7 +218,18 @@ namespace GuiProtocol
         OnWidgetEventNotificationReceived(notification.widgetId, notification.updatedValue);
 
         /* Send the Ack */
-        WidgetEventNotificationAck_T ack;
+        WidgetEventNotificationAck_T ack = GetWidgetEventNotificationAck(notification.widgetId, static_cast<uint16_t>(WidgetReplyStatus_E::SET_VAL_SUCCESS));
+        std::cout << "Sending Widget Event Notification Ack\n";
+        std::vector<uint8_t> buffer;
+        _msgSerializer.Serialize(ack, buffer);
+        if (0 < SendMessage(buffer))
+        {
+            std::cout << "Sent Widget Event Notification Ack\n";
+        }
+        else
+        {
+            std::cout << "Failed to send Widget Event Notification Ack\n";
+        }
     }
 
     void GuiClient_C::ProcessUpdatedWidgets()
@@ -234,7 +253,14 @@ namespace GuiProtocol
             if (it != _widgetList.end())
             {
                 it->second.val = value;
-                retVal.push_back(it->second);
+                if (it->second.desc.isWritable)
+                {
+                    retVal.push_back(it->second);
+                }
+                else
+                {
+                    std::cout << "Widget " << it->first << " is not writeable\n";
+                }
             }
             else
             {
