@@ -10,7 +10,7 @@
 #include "widget_slider.h"
 
 
-class DynamicGui_C : GuiProtocol::GuiServer_C
+class DynamicGui_C
 {
     public: 
         DynamicGui_C();
@@ -71,6 +71,7 @@ class DynamicGui_C : GuiProtocol::GuiServer_C
         GuiProtocol::WidgetReplyStatus_E GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>& widgetSetValueList);
         GuiProtocol::WidgetReplyStatus_E SetValueReq_UpdateWidget(std::shared_ptr<WidgetInterface_I> widget, WidgetTypes_E type, GuiProtocol::WidgetDataTypes_E dataType, GuiProtocol::WidgetValueVariant_T val);
         GuiProtocol::WidgetReplyStatus_E SetValueReq_UpdateTextWidget(std::shared_ptr<WidgetText_C> textWidget, GuiProtocol::WidgetDataTypes_E dataType, GuiProtocol::WidgetValueVariant_T val);
+        void GuiServer_OnWidgetEventNotificationAckReceived(GuiProtocol::WidgetReplyStatus_E status, uint16_t windowId, uint16_t widgetId);
 
         /* Variables */
         bool                                                    _isRunning                      = false;
@@ -90,7 +91,7 @@ class DynamicGui_C : GuiProtocol::GuiServer_C
         SDL_Window*                                             _window;
         PortInfo_T                                              _guiClientPortInfo;
         uint32_t                                                _rxBufferSize;
-
+        bool                                                    _testEventNotification        = false;
         std::vector<EventInterface_I>                           _eventQueue;
 
 };
