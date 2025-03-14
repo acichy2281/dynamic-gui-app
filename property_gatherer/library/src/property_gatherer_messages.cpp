@@ -223,7 +223,7 @@ namespace PropertyGatherer
         bufIndex += sizeof(header.messageId);
     }
 
-    bool PropertyGathererMessageSerializer::Deserialize(PropertyListRequest_T& pMessage, std::vector<uint_t>& msgBuf) 
+    bool PropertyGathererMessageSerializer::Deserialize(PropertyListRequest_T& pMessage, std::vector<uint8_t>& msgBuf) 
     {
         DeserializeHeader(pMessage.header, msgBuf);
         uint16_t bufIndex = sizeof(pMessage.header);
@@ -231,11 +231,10 @@ namespace PropertyGatherer
         return true;
     }
 
-    bool PropertyGathererMessageSerializer::Deserialize(PropertyListReply_T& pMessage, std::vector<uint16_t>& msgBuf)
+    bool PropertyGathererMessageSerializer::Deserialize(PropertyListReply_T& pMessage, std::vector<uint8_t>& msgBuf)
     {
         DeserializeHeader(pMessage.header, msgBuf);
         uint16_t bufIndex = sizeof(pMessage.header);
-
 
         /* Deserialize number of properties */
         std::memcpy(&pMessage.numProperties, msgBuf.data() + bufIndex, sizeof(pMessage.numProperties));
@@ -255,7 +254,7 @@ namespace PropertyGatherer
         return true;
     }
 
-    void PropertyGathererMessageSerializer::DeserializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint_t>& msgBuff, uint16_t& offset)
+    void PropertyGathererMessageSerializer::DeserializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint8_t>& msgBuff, uint16_t& offset)
     {
         /* Deserialize property descriptor length */
         std::memcpy(&pDesc.propertyDescriptorLength, msgBuff.data + offset, sizeof(pDesc.propertyDescriptorLength));
