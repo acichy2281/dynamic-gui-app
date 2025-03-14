@@ -2,6 +2,76 @@
 
 namespace GuiProtocol
 {
+    WidgetDescriptor_T GetTextWidgetDescriptor(uint16_t windowId, uint16_t widgetId, bool isReadable, bool isWritable, std::string& widgetName)
+    {
+        bool isInteractable = false;
+        bool isStatic = false;
+        uint8_t reserved = 0;
+        uint8_t widgetType = static_cast<uint8_t>(WidgetTypes_E::TEXT);
+        uint8_t dataType = static_cast<uint8_t>(WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING); // Assuming text is a string
+
+        WidgetDescriptor_T retVal;
+        retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
+        retVal.isInteractable = isInteractable;
+        retVal.isStatic = isStatic;
+        retVal.isReadable = isReadable;
+        retVal.isWritable = isWritable;
+        retVal.reserved = reserved;
+        retVal.widgetType = widgetType;
+        retVal.dataType = dataType;
+        retVal.widgetName = widgetName;
+
+        return retVal;
+    }
+
+    WidgetDescriptor_T GetButtonWidgetDescriptor(uint16_t windowId, uint16_t widgetId, std::string& widgetName)
+    {
+        bool isInteractable = true;
+        bool isStatic = false;
+        bool isReadable = true;
+        bool isWritable = false;
+        uint8_t reserved = 0;
+        uint8_t widgetType = static_cast<uint8_t>(WidgetTypes_E::BUTTON);
+        uint8_t dataType = static_cast<uint8_t>(WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL); // Assuming button state is boolean
+
+        WidgetDescriptor_T retVal;
+        retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
+        retVal.isInteractable = isInteractable;
+        retVal.isStatic = isStatic;
+        retVal.isReadable = isReadable;
+        retVal.isWritable = isWritable;
+        retVal.reserved = reserved;
+        retVal.widgetType = widgetType;
+        retVal.dataType = dataType;
+        retVal.widgetName = widgetName;
+
+        return retVal;
+    }
+
+    WidgetDescriptor_T GetSliderWidgetDescriptor(uint16_t windowId, uint16_t widgetId, std::string& widgetName)
+    {
+        bool isInteractable = true;
+        bool isStatic = false;
+        bool isReadable = true;
+        bool isWritable = true; // Assuming slider can be written to
+        uint8_t reserved = 0;
+        uint8_t widgetType = static_cast<uint8_t>(WidgetTypes_E::SLIDER);
+        uint8_t dataType = static_cast<uint8_t>(WidgetDataTypes_E::WIDGET_DATA_TYPE_FLOAT); // Assuming slider value is float
+
+        WidgetDescriptor_T retVal;
+        retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
+        retVal.isInteractable = isInteractable;
+        retVal.isStatic = isStatic;
+        retVal.isReadable = isReadable;
+        retVal.isWritable = isWritable;
+        retVal.reserved = reserved;
+        retVal.widgetType = widgetType;
+        retVal.dataType = dataType;
+        retVal.widgetName = widgetName;
+
+        return retVal;
+    }
+
     WidgetListRequest_T GetWidgetListRequest()
     {
         WidgetListRequest_T retVal;
@@ -50,6 +120,25 @@ namespace GuiProtocol
             retVal.setValuesList.push_back(setValCont);
         }
         retVal.status = static_cast<uint16_t>(status);
+        return retVal;
+    }
+
+    WidgetEventNotification_T GetWidgetEventNotification(uint16_t windowId, uint16_t widgetId, WidgetValueVariant_T updatedValue)
+    {
+        WidgetEventNotification_T retVal;
+        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::WIDGET_EVENT_NOTIFICATION);
+        retVal.widgetId = widgetId;
+        retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
+        retVal.updatedValue = updatedValue;
+        return retVal;
+    }
+
+    WidgetEventNotificationAck_T GetWidgetEventNotificationAck(uint32_t widgetId, uint16_t status)
+    {
+        WidgetEventNotificationAck_T retVal;
+        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::WIDGET_EVENT_NOTIFICATION_ACK);
+        retVal.widgetId = widgetId;
+        retVal.status = status;
         return retVal;
     }
 
@@ -128,7 +217,9 @@ namespace GuiProtocol
         uint8_t packedFlags =
         (static_cast<uint16_t>(pDesc.isInteractable) << 7) |
         (static_cast<uint16_t>(pDesc.isStatic) << 6) |
-        (pDesc.reserved & 0x3F);
+        (static_cast<uint16_t>(pDesc.isReadable) << 5) |
+        (static_cast<uint16_t>(pDesc.isWritable) << 4) |
+        (pDesc.reserved & 0xF); // Keep only the lower 4 bits of reserved
         outBuff.push_back(packedFlags);
 
         /* Serialize Widget Type */
@@ -387,7 +478,9 @@ namespace GuiProtocol
         uint8_t packedFlags = msgBuf[offset];
         pDesc.isInteractable = (packedFlags >> 7) & 0x01;
         pDesc.isStatic = (packedFlags >> 6) & 0x01;
-        pDesc.reserved = packedFlags & 0x3F; // Extract reserved (6 bits)
+        pDesc.isReadable = (packedFlags >> 5) & 0x01;
+        pDesc.isWritable = (packedFlags >> 4) & 0x01;
+        pDesc.reserved = packedFlags & 0xF; // Extract reserved (4 bits)
         pDesc.widgetType = msgBuf[offset + 1];
         offset += 2;
 
@@ -537,6 +630,11 @@ namespace GuiProtocol
                 std::string str(reinterpret_cast<const char*>(&inBuff[startIdx]), index - startIdx);
                 ++index;
                 result = str;
+                break;
+            }
+            case WIDGET_VARIANT_TYPE_BOOL: { // bool
+                bool val = (inBuff[index++] != 0);
+                result = val;
                 break;
             }
             default:

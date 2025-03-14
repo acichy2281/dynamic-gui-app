@@ -26,7 +26,7 @@ namespace GuiProtocol
     {
         auto queueSizeBeforeAdd = _msgQueue.Size();
         Message_T rxMsg = {std::move(msg), size};
-        _msgQueue.AddMessageToQueue(std::move(rxMsg));
+        _msgQueue.Enqueue(std::move(rxMsg));
 
         if (queueSizeBeforeAdd == _msgQueue.Size())
         {
@@ -47,12 +47,23 @@ namespace GuiProtocol
         ProcessStateMachine();
     }
 
-    WidgetDescriptor_T GuiServer_C::GetWidgetDesc(uint16_t windowId, uint16_t widgetId, bool isInteractable, bool isStatic, WidgetTypes_E widgetType, WidgetDataTypes_E widgetDataType, std::string& widgetName)
+    WidgetDescriptor_T GuiServer_C::GetWidgetDesc(uint16_t windowId, 
+                                                  uint16_t widgetId, 
+                                                  bool isInteractable, 
+                                                  bool isStatic,
+                                                  bool isReadable,
+                                                  bool isWritable,
+                                                  WidgetTypes_E widgetType, 
+                                                  WidgetDataTypes_E widgetDataType, 
+                                                  std::string& widgetName
+                                                )
     {
         WidgetDescriptor_T retVal;
         retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
         retVal.isInteractable = isInteractable;
         retVal.isStatic = isStatic;
+        retVal.isReadable = isReadable;
+        retVal.isWritable = isWritable;
         retVal.reserved = 0;
         retVal.widgetType = static_cast<uint8_t>(widgetType);
         retVal.dataType = static_cast<uint8_t>(widgetDataType);
@@ -89,10 +100,7 @@ namespace GuiProtocol
         if (GuiServerState_E::READY == _state)
         {
             std::vector<uint8_t> buffer;
-            WidgetEventNotification_T widgetEventNotification;
-            widgetEventNotification.header.messageId = static_cast<uint16_t>(MessageID_E::WIDGET_EVENT_NOTIFICATION);
-            widgetEventNotification.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
-            widgetEventNotification.updatedValue = val;
+            WidgetEventNotification_T widgetEventNotification = GetWidgetEventNotification(windowId, widgetId, val);
             _msgSerializer.Serialize(widgetEventNotification, buffer);
             if (0 < SendMessage(buffer))
             {
@@ -125,6 +133,7 @@ namespace GuiProtocol
                 if (true == _widgetListPopulated)
                 {
                     _state = GuiServerState_E::WIDGET_LIST_POPULATED;
+                    std::cout << "Setting State to Widget List Populated\n";
                 }
                 break;
 
@@ -132,6 +141,7 @@ namespace GuiProtocol
                 if (true == _widgetListReplySent)
                 {
                     _state = GuiServerState_E::READY;
+                    std::cout << "Setting State to Ready\n";
                 }
                 break;
 
@@ -139,6 +149,8 @@ namespace GuiProtocol
                 if (true == _widgetEventNotificationSent)
                 {
                     _state = GuiServerState_E::WIDGET_EVENT_NOTIFICATION_SENT;
+                    std::cout << "Setting State to Event Notification Sent\n";
+                    _widgetEventNotificationSent = false; // Reset for next event notification
                 }
                 break;
             
@@ -146,6 +158,8 @@ namespace GuiProtocol
                 if (true == _widgetEventNotificationAckReceived)
                 {
                     _state = GuiServerState_E::READY;
+                    std::cout << "Setting State back to Ready\n";
+                    _widgetEventNotificationAckReceived = false; // Reset for next event notification
                 }
                 break;
 
@@ -156,7 +170,7 @@ namespace GuiProtocol
 
     void GuiServer_C::ProcessReceivedMessageQueue()
     {
-        auto msg = _msgQueue.GetMessageFromQueue();
+        auto msg = _msgQueue.Dequeue();
         uint16_t msgId = (static_cast<uint8_t>(msg.data[3]) << 8) | static_cast<uint8_t>(msg.data[2]);
         switch (static_cast<MessageID_E>(msgId))
         {

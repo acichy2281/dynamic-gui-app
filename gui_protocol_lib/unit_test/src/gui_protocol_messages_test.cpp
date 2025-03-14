@@ -89,18 +89,20 @@ namespace GuiProtocolTest
     {
         bool isInteractable = true;
         bool isStatic = false;
+        bool isReadable = true;
+        bool isWritable = false;
         uint8_t reserved = 0;
         uint8_t widgetType = 0x01;
         uint8_t dataType = 0x02;
         std::string widgetName = "TestWidget";
-        GuiProtocol::WidgetDescriptor_T widgetDesc = {0x12345678, isInteractable, isStatic, reserved, widgetType, dataType, widgetName};
+        GuiProtocol::WidgetDescriptor_T widgetDesc = {0x12345678, isInteractable, isStatic, isReadable, isWritable, reserved, widgetType, dataType, widgetName};
         std::vector<GuiProtocol::WidgetDescriptor_T> widgetList = {widgetDesc};
         GuiProtocol::WidgetListReply_T reply = {{0x01, 0x02, 0x5678}, static_cast<uint16_t>(widgetList.size()), widgetList, 0x0001};
         std::vector<uint8_t> outBuff;
 
         uint16_t size = _msgSerializer.Serialize(reply, outBuff);
 
-        uint8_t widgetFlags = (isInteractable ? 0x80 : 0x00) | (isStatic ? 0x40 : 0x00) | (reserved & 0x3F);
+        uint8_t widgetFlags = (isInteractable ? 0x80 : 0x00) | (isStatic ? 0x40 : 0x00) | (isReadable ? 0x20 : 0x00) | (isWritable ? 0x10 : 0x00) | (reserved & 0x0F);
         std::vector<uint8_t> expected = {0x01, 0x02, 0x78, 0x56, 0x01, 0x00, 0x78, 0x56, 0x34, 0x12, widgetFlags, 0x01, 0x02, 'T', 'e', 's', 't', 'W', 'i', 'd', 'g', 'e', 't', '\0', 0x01, 0x00};
         bool match = true;
         if (outBuff.size() != expected.size()) 

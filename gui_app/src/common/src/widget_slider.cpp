@@ -2,9 +2,10 @@
 #include "stdafx.h"
 #include "widget_slider.h"
 
-WidgetSlider_C::WidgetSlider_C()
+WidgetSlider_C::WidgetSlider_C(uint16_t windowId)
 {
-    this->_id = -1;
+    SetWindowId(windowId);
+    SetWidgetId(0); // Default widget ID
 }
 
 WidgetSlider_C::~WidgetSlider_C()
@@ -37,9 +38,4 @@ bool WidgetSlider_C::SetWidgetValue(const char* label, float* value, float min, 
 WidgetTypes_E WidgetSlider_C::GetType()
 {
     return WidgetTypes_E::SLIDER;
-}
-
-void WidgetSlider_C::AssignId(uint16_t widgetId)
-{
-    this->_id = widgetId;
 }

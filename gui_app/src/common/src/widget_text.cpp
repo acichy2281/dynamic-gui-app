@@ -3,9 +3,10 @@
 #include "widget_text.h"
 #include "custom_types.h"
 
-WidgetText_C::WidgetText_C()
+WidgetText_C::WidgetText_C(uint16_t windowId)
 {
-    this->_id = -1;
+    SetWindowId(windowId);
+    SetWidgetId(0); // Default widget ID
 }
 
 WidgetText_C::~WidgetText_C()
@@ -47,9 +48,4 @@ bool WidgetText_C::SetWidgetValue(const char* format, ...)
 WidgetTypes_E WidgetText_C::GetType()
 {
     return WidgetTypes_E::TEXT;
-}
-
-void WidgetText_C::AssignId(uint16_t widgetId)
-{
-    this->_id = widgetId;
 }

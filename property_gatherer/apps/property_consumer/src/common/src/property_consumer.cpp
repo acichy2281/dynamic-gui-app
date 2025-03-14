@@ -70,9 +70,16 @@ void PropertyConsumer_C::RunSetValueTest()
     std::vector<std::pair<uint32_t, GuiProtocol::WidgetValueVariant_T>> setWidgetList;
     for (const auto& [widgetId, widgetStorage] : _guiClient->WidgetList())
     {
-        std::string newWidgetValue = "Consumer Set Widget " + widgetStorage.desc.widgetName;
-        setWidgetList.push_back({widgetId, newWidgetValue});
-        std::cout << newWidgetValue << "\n";
+        if (false == widgetStorage.desc.isWritable)
+        {
+            std::cout << "Widget " << widgetId << " is not writable, skipping...\n";
+        }
+        else
+        {
+            std::string newWidgetValue = "Consumer Set Widget " + widgetStorage.desc.widgetName;
+            setWidgetList.push_back({widgetId, newWidgetValue});
+            std::cout << newWidgetValue << "\n";
+        }
     }
 
     auto setValReturn = _guiClient->SendSetValueRequest(setWidgetList);
@@ -130,5 +137,13 @@ void PropertyConsumer_C::GuiClient_OnWidgetEventNotificationReceived(uint32_t wi
     else if (std::holds_alternative<float>(updatedValue))
     {
         std::cout << "Updated value: " << std::get<float>(updatedValue) << "\n";
+    }
+    else if (std::holds_alternative<bool>(updatedValue))
+    {
+        std::cout << "Updated value: " << (std::get<bool>(updatedValue) ? "true" : "false") << "\n";
+    }
+    else
+    {
+        std::cout << "Unknown updated value type!\n";
     }
 }

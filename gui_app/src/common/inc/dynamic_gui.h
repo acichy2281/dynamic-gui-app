@@ -92,7 +92,7 @@ class DynamicGui_C
         PortInfo_T                                              _guiClientPortInfo;
         uint32_t                                                _rxBufferSize;
         bool                                                    _testEventNotification        = false;
-        std::vector<EventInterface_I>                           _eventQueue;
+        ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>    _eventQueue;
 
 };
 

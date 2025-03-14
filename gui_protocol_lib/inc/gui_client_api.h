@@ -8,6 +8,7 @@
 #include <functional>
 
 /* Shared includes */
+#include "custom_types.h"
 #include "thread_safe_queue.h"
 
 /* Project Includes */
@@ -27,6 +28,7 @@ namespace GuiProtocol
         SUCCESS,
         FAILED_TO_SEND_MSG,
         ERROR,
+        FAILED_TO_CREATE_REQUEST,
     };
     class GuiClient_C
     {
