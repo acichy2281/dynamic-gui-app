@@ -4,6 +4,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED True )
 
 project( dynamic_gui_app )
 
+# Check for maximum allowed CMake version
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.0)
+    message(FATAL_ERROR "CMake version ${CMAKE_VERSION} is too high. Maximum allowed version is 3.31.")
+endif()
+
 # Set library / binary output directory 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
