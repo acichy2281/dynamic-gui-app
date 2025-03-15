@@ -19,8 +19,8 @@ int main(int argc, char** argv)
     }
     else
     {
-        std::string a = GetJSONFile();
-        app.SetConfigFile(a);
+        std::string jsonFilePath = GetJSONFile();
+        app.SetConfigFile(jsonFilePath);
         if (false == app.Run())
         {
             return -1;
