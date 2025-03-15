@@ -2,6 +2,42 @@
 
 namespace PropertyGatherer
 {
+
+    PropertyListRequest_T GetPropertyListRequest()
+    {
+        PropertyListRequest_T retVal;
+        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::PROPERTY_LIST_REQ);
+        return retVal;
+    }
+
+    PropertyListReply_T GetPropertyListReply(std::vector<PropertyDescriptor_T>& descList, PropertyReplyStatus_E status)
+    {
+        PropertyListReply_T retVal;
+        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::PROPERTY_LIST_REPLY);
+        retVal.numProperties = descList.size();
+        retVal.propertyDescriptorList = descList;
+        retVal.status = static_cast<uint16_t>(status);
+        return retVal;
+    }
+
+    GetValueReq_T GetPropertyGetValueRequest(uint16_t maxResponseLength, std::vector<uint16_t> propertyIds)
+    {
+        GetValueReq_T retVal;
+        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::GET_VALUE_REQUEST);
+        retVal.maxRespLen = maxResponseLength;
+        retVal.numReqProp = static_cast<uint16_t>(propertyIds.size());
+        retVal.propIds = propertyIds;
+        return retVal;
+    }
+
+    GetValueReply_T GetPropertyGetValueReply(std::vector<PropertyStorageVariant> values, PropertyReplyStatus_E status)
+    {
+        GetValueReply_T retVal;
+        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::GET_VALUE_REPLY);
+        retVal.propValues = values;
+        retVal.status = static_cast<uint16_t>(status);
+    }
+
     PropertyGathererMessageSerializer::PropertyGathererMessageSerializer()
     {
 
@@ -247,7 +283,7 @@ namespace PropertyGatherer
             pMessage.propertyDescriptorList.push_back(propDesc);
         }
 
-        /* Deserialzie status */
+        /* Deserialize status */
         std::memcpy(&pMessage.status, msgBuf.data() + bufIndex, sizeof(pMessage.status));
         bufIndex += sizeof(pMessage.status);
 

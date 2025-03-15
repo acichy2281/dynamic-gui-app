@@ -46,6 +46,15 @@ namespace PropertyGatherer
         SET_VALUE_REPLY,
     };
 
+    enum class PropertyReplyStatus_E
+    {
+        SET_VAL_SUCCESS,
+        SET_VAL_PARTIAL_SUCCESS,
+        SET_VAL_FAILED_TO_SET,
+        SET_VAL_UNKNOWN_WIDGET,
+        SET_VAL_ERROR,
+    };
+
     /* Structs */
 
     /**
@@ -103,7 +112,7 @@ namespace PropertyGatherer
     };
 
     PropertyListRequest_T GetPropertyListRequest();
-    PropertyListReply_T GetPropertyListReply();
+    PropertyListReply_T GetPropertyListReply(std::vector<PropertyDescriptor_T>& descList, PropertyReplyStatus_E status);
     GetValueReq_T GetPropertyGetValueRequest();
     GetValueReply_T GetPropertyGetValueReply();
 
