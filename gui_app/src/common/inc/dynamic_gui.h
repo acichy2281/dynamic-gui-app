@@ -8,6 +8,7 @@
 #include "widget_text.h"
 #include "widget_button.h"
 #include "widget_slider.h"
+#include "thread_safe_queue.h"
 
 
 class DynamicGui_C : GuiProtocol::GuiServer_C
@@ -90,7 +91,7 @@ class DynamicGui_C : GuiProtocol::GuiServer_C
         PortInfo_T                                              _guiClientPortInfo;
         uint32_t                                                _rxBufferSize;
 
-        std::vector<EventInterface_I>                           _eventQueue;
+        ThreadSafeQueue_C<EventInterface_I>                     _eventQueue;
 
 };
 
