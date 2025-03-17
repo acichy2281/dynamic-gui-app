@@ -235,8 +235,8 @@ bool DynamicGui_C::ShowGui()
         testPrintInt++;
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        // if (show_demo_window)
-        // ImGui::ShowDemoWindow(&show_demo_window);
+        if (show_demo_window)
+        ImGui::ShowDemoWindow(&show_demo_window);
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         {
@@ -348,7 +348,7 @@ void DynamicGui_C::ParseJsonData()
             }
             else if (true == std::regex_search(widgetTypeStr, sliderRegex))
             {
-                auto newWidget = std::make_shared<WidgetSlider_C>(numWindows);
+                auto newWidget = std::make_shared<WidgetSlider_C>(_eventQueue, numWindows);
                 float * value = new float(widget["Value"].get<float>());
                 newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), value, widget["MinValue"].get<float>(), widget["MaxValue"].get<float>());
                 newWindow.AddWidget(newWidget);
@@ -421,6 +421,49 @@ void DynamicGui_C::RunGuiServer()
                         std::cout << "Widget Event Notification sent\n";
                     }
                 }
+            }
+            else if (EventTypes_E::SLIDER_SET == event->GetType())
+            {
+                auto sliderEvent = std::dynamic_pointer_cast<EventSliderSet_C>(event);
+                if (sliderEvent)
+                {
+                    // Handle slider set event
+                    auto val = sliderEvent->GetValue();
+                    if (std::holds_alternative<int>(val))
+                    {
+                        std::cout << "GUI Server: Slider set, window ID: " << sliderEvent->GetWindowId() << ", widget ID: " << sliderEvent->GetWidgetId() << ", value: " << std::get<int>(val) << "\n";
+                        GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(sliderEvent->GetWindowId(), sliderEvent->GetWidgetId(), std::get<int>(val));
+                        if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
+                        {
+                            std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
+                        }
+                        else
+                        {
+                            std::cout << "Widget Event Notification sent\n";
+                        }
+                    }
+                    else if (std::holds_alternative<float>(val))
+                    {
+                        std::cout << "GUI Server: Slider set, window ID: " << sliderEvent->GetWindowId() << ", widget ID: " << sliderEvent->GetWidgetId() << ", value: " << std::get<float>(val) << "\n";
+                        GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(sliderEvent->GetWindowId(), sliderEvent->GetWidgetId(), std::get<float>(val));
+                        if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
+                        {
+                            std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
+                        }
+                        else
+                        {
+                            std::cout << "Widget Event Notification sent\n";
+                        }
+                    }
+                    else
+                    {
+                        std::cout << "GUI Server: Slider set, window ID: " << sliderEvent->GetWindowId() << ", widget ID: " << sliderEvent->GetWidgetId() << ", value: unknown type\n";
+                    }
+                }
+            }
+            else
+            {
+                std::cout << "Gui Server: Error! Unknown event type\n";
             }
             // _testEventNotification = false;
         }

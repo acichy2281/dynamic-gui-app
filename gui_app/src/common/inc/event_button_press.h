@@ -1,3 +1,6 @@
+#ifndef EVENT_BUTTON_PRESS_H
+#define EVENT_BUTTON_PRESS_H
+
 #include "stdafx.h"
 #include "event_interface.h"
 
@@ -15,3 +18,5 @@ class EventButtonPress_C : public EventInterface_I
         uint16_t _windowId;
         uint16_t _widgetId;
 };
+
+#endif // EVENT_BUTTON_PRESS_H

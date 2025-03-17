@@ -614,13 +614,7 @@ namespace GuiProtocol
             //     result = val;
             //     break;
             // }
-            // case 8: { // float
-            //     float val;
-            //     std::memcpy(&val, &inBuff[index], sizeof(val));
-            //     index += sizeof(val);
-            //     result = val;
-            //     break;
-            // }
+
             case WIDGET_VARIANT_TYPE_STRING: { // std::string
                 uint16_t startIdx = index;
                 while (index < inBuff.size() && inBuff[index] != '\0') 
@@ -634,6 +628,13 @@ namespace GuiProtocol
             }
             case WIDGET_VARIANT_TYPE_BOOL: { // bool
                 bool val = (inBuff[index++] != 0);
+                result = val;
+                break;
+            }
+            case WIDGET_VARIANT_TYPE_FLOAT: { // float
+                float val;
+                std::memcpy(&val, &inBuff[index], sizeof(val));
+                index += sizeof(val);
                 result = val;
                 break;
             }
