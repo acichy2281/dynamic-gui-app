@@ -45,7 +45,7 @@ namespace PropertyGatherer
             void ProcessTimedActivities();
 
             PropertyConsumerReqStatus_E SendPropertyListRequest();
-            PropertyConsumerReqStatus_E SendGetValueRequest();
+            PropertyConsumerReqStatus_E SendGetValueRequest(uint16_t maxResponseLength, std::vector<uint16_t> propertyIds);
 
             /* Callbacks */
             std::function<int32_t (const std::vector<uint8_t>&)> SendMessage;

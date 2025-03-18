@@ -150,4 +150,7 @@ namespace PropertyGatherer
     }
 
     void PropertyConsumer_C::ProcessReceivedPropertyGetValueReply(Message_T& msg)
+    {
+
+    }
 }
