@@ -9,9 +9,12 @@
 #include <stdio.h>
 #include <memory>
 #include <inttypes.h>
+#include <functional>
+
+/* Shared Includes */
+#include "thread_safe_queue.h"
 
 /* Project Includes */
-#include "thread_safe_queue.h"
 #include "property_gatherer_messages.h"
 
 namespace PropertyGatherer
@@ -38,22 +41,23 @@ namespace PropertyGatherer
             PropertyConsumer_C();
             ~PropertyConsumer_C();
 
-            void PropertyConsumer_ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
-            void PropertyConsumer_ProcessTimedActivities();
+            void ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
+            void ProcessTimedActivities();
 
-            PropertyConsumerReqStatus_E PropertyConsumer_SendPropertyListRequest();
-            PropertyConsumerReqStatus_E PropertyConsumer_SendGetValueRequest();
+            PropertyConsumerReqStatus_E SendPropertyListRequest();
+            PropertyConsumerReqStatus_E SendGetValueRequest();
+
+            /* Callbacks */
+            std::function<int32_t (const std::vector<uint8_t>&)> SendMessage;
+            std::function<void(PropertyReplyStatus_E, std::vector<PropertyDescriptor_T>&)> OnPropertyListReplyReceived;
+            std::function<void(PropertyReplyStatus_E, std::vector<PropertyStorageVariant>&)> OnPropertyGetValueReplyRecieved;
+
         private:
             uint16_t GetCurrentTimeMs();
             void ProcessStateMachine();
             void ProcessReceivedMessageQueue();
             void ProcessReceivedPropertyListReply(Message_T& msg);
             void ProcessReceivedPropertyGetValueReply(Message_T& msg);
-
-
-            /* Callbacks */
-            virtual void PropertyConsumer_OnPropertyListReplyReceived() = 0;
-            virtual void PropertyConsumer_OnPropertyGetValueReplyRecieved() = 0;
 
             /* Member Variables */
             PropertyConsumerState_E _state = PropertyConsumerState_E::INITIALIZED;

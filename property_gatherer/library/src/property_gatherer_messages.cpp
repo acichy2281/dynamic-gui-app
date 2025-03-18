@@ -36,6 +36,7 @@ namespace PropertyGatherer
         retVal.header.messageId = static_cast<uint16_t>(MessageID_E::GET_VALUE_REPLY);
         retVal.propValues = values;
         retVal.status = static_cast<uint16_t>(status);
+        return retVal;
     }
 
     PropertyGathererMessageSerializer::PropertyGathererMessageSerializer()
@@ -293,11 +294,11 @@ namespace PropertyGatherer
     void PropertyGathererMessageSerializer::DeserializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint8_t>& msgBuff, uint16_t& offset)
     {
         /* Deserialize property descriptor length */
-        std::memcpy(&pDesc.propertyDescriptorLength, msgBuff.data + offset, sizeof(pDesc.propertyDescriptorLength));
+        std::memcpy(&pDesc.propertyDescriptorLength, msgBuff.data() + offset, sizeof(pDesc.propertyDescriptorLength));
         offset += sizeof(pDesc.propertyDescriptorLength);
 
         /* Deserialize property id */
-        std::memcpy(&pDesc.propertyId, msgBuff.data + offset, sizeof(pDesc.propertyId));
+        std::memcpy(&pDesc.propertyId, msgBuff.data() + offset, sizeof(pDesc.propertyId));
         offset += sizeof(pDesc.propertyId);
 
         /* Deserialize flags and reserved space */
@@ -318,7 +319,7 @@ namespace PropertyGatherer
         offset += 1;
 
         /* Deserialize property length */
-        std::memcpy(&pDesc.propertyLength, msgBuff.data + offset, sizeof(pDesc.propertyLength));
+        std::memcpy(&pDesc.propertyLength, msgBuff.data() + offset, sizeof(pDesc.propertyLength));
         offset += sizeof(pDesc.propertyLength);
 
         /* Deserialize property name */
@@ -339,7 +340,7 @@ namespace PropertyGatherer
         }
 
         /* Deserialize property units */
-        std::memcpy(&pDesc.propertyUnits, msgBuff.data + offset, sizeof(pDesc.propertyUnits));
+        std::memcpy(&pDesc.propertyUnits, msgBuff.data() + offset, sizeof(pDesc.propertyUnits));
         offset += sizeof(pDesc.propertyUnits);
     }
 

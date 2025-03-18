@@ -77,7 +77,7 @@ namespace PropertyGatherer
         bool isStatic : 1;
         uint16_t reservedForFlags : 12;
         uint8_t propertyType;
-        uint8_t reserved : 8;
+        uint8_t reserved;
         uint16_t propertyLength;
         std::string propertyName;
         uint16_t propertyUnits;
@@ -139,7 +139,7 @@ namespace PropertyGatherer
             void DeserializeHeader(Header_T& header, std::vector<uint8_t>& msgBuf);
 
             uint16_t SerializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint8_t>& outBuff);
-            void DeserializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint_t>& msgBuff, uint16_t& offset);
+            void DeserializePropertyDescriptor(PropertyDescriptor_T& pDesc, std::vector<uint8_t>& msgBuff, uint16_t& offset);
 
             uint16_t SerializeVariant(const PropertyStorageVariant& variant, std::vector<uint8_t>& outBuf);
             PropertyStorageVariant DeserializeVariant(std::vector<uint8_t>& inBuff, uint16_t& index);
