@@ -113,8 +113,8 @@ namespace PropertyGatherer
 
     PropertyListRequest_T GetPropertyListRequest();
     PropertyListReply_T GetPropertyListReply(std::vector<PropertyDescriptor_T>& descList, PropertyReplyStatus_E status);
-    GetValueReq_T GetPropertyGetValueRequest();
-    GetValueReply_T GetPropertyGetValueReply();
+    GetValueReq_T GetPropertyGetValueRequest(uint16_t maxResponseLength, std::vector<uint16_t> propertyIds);
+    GetValueReply_T GetPropertyGetValueReply(std::vector<PropertyStorageVariant> values, PropertyReplyStatus_E status);
 
     class PropertyGathererMessageSerializer
     {

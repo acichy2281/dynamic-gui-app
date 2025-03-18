@@ -59,8 +59,95 @@ namespace PropertyGatherer
         return retVal;
     }
 
-    PropertyConsumerReqStatus_E PropertyConsumer_C::SendGetValueRequest()
+    PropertyConsumerReqStatus_E PropertyConsumer_C::SendGetValueRequest(uint16_t maxResponseLength, std::vector<uint16_t> propertyIds)
+    {
+        PropertyConsumerReqStatus_E retVal = PropertyConsumerReqStatus_E::ERROR;
+        if (PropertyConsumerState_E::PROPERTY_LIST_RECEIVED == _state)
+        {
+            std::cout << "Sending Get Property request\n";
+            std::vector<uint8_t> buffer;
+            auto getPropertyRequest = GetPropertyGetValueRequest(maxResponseLength, propertyIds);
+            _msgSerializer.Serialize(propertyListReq, buffer);
+            if (0 < SendMessage(buffer))
+            {
+                retVal = PropertyConsumerReqStatus_E::SUCCESS;
+                std::cout << "Sent Get Property Value request\n";
+            }
+            else
+            {
+                retVal = PropertyConsumerReqStatus_E::FAILED_TO_SEND_MSG;
+                std::cout << "Failed to send Get Property Value request\n";
+            }
+        }
+        else
+        {
+            std::cout << "Error! Property list has not been received yet, but trying to get value\n";
+        }
+        return retVal;
+    }
+
+    uint64_t PropertyConsumer_C::GetCurrentTimeMs()
+    {
+        return static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()
+                ).count()
+            );
+    }
+
+    void PropertyConsumer_C::ProcessStateMachine()
+    {
+        switch (_state)
+        {
+            case PropertyConsumerState_E::INITIALIZED:
+                if (true == _propertyListRequested)
+                {
+                    _state = GuiClientState_E::WIDGET_LIST_REQUESTED;
+                }
+                break;
+
+            case PropertyConsumerState_E::PROPERTY_LIST_REQUESTED:
+                if (true == _propertyListReceived)
+                {
+                    _state = PropertyConsumerState_E::PROPERTY_VALUE_RECEIVED;
+                }
+                // Check for a timeout
+                break;
+
+            case PropertyConsumerState_E::PROPERTY_VALUE_RECEIVED:
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    void PropertyConsumer_C::ProcessReceivedMessageQueue()
+    {
+        auto msg = _msgQueue.GetMessageFromQueue();
+        uint16_t msgId = (static_cast<uint8_t>(msg.data[3]) << 8) | static_cast<uint8_t>(msg.data[2]);
+        switch (static_cast<MessageID_E>(msgId))
+        {
+            case MessageID_E::PROPERTY_LIST_REPLY:
+                std::cout << "Received a Property List Reply\n";
+                ProcessReceivedPropertyListReply(msg);
+                break;
+
+            case MessageID_E::GET_VALUE_REPLY:
+                std::cout << "Received a Property Get Value Reply\n";
+                ProcessReceivedPropertyGetValueReply(msg);
+                break;
+
+            default:
+                std::cout << "Error! Unknown message received\n";
+                break;
+        }
+    }
+
+    void PropertyConsumer_C::ProcessReceivedPropertyListReply(Message_T& msg)
     {
 
     }
+
+    void PropertyConsumer_C::ProcessReceivedPropertyGetValueReply(Message_T& msg)
 }
