@@ -8,6 +8,8 @@
 #include "widget_text.h"
 #include "widget_button.h"
 #include "widget_slider.h"
+#include "widget_checkbox.h"
+
 
 
 class DynamicGui_C : GuiProtocol::GuiServer_C
