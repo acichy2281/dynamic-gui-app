@@ -8,7 +8,7 @@ int main(int argc, char** argv)
     CommandLineParser_C commandLineParser(argc, argv);
     DynamicGui_C app;
 
-    if (true == commandLineParser.CmdOptionExists("-f") && 
+    if (true == commandLineParser.CmdOptionExists("-f") &&
         false == commandLineParser.GetCmdOption("-f").empty())
     {
         app.SetConfigFile(commandLineParser.GetCmdOption("-f"));
@@ -19,8 +19,10 @@ int main(int argc, char** argv)
     }
     else
     {
-        std::cout << "Provide a config file via the -f option. (TODO: Allow user to create config via GUI app)\n";
-        std::cout << "Example: gui_app.exe -f ..\\..\\..\\gui_app\\config_files\\gui_app.json\n";
+        if (false == app.Run())
+        {
+            return -1;
+        }
     }
 
     return 0;

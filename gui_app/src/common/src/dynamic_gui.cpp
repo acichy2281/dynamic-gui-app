@@ -62,7 +62,11 @@ bool DynamicGui_C::Initialize()
 {
     bool retVal = false;
     // Setup SDL
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
+    if (true == _initialized)
+    {
+        std::cout << "Error: SDL already initialized\n";
+    }
+    else if (false == SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
     {
         std::cout << "Error: SDL_Init(): " << SDL_GetError() << "\n";
     }
@@ -116,6 +120,10 @@ bool DynamicGui_C::ShowGui()
     bool retVal = false;
 
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
+    if (true == _mainWindowName.empty())
+    {
+        _mainWindowName = "Dynamic GUI App";
+    }
     _window = SDL_CreateWindow(_mainWindowName.c_str(), 1280, 720, window_flags);
     if (_window == nullptr)
     {
@@ -147,7 +155,9 @@ bool DynamicGui_C::ShowGui()
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
+    bool isFileSet = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    std::string filePath = "";
 
     // Main loop
     _isRunning = true;
@@ -212,6 +222,29 @@ bool DynamicGui_C::ShowGui()
                 }
            }
             window.ShowWindow();
+        }
+
+        // Show JSON file selector window to load JSON config file 
+        if (false == isFileSet)
+        {
+            ImGui::Begin("JSON File Selector"); 
+
+            if (ImGui::Button("Choose File"))
+            {
+                filePath = GetJSONFile(); 
+                if (false == filePath.empty())
+                {
+                    if (true == SetConfigFile(filePath))
+                    {
+                        SDL_SetWindowTitle(_window, _mainWindowName.c_str());
+                        isFileSet = true;
+                        std::cout << "JSON file set to: " << filePath << "\n";
+                    }
+                }
+            }
+
+            ImGui::Text("Select a JSON file to generate a GUI from.");               
+            ImGui::End();
         }
 
         // Rendering

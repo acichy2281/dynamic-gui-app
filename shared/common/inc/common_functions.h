@@ -15,5 +15,6 @@
 
 bool IsUserQuit();
 void SleepMs(int64_t sleepTime);
+std::string GetJSONFile();
 
 #endif // COMMON_FUNCTIONS_H
