@@ -19,8 +19,7 @@ int main(int argc, char** argv)
     }
     else
     {
-        std::string jsonFilePath = GetJSONFile();
-        app.SetConfigFile(jsonFilePath);
+        app.Run();
         if (false == app.Run())
         {
             return -1;

@@ -2,7 +2,6 @@
 #include <windows.h>
 #include <commdlg.h>
 
-
 bool Windows_IsUserQuit()
 {
     bool retVal = false;        
@@ -43,10 +42,9 @@ std::string Windows_GetJSONFile()
     std::string filePath = Windows_OpenFileDialog();
 
     if (!filePath.empty()) {
-        std::cout << "Selected file: " << filePath << std::endl;
         return filePath;
     }
     else {
-        std::cout << "No file selected." << std::endl;
+        return "";
     }
 }
