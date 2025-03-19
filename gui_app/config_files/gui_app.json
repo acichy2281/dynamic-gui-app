@@ -35,8 +35,13 @@
                 },
                 {
                     "Name": "Generic Checkbox",
-                    "Type": "checkbox",
+                    "Type": "Checkbox",
                     "Text": "Test Checkbox"
+                },
+                {
+                    "Name": "Test Radio",
+                    "Type" : "Radio",
+                    "Options" : ["Option 1", "Option 2", "Option 3"]
                 }
             ]
         },
