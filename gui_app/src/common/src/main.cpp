@@ -19,7 +19,6 @@ int main(int argc, char** argv)
     }
     else
     {
-        app.Run();
         if (false == app.Run())
         {
             return -1;
