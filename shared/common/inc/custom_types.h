@@ -19,7 +19,8 @@ enum class WidgetTypes_E
     TEXT, 
     SLIDER, 
     BUTTON,
-    CHECKBOX
+    CHECKBOX,
+    RADIOBUTTON
 };
 
 /**

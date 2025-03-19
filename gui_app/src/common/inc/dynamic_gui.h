@@ -9,6 +9,7 @@
 #include "widget_button.h"
 #include "widget_slider.h"
 #include "widget_checkbox.h"
+#include "widget_radio.h"
 
 
 

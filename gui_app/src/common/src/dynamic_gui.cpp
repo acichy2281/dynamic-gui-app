@@ -301,7 +301,8 @@ void DynamicGui_C::ParseJsonData()
             std::regex textBoxRegex("text", std::regex_constants::icase);
             std::regex buttonRegex("button", std::regex_constants::icase);
             std::regex sliderRegex("slider", std::regex_constants::icase);
-            std::regex checkboxRegex("checkbox", std::regex_constants::icase); // i think
+            std::regex checkboxRegex("checkbox", std::regex_constants::icase);
+            std::regex radiobuttonRegex("radio", std::regex_constants::icase);
 
             if (true == std::regex_search(widgetTypeStr, textBoxRegex))
             {
@@ -336,6 +337,13 @@ void DynamicGui_C::ParseJsonData()
                 newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), false);
                 newWindow.AddWidget(newWidget);
                 std::cout << "Adding checkbox to window\n";
+            }
+            else if (true == std::regex_search(widgetTypeStr, radiobuttonRegex)){
+                auto newWidget = std::make_shared<WidgetRadiobutton_C>();
+                std::vector<std::string> options(widget["Options"].begin(), widget["Options"].end());
+                newWidget->SetWidgetValue(options, 0);
+                newWindow.AddWidget(newWidget);
+                std::cout << "Adding radio button to window\n";
             }
             else {
                 std::cout << "Unfamiliar widget\n";
