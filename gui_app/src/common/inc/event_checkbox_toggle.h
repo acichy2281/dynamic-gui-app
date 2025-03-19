@@ -4,11 +4,11 @@
 #include "stdafx.h"
 #include "event_interface.h"
 
-class EventCheckboxToggle : public EventInterface_I
+class EventCheckboxToggle_C : public EventInterface_I
 {
 	public:
-		EventCheckboxToggle(uint16_t windowId, uint16_t widgetId, bool isChecked);
-		~EventCheckboxToggle();
+		EventCheckboxToggle_C(uint16_t windowId, uint16_t widgetId, bool isChecked);
+		~EventCheckboxToggle_C();
 
         EventTypes_E GetType() override { return EventTypes_E::CHECKBOX_TOGGLE; }
         uint16_t GetWindowId() const override { return _windowId; }

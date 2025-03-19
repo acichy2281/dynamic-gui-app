@@ -4,11 +4,11 @@
 #include "stdafx.h"
 #include "event_interface.h"
 
-class EventRadioSelected : public EventInterface_I
+class EventRadioSelected_C : public EventInterface_I
 {
 	public:
-		EventRadioSelected(uint16_t windowId, uint16_t widgetId, int selected);
-		~EventRadioSelected();
+		EventRadioSelected_C(uint16_t windowId, uint16_t widgetId, int selected);
+		~EventRadioSelected_C();
 
         EventTypes_E GetType() override { return EventTypes_E::RADIO_SELECTED; }
         uint16_t GetWindowId() const override { return _windowId; }

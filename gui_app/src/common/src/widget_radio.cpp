@@ -20,7 +20,7 @@ void WidgetRadio_C::ShowWidget()
         if(ImGui::RadioButton(_options[i].c_str(), &_selected, i))
         {
             std::cout << "Radio button selected! Window ID: " << GetWindowId() << " Widget ID: " << GetWidgetId() << " Option: " << i << "\n";
-            auto event = std::make_shared<EventRadioSelected>(GetWindowId(), GetWidgetId(), i);
+            auto event = std::make_shared<EventRadioSelected_C>(GetWindowId(), GetWidgetId(), i);
             _eventQueue.Enqueue(std::move(event));
         }
     }     

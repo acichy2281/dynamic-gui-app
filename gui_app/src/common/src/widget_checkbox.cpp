@@ -18,7 +18,7 @@ void WidgetCheckbox_C::ShowWidget()
     if (ImGui::Checkbox(_checkLabel.c_str(), &_status)) 
     {
         std::cout << "Checkbox toggled! Window ID: " << GetWindowId() << " Widget ID: " << GetWidgetId() << "\n";
-        auto event = std::make_shared<EventCheckboxToggle>(GetWindowId(), GetWidgetId(), _status);
+        auto event = std::make_shared<EventCheckboxToggle_C>(GetWindowId(), GetWidgetId(), _status);
         _eventQueue.Enqueue(std::move(event));
     }
 }

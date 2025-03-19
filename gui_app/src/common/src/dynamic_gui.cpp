@@ -53,6 +53,7 @@ bool DynamicGui_C::SetConfigFile(const std::string& configFilePath)
     {
         _jsonData = nlohmann::json::parse(_configFile);
         ParseJsonData();
+        _isConfigFileSet = true;
         retVal = true;
     }
     return retVal;
@@ -155,7 +156,6 @@ bool DynamicGui_C::ShowGui()
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
-    bool isFileSet = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     std::string filePath = "";
 
@@ -225,7 +225,7 @@ bool DynamicGui_C::ShowGui()
         }
 
         // Show JSON file selector window to load JSON config file 
-        if (false == isFileSet)
+        if (false == _isConfigFileSet)
         {
             ImGui::Begin("JSON File Selector"); 
 
@@ -237,7 +237,7 @@ bool DynamicGui_C::ShowGui()
                     if (true == SetConfigFile(filePath))
                     {
                         SDL_SetWindowTitle(_window, _mainWindowName.c_str());
-                        isFileSet = true;
+                        _isConfigFileSet = true;
                         std::cout << "JSON file set to: " << filePath << "\n";
                     }
                 }
@@ -449,6 +449,42 @@ void DynamicGui_C::RunGuiServer()
                     else
                     {
                         std::cout << "GUI Server: Slider set, window ID: " << sliderEvent->GetWindowId() << ", widget ID: " << sliderEvent->GetWidgetId() << ", value: unknown type\n";
+                    }
+                }
+            }
+            else if (EventTypes_E::CHECKBOX_TOGGLE == event->GetType())
+            {
+                auto checkboxEvent = std::dynamic_pointer_cast<EventCheckboxToggle_C>(event);
+                if (checkboxEvent)
+                {
+                    // Handle checkbox set event
+                    std::cout << "GUI Server: Checkbox set, window ID: " << checkboxEvent->GetWindowId() << ", widget ID: " << checkboxEvent->GetWidgetId() << ", value: " << (checkboxEvent->GetValue() ? "true" : "false") << "\n";
+                    GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(checkboxEvent->GetWindowId(), checkboxEvent->GetWidgetId(), checkboxEvent->GetValue());
+                    if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
+                    {
+                        std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
+                    }
+                    else
+                    {
+                        std::cout << "Widget Event Notification sent\n";
+                    }
+                }
+            }
+            else if (EventTypes_E::RADIO_SELECTED == event->GetType())
+            {
+                auto radioEvent = std::dynamic_pointer_cast<EventRadioSelected_C>(event);
+                if (radioEvent)
+                {
+                    // Handle radio button selected event
+                    std::cout << "GUI Server: Radio button selected, window ID: " << radioEvent->GetWindowId() << ", widget ID: " << radioEvent->GetWidgetId() << ", option: " << radioEvent->GetValue() << "\n";
+                    GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(radioEvent->GetWindowId(), radioEvent->GetWidgetId(), radioEvent->GetValue());
+                    if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
+                    {
+                        std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
+                    }
+                    else
+                    {
+                        std::cout << "Widget Event Notification sent\n";
                     }
                 }
             }

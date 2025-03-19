@@ -79,6 +79,7 @@ class DynamicGui_C
         /* Variables */
         bool                                                    _isRunning                      = false;
         bool                                                    _initialized                    = false;
+        bool                                                    _isConfigFileSet                = false;
         std::shared_ptr<TransportInterface>                     _transport;
         std::shared_ptr<GuiProtocol::GuiServer_C>               _guiServer;
         // uint16_t                                                _widgetKeyCount                 = 0;
