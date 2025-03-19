@@ -58,7 +58,11 @@ bool DynamicGui_C::Initialize()
 {
     bool retVal = false;
     // Setup SDL
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
+    if (true == _initialized)
+    {
+        std::cout << "Error: SDL already initialized\n";
+    }
+    else if (false == SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
     {
         std::cout << "Error: SDL_Init(): " << SDL_GetError() << "\n";
     }
@@ -112,6 +116,10 @@ bool DynamicGui_C::ShowGui()
     bool retVal = false;
 
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
+    if (true == _mainWindowName.empty())
+    {
+        _mainWindowName = "Dynamic GUI App";
+    }
     _window = SDL_CreateWindow(_mainWindowName.c_str(), 1280, 720, window_flags);
     if (_window == nullptr)
     {
@@ -151,7 +159,6 @@ bool DynamicGui_C::ShowGui()
     _isRunning = true;
     std::cout << "Running GUI App\n";
     std::thread guiServerThread(&DynamicGui_C::RunGuiServer, this);
-    uint16_t testPrintInt = 0;
 #ifdef __EMSCRIPTEN__
     // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
     // You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
@@ -191,23 +198,7 @@ bool DynamicGui_C::ShowGui()
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
         
-        /*
         // ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
-        // ImGui::Begin(_widgetWindowName.c_str());
-        // for (const auto& [key, widget] : _widgetMap)
-        // {
-        //     switch (widget.type)
-        //     {
-        //         case WidgetTypes_E::TEXT:
-        //             ImGui::Text(std::any_cast<std::string>(widget.value).c_str());
-        //             break;
-
-        //         default:
-        //             break;
-        //     }
-        // }
-        // ImGui::End();
-        */
 
         for (auto& window : _windowList)
         {
@@ -230,54 +221,29 @@ bool DynamicGui_C::ShowGui()
            }
             window.ShowWindow();
         }
-        testPrintInt++;
 
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        // if (show_demo_window)
-        // ImGui::ShowDemoWindow(&show_demo_window);
-
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+        // Show JSON file selector window to load JSON config file 
+        if (false == isFileSet)
         {
-           static float f = 0.0f;
-           static int counter = 0;
+            ImGui::Begin("JSON File Selector"); 
 
-           if (false == isFileSet)
-           {
-               ImGui::Begin("JSON File Selector"); 
+            if (ImGui::Button("Choose File"))
+            {
+                filePath = GetJSONFile(); 
+                if (false == filePath.empty())
+                {
+                    if (true == SetConfigFile(filePath))
+                    {
+                        SDL_SetWindowTitle(_window, _mainWindowName.c_str());
+                        isFileSet = true;
+                        std::cout << "JSON file set to: " << filePath << "\n";
+                    }
+                }
+            }
 
-               if (ImGui::Button("Choose File"))
-               {
-                   filePath = GetJSONFile(); 
-                   if (false == filePath.empty())
-                   {
-                       isFileSet = SetConfigFile(filePath);
-                   }
-               }
-
-               ImGui::Text("Select a JSON file to generate a GUI from.");               // Display some text (you can use a format strings too)
-               //ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-               //ImGui::Checkbox("Another Window", &show_another_window);
-
-               //ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-               //ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-               //ImGui::SameLine();
-               //ImGui::Text("counter = %d", counter);
-
-               //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-               ImGui::End();
-           }
+            ImGui::Text("Select a JSON file to generate a GUI from.");               
+            ImGui::End();
         }
-
-        // 3. Show another simple window.
-        // if (show_another_window)
-        // {
-        //    ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        //    ImGui::Text("Hello from another window!");
-        //    if (ImGui::Button("Close Me"))
-        //        show_another_window = false;
-        //    ImGui::End();
-        // }
 
         // Rendering
         ImGui::Render();
