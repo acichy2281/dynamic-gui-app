@@ -1,5 +1,5 @@
-#ifndef TEXT_WIDGET_H
-#define TEXT_WIDGET_H
+#ifndef WIDGET_TEXT_H
+#define WIDGET_TEXT_H
 
 #include "stdafx.h"
 #include "widget_interface.h"
@@ -17,4 +17,4 @@ class WidgetText_C : public WidgetInterface_I
     private:
         std::string _widgetText;
 };
-#endif // TEXT_WIDGET_H
+#endif // WIDGET_TEXT_H

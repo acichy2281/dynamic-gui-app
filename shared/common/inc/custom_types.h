@@ -20,7 +20,8 @@ enum class WidgetTypes_E
     TEXT, 
     SLIDER, 
     BUTTON,
-    CHECKBOX
+    CHECKBOX,
+    RADIO,
 };
 
 /**
@@ -33,7 +34,9 @@ enum class EventTypes_E
     WIDGET_OPEN,
     WIDGET_RESIZE,
     BUTTON_PRESS,
-    SLIDER_SET
+    SLIDER_SET,
+    CHECKBOX_TOGGLE,
+    RADIO_SELECTED,
 };
 
 /**

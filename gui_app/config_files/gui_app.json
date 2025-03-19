@@ -32,6 +32,16 @@
                     "Name": "Generic button 1",
                     "Type": "Button",
                     "Text": "Test Button"
+                },
+                {
+                    "Name": "Generic Checkbox",
+                    "Type": "Checkbox",
+                    "Text": "Test Checkbox"
+                },
+                {
+                    "Name": "Test Radio",
+                    "Type" : "Radio",
+                    "Options" : ["Option 1", "Option 2", "Option 3"]
                 }
             ]
         },

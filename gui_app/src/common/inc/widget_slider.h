@@ -1,5 +1,5 @@
-#ifndef SLIDER_WIDGET_H
-#define SLIDER_WIDGET_H
+#ifndef WIDGET_SLIDER_H
+#define WIDGET_SLIDER_H
 
 #include "stdafx.h"
 #include "widget_interface.h"
@@ -25,4 +25,4 @@ private:
     float _sliderMax;
     ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
 };
-#endif // SLIDER_WIDGET_H
+#endif // WIDGET_SLIDER_H

@@ -1,5 +1,5 @@
-#ifndef BUTTON_WIDGET_H
-#define BUTTON_WIDGET_H
+#ifndef WIDGET_BUTTON_H
+#define WIDGET_BUTTON_H
 
 #include "stdafx.h"
 #include "widget_interface.h"
@@ -20,4 +20,4 @@ private:
     std::string _buttonLabel;
     ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
 };
-#endif // BUTTON_WIDGET_H
+#endif // WIDGET_BUTTON_H

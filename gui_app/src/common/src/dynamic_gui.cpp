@@ -153,7 +153,6 @@ bool DynamicGui_C::ShowGui()
     _isRunning = true;
     std::cout << "Running GUI App\n";
     std::thread guiServerThread(&DynamicGui_C::RunGuiServer, this);
-    uint16_t testPrintInt = 0;
 #ifdef __EMSCRIPTEN__
     // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
     // You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
@@ -192,24 +191,6 @@ bool DynamicGui_C::ShowGui()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
-        
-        /*
-        // ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
-        // ImGui::Begin(_widgetWindowName.c_str());
-        // for (const auto& [key, widget] : _widgetMap)
-        // {
-        //     switch (widget.type)
-        //     {
-        //         case WidgetTypes_E::TEXT:
-        //             ImGui::Text(std::any_cast<std::string>(widget.value).c_str());
-        //             break;
-
-        //         default:
-        //             break;
-        //     }
-        // }
-        // ImGui::End();
-        */
 
         for (auto& window : _windowList)
         {
@@ -232,44 +213,6 @@ bool DynamicGui_C::ShowGui()
            }
             window.ShowWindow();
         }
-        testPrintInt++;
-
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
-        ImGui::ShowDemoWindow(&show_demo_window);
-
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-        {
-           static float f = 0.0f;
-           static int counter = 0;
-
-           ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-           ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-           ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-           ImGui::Checkbox("Another Window", &show_another_window);
-
-           ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-           ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-           if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-               counter++;
-           ImGui::SameLine();
-           ImGui::Text("counter = %d", counter);
-
-           ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-           ImGui::End();
-        }
-
-        // 3. Show another simple window.
-        // if (show_another_window)
-        // {
-        //    ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        //    ImGui::Text("Hello from another window!");
-        //    if (ImGui::Button("Close Me"))
-        //        show_another_window = false;
-        //    ImGui::End();
-        // }
 
         // Rendering
         ImGui::Render();
@@ -304,6 +247,8 @@ void DynamicGui_C::ParseJsonData()
             std::regex textBoxRegex("text", std::regex_constants::icase);
             std::regex buttonRegex("button", std::regex_constants::icase);
             std::regex sliderRegex("slider", std::regex_constants::icase);
+            std::regex checkboxRegex("checkbox", std::regex_constants::icase);
+            std::regex radiobuttonRegex("radio", std::regex_constants::icase);
 
             if (true == std::regex_search(widgetTypeStr, textBoxRegex))
             {
@@ -353,6 +298,19 @@ void DynamicGui_C::ParseJsonData()
                 newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), value, widget["MinValue"].get<float>(), widget["MaxValue"].get<float>());
                 newWindow.AddWidget(newWidget);
                 std::cout << "Adding slider to window\n";
+            }
+            else if (true == std::regex_search(widgetTypeStr, checkboxRegex)){
+                auto newWidget = std::make_shared<WidgetCheckbox_C>(_eventQueue, numWindows);
+                newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), false);
+                newWindow.AddWidget(newWidget);
+                std::cout << "Adding checkbox to window\n";
+            }
+            else if (true == std::regex_search(widgetTypeStr, radiobuttonRegex)){
+                auto newWidget = std::make_shared<WidgetRadio_C>(_eventQueue, numWindows);
+                std::vector<std::string> options(widget["Options"].begin(), widget["Options"].end());
+                newWidget->SetWidgetValue(options, 0);
+                newWindow.AddWidget(newWidget);
+                std::cout << "Adding radio button to window\n";
             }
             else {
                 std::cout << "Unfamiliar widget\n";

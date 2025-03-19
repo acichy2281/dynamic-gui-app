@@ -21,4 +21,8 @@ include( files.cmake )
 
 add_executable(${PROJECT_NAME} ${_GUI_APP_SOURCEFILES})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE imgui OpenGL::GL nlohmann_json::nlohmann_json gui_protocol_library)
+if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
+    target_link_libraries(${PROJECT_NAME} PRIVATE imgui OpenGL::GL nlohmann_json::nlohmann_json gui_protocol_library)
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    target_link_libraries(${PROJECT_NAME} PRIVATE imgui OpenGL::GL nlohmann_json::nlohmann_json gui_protocol_library dl pthread)
+endif()
