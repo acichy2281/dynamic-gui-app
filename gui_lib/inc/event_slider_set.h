@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "event_interface.h"
+#include <variant>
 
 using SliderValueVariant_T = std::variant<int, float>;
 

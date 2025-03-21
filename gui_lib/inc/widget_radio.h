@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "widget_interface.h"
 #include "event_radio_selected.h"
+#include "thread_safe_queue.h"
 
 class WidgetRadio_C : public WidgetInterface_I
 {

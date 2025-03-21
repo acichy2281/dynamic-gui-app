@@ -11,13 +11,25 @@
 #include "widget_checkbox.h"
 #include "widget_radio.h"
 
-
+struct GuiServerInitParams_T
+{
+    PortInfo_T serverInfo;
+    PortInfo_T clientInfo;
+    uint32_t rxBufferSize;
+    int64_t spinLockSleepMs;
+};
 
 class DynamicGui_C
 {
     public: 
         DynamicGui_C();
         ~DynamicGui_C();
+
+        /**
+         * @brief Initializes SDL backend for GUI app
+         * 
+         */
+        bool Initialize();
 
         /**
          * @brief Initializes and runs the GUI app blocking function that exits upon window close. 
@@ -37,14 +49,18 @@ class DynamicGui_C
          */
         bool SetConfigFile(const std::string& configFilePath);
 
+        /**
+         * @brief Run a GUI Server
+         * 
+         * @param initParam initialization parameters for the GUI server (server and client port info, rx buffer size)
+         * 
+         * @return true 
+         * @return false 
+         */
+        bool RunGuiServer(const GuiServerInitParams_T& initParams);
+
     private: 
         /* Functions */
-
-        /**
-         * @brief Initializes SDL backend for GUI app
-         * 
-         */
-        bool Initialize();
 
         /**
          * @brief Displays the GUI window
@@ -68,7 +84,7 @@ class DynamicGui_C
 
 
         /* Gui Server functions  */
-        void RunGuiServer();
+        bool GuiServer_ValidateInitParams(const GuiServerInitParams_T& initParams);
         void GuiServer_OnWidgetListRequestReceived();
         int32_t GuiServer_SendMessage(const std::vector<uint8_t>& message);
         GuiProtocol::WidgetReplyStatus_E GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>& widgetSetValueList);
@@ -77,26 +93,36 @@ class DynamicGui_C
         void GuiServer_OnWidgetEventNotificationAckReceived(GuiProtocol::WidgetReplyStatus_E status, uint16_t windowId, uint16_t widgetId);
 
         /* Variables */
-        bool                                                    _isRunning                      = false;
+
+        // Flags
+        bool                                                    _isGuiWindowRunning             = false;
+        bool                                                    _isGuiServerRunning             = false;
         bool                                                    _initialized                    = false;
         bool                                                    _isConfigFileSet                = false;
-        std::shared_ptr<TransportInterface>                     _transport;
-        std::shared_ptr<GuiProtocol::GuiServer_C>               _guiServer;
-        // uint16_t                                                _widgetKeyCount                 = 0;
-        // std::map<uint16_t, WidgetInfo_T>                        _widgetMap;
-        std::vector<GuiWindow_C>                                _windowList;
+        bool                                                    _guiServerSpinSleep             = false;
+        
+        // Config member variables
         std::ifstream                                           _configFile;
         std::string                                             _configFilePath;
         nlohmann::json                                          _jsonData;
-        std::string                                             _glslVersion;
+
+        // Window member variables
         std::string                                             _mainWindowName;
-        // std::string                                             _widgetWindowName;
+        std::string                                             _glslVersion;
+        std::vector<GuiWindow_C>                                _windowList;
         SDL_GLContext                                           _glContext;
         SDL_Window*                                             _window;
-        PortInfo_T                                              _guiClientPortInfo;
-        uint32_t                                                _rxBufferSize;
-        bool                                                    _testEventNotification        = false;
+        
+        // Event member variables
         ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>    _eventQueue;
+
+        // GuiServer member variables
+        std::shared_ptr<GuiProtocol::GuiServer_C>               _guiServer;
+        PortInfo_T                                              _guiServerPortInfo;
+        PortInfo_T                                              _guiClientPortInfo;
+        std::shared_ptr<TransportInterface>                     _guiServerTransport;
+        uint32_t                                                _guiServerRxBufferSize;
+        int64_t                                                 _guiServerSpinSleepMs;
 
 };
 

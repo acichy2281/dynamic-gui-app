@@ -8,11 +8,7 @@ DynamicGui_C::DynamicGui_C() : _guiServer(std::make_shared<GuiProtocol::GuiServe
     std::bind(&DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived, this, std::placeholders::_1),
     std::bind(&DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)))
 {
-    _rxBufferSize = 2048;
-    _transport = UdpTransportFactory::CreateTransport();
-    _transport->InitializeSocket("127.0.0.1", 8001);
-    _guiClientPortInfo.destIp = "127.0.0.1";
-    _guiClientPortInfo.destPort = 8000;
+
 }
 
 
@@ -27,17 +23,14 @@ DynamicGui_C::~DynamicGui_C()
 bool DynamicGui_C::Run()
 {
     bool retVal = false;
-    if (false == Initialize())
-    {
-        std::cout << "Failed to initialize SDL\n";
-    }
-    else if (false == ShowGui())
+    if (false == ShowGui())
     {
         std::cout << "Failed to show GUI window\n";
     }
     else
     {
         std::cout << "Exiting GUI App\n";
+        _isGuiServerRunning = false;
         retVal = true;
     }
     return retVal;
@@ -160,16 +153,15 @@ bool DynamicGui_C::ShowGui()
     std::string filePath = "";
 
     // Main loop
-    _isRunning = true;
+    _isGuiWindowRunning = true;
     std::cout << "Running GUI App\n";
-    std::thread guiServerThread(&DynamicGui_C::RunGuiServer, this);
 #ifdef __EMSCRIPTEN__
     // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
     // You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
     io.IniFilename = nullptr;
     EMSCRIPTEN_MAINLOOP_BEGIN
 #else
-    while (true == _isRunning)
+    while (true == _isGuiWindowRunning)
 #endif
     {
         // Poll and handle events (inputs, window resize, etc.)
@@ -183,11 +175,11 @@ bool DynamicGui_C::ShowGui()
             ImGui_ImplSDL3_ProcessEvent(&event);
             if (event.type == SDL_EVENT_QUIT)
             {
-                _isRunning = false;
+                _isGuiWindowRunning = false;
             }
             if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(_window))
             {
-                _isRunning = false;
+                _isGuiWindowRunning = false;
             }
         }
         
@@ -258,7 +250,6 @@ bool DynamicGui_C::ShowGui()
 #ifdef __EMSCRIPTEN__
     EMSCRIPTEN_MAINLOOP_END;
 #endif
-    guiServerThread.join();
     return true;
 }
 
@@ -376,17 +367,26 @@ void DynamicGui_C::DeInitialize()
     _initialized = false;
 }
 
-void DynamicGui_C::RunGuiServer()
+bool DynamicGui_C::RunGuiServer(const GuiServerInitParams_T& initParams)
 {
     std::cout << "Running GUI Server\n";
-    while (true == _isRunning)
+    
+    if (false == GuiServer_ValidateInitParams(initParams))
     {
-        if (true == _transport->PollReceiveSocket())
+        return false;
+    }
+    _guiServerTransport = UdpTransportFactory::CreateTransport();
+    _guiServerTransport->InitializeSocket(_guiServerPortInfo.destIp, _guiServerPortInfo.destPort);
+
+    _isGuiServerRunning = true;
+    while (true == _isGuiServerRunning)
+    {
+        if (true == _guiServerTransport->PollReceiveSocket())
         {
             std::string senderIp;
             uint16_t senderPort;
-            auto msgBuf = std::make_unique<char []>(_rxBufferSize);
-            auto msgSize = _transport->ReceiveMessage(msgBuf, _rxBufferSize, senderIp, senderPort);
+            auto msgBuf = std::make_unique<char []>(_guiServerRxBufferSize);
+            auto msgSize = _guiServerTransport->ReceiveMessage(msgBuf, _guiServerRxBufferSize, senderIp, senderPort);
             std::cout << "GUI Server received " << msgSize << " bytes UDP msg from " << senderIp << ":" << senderPort << "\n";
 
             _guiServer->ProcessReceivedMessage(msgBuf, msgSize);
@@ -492,25 +492,78 @@ void DynamicGui_C::RunGuiServer()
             {
                 std::cout << "Gui Server: Error! Unknown event type\n";
             }
-            // _testEventNotification = false;
         }
         else 
         {
             _guiServer->ProcessTimedActivities();
         }
-        SleepMs(10);
+        if (true == _guiServerSpinSleep) SleepMs(10);
+        if (true == IsUserQuit() || _isGuiServerRunning == false) _isGuiServerRunning = false;
     }
+    std::cout << "GUI Server stopped\n";
+    _isGuiWindowRunning = false;
+    return true;
+}
+
+bool DynamicGui_C::GuiServer_ValidateInitParams(const GuiServerInitParams_T& initParams)
+{
+    // Validate Client Port Info
+    if (initParams.clientInfo.destIp.empty() || initParams.clientInfo.destPort == 0)
+    {
+        std::cout << "Error! Invalid GUI client port info\n";
+        return false;
+    }
+    else
+    {
+        _guiClientPortInfo.destIp = initParams.clientInfo.destIp;
+        _guiClientPortInfo.destPort = initParams.clientInfo.destPort;
+    }
+
+    // Validate Server Port Info
+    if (initParams.serverInfo.destIp.empty() || initParams.serverInfo.destPort == 0)
+    {
+        std::cout << "Error! Invalid GUI server port info\n";
+        return false;
+    }
+    else
+    {
+        _guiServerPortInfo.destIp = initParams.serverInfo.destIp;
+        _guiServerPortInfo.destPort = initParams.serverInfo.destPort;
+    }
+
+    // Validate rxBufferSize 
+    if (0 == initParams.rxBufferSize)
+    {
+        std::cout << "Error! Invalid GUI server rx buffer size\n";
+        return false;
+    }
+    else
+    {
+        _guiServerRxBufferSize = initParams.rxBufferSize;
+    }
+
+    // Configure Spin Lock sleep 
+    if (0 >= initParams.spinLockSleepMs)
+    {
+        _guiServerSpinSleep = false;
+    }
+    else
+    {
+        _guiServerSpinSleep = true;
+        _guiServerSpinSleepMs = initParams.spinLockSleepMs;
+    }
+    
+    return true;
 }
 
 void DynamicGui_C::GuiServer_OnWidgetListRequestReceived()
 {
     std::cout << "Widget List Request Received\n";
-    _testEventNotification = true;
 }
 
 int32_t DynamicGui_C::GuiServer_SendMessage(const std::vector<uint8_t>& message)
 {
-    return _transport->TransportSendMessage(_guiClientPortInfo.destIp, _guiClientPortInfo.destPort, message);
+    return _guiServerTransport->TransportSendMessage(_guiClientPortInfo.destIp, _guiClientPortInfo.destPort, message);
 }
 
 GuiProtocol::WidgetReplyStatus_E DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>& widgetSetValueList)

@@ -70,5 +70,6 @@ target_link_libraries(imgui PUBLIC SDL3::SDL3)
 
 # Add applications 
 add_subdirectory(gui_protocol_lib)
+add_subdirectory(gui_lib)
 add_subdirectory(gui_app)
 add_subdirectory(property_gatherer)

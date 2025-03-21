@@ -626,6 +626,13 @@ namespace GuiProtocol
                 result = str;
                 break;
             }
+            case WIDGET_VARIANT_TYPE_INT: { // int32_t
+                int32_t val;
+                std::memcpy(&val, &inBuff[index], sizeof(val));
+                index += sizeof(val);
+                result = val;
+                break;
+            }
             case WIDGET_VARIANT_TYPE_BOOL: { // bool
                 bool val = (inBuff[index++] != 0);
                 result = val;

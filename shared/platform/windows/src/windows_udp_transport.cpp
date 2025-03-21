@@ -195,6 +195,7 @@ bool WindowsUdpTransport::PollReceiveSocket()
 
     int result = select(0, &readSet, nullptr, nullptr, &timeout);
     if (result > 0 && FD_ISSET(_socketDescriptor, &readSet)) {
+        std::cout << "Received data on the socket\n";
         return true; // Data is available to read
     }
 

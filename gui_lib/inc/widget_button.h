@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "widget_interface.h"
 #include "event_button_press.h"
+#include "thread_safe_queue.h"
 
 class WidgetButton_C : public WidgetInterface_I
 {

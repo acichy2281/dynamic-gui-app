@@ -1,5 +1,5 @@
-#ifndef STDAFX_H
-#define STDAFX_H
+#ifndef GUI_LIB_STDAFX_H
+#define GUI_LIB_STDAFX_H
 
 /* System includes */
 #include <string>
@@ -21,6 +21,7 @@
 #include <future>
 #include <map>
 #include <inttypes.h>
+#include <variant>
 
 /* Project includes */
 #include "gui_server_api.h"
@@ -28,6 +29,7 @@
 /* Shared includes */
 #include "common_functions.h"
 #include "custom_types.h"
+#include "thread_safe_queue.h"
 #include "transport_factory.h"
 
 /* 3rd party includes */
@@ -42,4 +44,4 @@
 #include <SDL3/SDL_opengl.h>
 #endif
 
-#endif // STDAFX_H
+#endif // GUI_LIB_STDAFX_H

@@ -1,26 +1,23 @@
-file(GLOB GUI_PROTOCOL_LIBRARY_SRC 
-    "src/*"
-    "${CMAKE_SOURCE_DIR}/shared/common/src/*"
-)
-
-file(GLOB GUI_PROTOCOL_LIBRARY_INC 
-    "inc/*"
-    "${CMAKE_SOURCE_DIR}/shared/common/inc/*"
+set(GUI_PROTOCOL_LIBRARY_SRC
+    "src/gui_client_api.cpp"
+    "src/gui_protocol_messages.cpp"
+    "src/gui_server_api.cpp"
+    "${CMAKE_SOURCE_DIR}/shared/common/src/common_functions.cpp"
 )
 
 if( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
-file(GLOB GUI_PROTOCOL_LIBRARY_WIN 
-    "${CMAKE_SOURCE_DIR}/shared/platform/windows/src/*.cpp"
-    "${CMAKE_SOURCE_DIR}/shared/platform/windows/inc/*.h"
+set(GUI_PROTOCOL_LIBRARY_WIN 
+    "${CMAKE_SOURCE_DIR}/shared/platform/windows/src/windows_platform_functions.cpp"
+    "${CMAKE_SOURCE_DIR}/shared/platform/windows/src/windows_udp_transport.cpp"
 )
 else() 
 set( GUI_PROTOCOL_LIBRARY_WIN )
 endif()
 
 if( ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
-file(GLOB GUI_PROTOCOL_LIBRARY_LINUX 
-    "${CMAKE_SOURCE_DIR}/shared/platform/linux/src/*.cpp"
-    "${CMAKE_SOURCE_DIR}/shared/platform/linux/inc/*.h"
+set(GUI_PROTOCOL_LIBRARY_LINUX 
+    "${CMAKE_SOURCE_DIR}/shared/platform/linux/src/linux_platform_functions.cpp"
+    "${CMAKE_SOURCE_DIR}/shared/platform/linux/src/linux_udp_transport.cpp"
 )
 else() 
 set( GUI_PROTOCOL_LIBRARY_LINUX )
@@ -28,10 +25,8 @@ endif()
 
 set( _GUI_PROTOCOL_LIBRARY_SOURCEFILES
     ${GUI_PROTOCOL_LIBRARY_SRC}
-    ${GUI_PROTOCOL_LIBRARY_INC}
     ${GUI_PROTOCOL_LIBRARY_WIN}
     ${GUI_PROTOCOL_LIBRARY_LINUX}
-    files.cmake
 )
 
 source_group( "" FILES ${GUI_PROTOCOL_LIBRARY_TOPLEVEL})

@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "widget_interface.h"
 #include "event_checkbox_toggle.h"
+#include "thread_safe_queue.h"
 
 class WidgetCheckbox_C : public WidgetInterface_I
 {

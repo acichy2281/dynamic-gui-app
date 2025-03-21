@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "widget_interface.h"
 #include "event_slider_set.h"
+#include "thread_safe_queue.h"
 
 class WidgetSlider_C : public WidgetInterface_I
 {
