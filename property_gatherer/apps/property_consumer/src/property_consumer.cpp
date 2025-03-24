@@ -14,7 +14,12 @@ PropertyConsumer_C::PropertyConsumer_C(PropertyConsumerInitParams_C initParams) 
     _transport->InitializeSocket(initParams.myIp, initParams.myPort);
     _rxBufferSize = 2048;
     _guiAppDevKey = _guiAppInfo.destIp + ":" + std::to_string(_guiAppInfo.destPort);
-    _producerAppDevKey = _producerInfo.destIp + ":" + std::to_string(_producerInfo.destPort);
+    _producerAppDevKey = _producerInfo.destIp + ":" + std::to_string(_producerInfo.destPort);    
+    
+    if (false == _gui.InitializeGui())
+    {
+        std::cerr << "Error: Failed to initialize GUI app\n";
+    }
 }
 
 PropertyConsumer_C::~PropertyConsumer_C()
@@ -29,6 +34,8 @@ void PropertyConsumer_C::RunTest()
     {
         std::cout << "Failed to request widget list, error: " << static_cast<uint8_t>(guiClientStatus) << "\n";
     }
+    
+    std::thread guiServerThread(&DynamicGui_C::RunGui, std::ref(_gui));
     while (false == _isQuit)
     {
         if (true == _transport->PollReceiveSocket())
@@ -42,6 +49,7 @@ void PropertyConsumer_C::RunTest()
         _guiClient->ProcessTimedActivities();
         _isQuit = IsUserQuit();
     }
+    guiServerThread.join();
 }
 
 void PropertyConsumer_C::HandleMessage()
@@ -67,7 +75,7 @@ void PropertyConsumer_C::HandleMessage()
 void PropertyConsumer_C::RunSetValueTest()
 {
     std::cout << "Running Set Value test\n";
-    std::vector<std::pair<uint32_t, GuiProtocol::WidgetValueVariant_T>> setWidgetList;
+    std::vector<std::pair<uint32_t, WidgetValueVariant_T>> setWidgetList;
     for (const auto& [widgetId, widgetStorage] : _guiClient->WidgetList())
     {
         if (false == widgetStorage.desc.isWritable)
@@ -123,7 +131,7 @@ void PropertyConsumer_C::GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::Wi
     }
 }
 
-void PropertyConsumer_C::GuiClient_OnWidgetEventNotificationReceived(uint32_t widgetId, GuiProtocol::WidgetValueVariant_T updatedValue)
+void PropertyConsumer_C::GuiClient_OnWidgetEventNotificationReceived(uint32_t widgetId, WidgetValueVariant_T updatedValue)
 {
     std::cout << "Widget Event Notification received for widgetId: " << widgetId << "\n";
     if (std::holds_alternative<std::string>(updatedValue))

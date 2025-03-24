@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "transport_factory.h"
 #include "gui_client_api.h"
+#include "dynamic_gui.h"
 
 struct PropertyConsumerInitParams_C
 {
@@ -25,7 +26,7 @@ class PropertyConsumer_C
         int32_t GuiClient_SendMessage(const std::vector<uint8_t> &message);
         void GuiClient_OnWidgetListReplyReceived(GuiProtocol::WidgetReplyStatus_E status);
         void GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::WidgetReplyStatus_E status, std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& setValuesList);
-        void GuiClient_OnWidgetEventNotificationReceived(uint32_t widgetId, GuiProtocol::WidgetValueVariant_T updatedValue);
+        void GuiClient_OnWidgetEventNotificationReceived(uint32_t widgetId, WidgetValueVariant_T updatedValue);
         void HandleMessage();
         std::shared_ptr<TransportInterface> _transport;
         std::shared_ptr<GuiProtocol::GuiClient_C> _guiClient;
@@ -37,6 +38,7 @@ class PropertyConsumer_C
         std::string _guiAppDevKey;
         std::string _producerAppDevKey;
         bool _runSetValTest = false;
+        DynamicGui_C _gui;
 };
 
 #endif // PROPERTY_CONSUMER_H

@@ -3,17 +3,24 @@
 #include "command_line_parser.h"
 #include "dynamic_gui.h"
 
+void WidgetEventCb(uint32_t widgetId, WidgetValueVariant_T val)
+{
+    std::cout << "Widget event callback: Widget ID = " << widgetId << ", Value = ";
+    std::visit([](auto&& arg) { std::cout << arg; }, val);
+    std::cout << "\n";
+}
+
 int main(int argc, char** argv)
 {
     CommandLineParser_C commandLineParser(argc, argv);
     DynamicGui_C app;
 
-    if (false == app.Initialize())
+    if (false == app.InitializeGui())
     {
         std::cerr << "Error: Failed to initialize GUI app\n";
         return -1;
     }
-    
+    app.SetCallbacks({ WidgetEventCb });
     GuiServerInitParams_T guiServerInitParams;
     guiServerInitParams.serverInfo.destIp = "127.0.0.1";
     guiServerInitParams.serverInfo.destPort = 8001;
@@ -28,14 +35,14 @@ int main(int argc, char** argv)
         false == commandLineParser.GetCmdOption("-f").empty())
     {
         app.SetConfigFile(commandLineParser.GetCmdOption("-f"));
-        if (false == app.Run())
+        if (false == app.RunGui())
         {
             return -1;
         }
     }
     else
     {
-        if (false == app.Run())
+        if (false == app.RunGui())
         {
             return -1;
         }

@@ -9,6 +9,7 @@
 /* System includes */
 #include <any>
 #include <string>
+#include <variant>
 
 /**
  * @brief Used to define the type of a widget (i.e Text Box, Slider, Button, etc..)
@@ -38,6 +39,16 @@ enum class EventTypes_E
     CHECKBOX_TOGGLE,
     RADIO_SELECTED,
 };
+
+enum WidgetValueVariantType_E 
+{
+    WIDGET_VARIANT_TYPE_STRING,
+    WIDGET_VARIANT_TYPE_INT,
+    WIDGET_VARIANT_TYPE_FLOAT,
+    WIDGET_VARIANT_TYPE_BOOL,
+};
+
+using WidgetValueVariant_T = std::variant<std::string, int, float, bool>;
 
 /**
  * @brief Used to store widget info

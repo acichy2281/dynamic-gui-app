@@ -6,7 +6,8 @@ DynamicGui_C::DynamicGui_C() : _guiServer(std::make_shared<GuiProtocol::GuiServe
     std::bind(&DynamicGui_C::GuiServer_SendMessage, this, std::placeholders::_1),
     std::bind(&DynamicGui_C::GuiServer_OnWidgetListRequestReceived, this),
     std::bind(&DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived, this, std::placeholders::_1),
-    std::bind(&DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)))
+    std::bind(&DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3))),
+    _onWidgetEventOccured(std::bind(&DynamicGui_C::DefaultOnWidgetEvent, this, std::placeholders::_1, std::placeholders::_2))
 {
 
 }
@@ -20,7 +21,7 @@ DynamicGui_C::~DynamicGui_C()
     }
 }
 
-bool DynamicGui_C::Run()
+bool DynamicGui_C::RunGui()
 {
     bool retVal = false;
     if (false == ShowGui())
@@ -52,7 +53,15 @@ bool DynamicGui_C::SetConfigFile(const std::string& configFilePath)
     return retVal;
 }
 
-bool DynamicGui_C::Initialize()
+void DynamicGui_C::SetCallbacks(const GuiLibraryCallbacks_T& callBacks)
+{
+    if (callBacks.onWidgetEventOccured != nullptr)
+    {
+        _onWidgetEventOccured = callBacks.onWidgetEventOccured;
+    }
+}
+
+bool DynamicGui_C::InitializeGui()
 {
     bool retVal = false;
     // Setup SDL
@@ -216,6 +225,9 @@ bool DynamicGui_C::ShowGui()
             window.ShowWindow();
         }
 
+        // Process the event Queue
+        ProcessEventQueue();
+
         // Show JSON file selector window to load JSON config file 
         if (false == _isConfigFileSet)
         {
@@ -251,6 +263,82 @@ bool DynamicGui_C::ShowGui()
     EMSCRIPTEN_MAINLOOP_END;
 #endif
     return true;
+}
+
+void DynamicGui_C::ProcessEventQueue()
+{
+    if (0 != _eventQueue.Size())
+    {
+        std::cout << "Processing Widget Event\n";
+        auto event = _eventQueue.Dequeue();
+        if (EventTypes_E::BUTTON_PRESS == event->GetType())
+        {
+            auto buttonEvent = std::dynamic_pointer_cast<EventButtonPress_C>(event);
+            if (buttonEvent)
+            {
+                // Handle button press event
+                std::cout << "Event Handler: Button pressed, window ID: " << buttonEvent->GetWindowId() << ", widget ID: " << buttonEvent->GetWidgetId() << "\n";
+                if (true == _isGuiServerRunning)
+                {
+                    _widgetEventNotificationQueue.Enqueue({ buttonEvent->GetWindowId(), buttonEvent->GetWidgetId(), true });
+                }
+                _onWidgetEventOccured((static_cast<uint32_t>(buttonEvent->GetWindowId()) << 16) | static_cast<uint32_t>(buttonEvent->GetWidgetId()), true); 
+            }
+        }
+        else if (EventTypes_E::SLIDER_SET == event->GetType())
+        {
+            auto sliderEvent = std::dynamic_pointer_cast<EventSliderSet_C>(event);
+            if (sliderEvent)
+            {
+                // Handle slider set event
+                std::visit([&](auto&& arg) {
+                    std::cout << "Event Handler: Slider set, window ID: " << sliderEvent->GetWindowId() << ", widget ID: " << sliderEvent->GetWidgetId() << ", value: " << arg << "\n";
+                    if (true == _isGuiServerRunning)
+                    {
+                        _widgetEventNotificationQueue.Enqueue({ sliderEvent->GetWindowId(), sliderEvent->GetWidgetId(), arg });
+                    }
+                    _onWidgetEventOccured((static_cast<uint32_t>(sliderEvent->GetWindowId()) << 16) | static_cast<uint32_t>(sliderEvent->GetWidgetId()), arg); 
+                }, sliderEvent->GetValue());
+            }
+        }
+        else if (EventTypes_E::CHECKBOX_TOGGLE == event->GetType())
+        {
+            auto checkboxEvent = std::dynamic_pointer_cast<EventCheckboxToggle_C>(event);
+            if (checkboxEvent)
+            {
+                // Handle checkbox set event
+                std::cout << "Event Handler: Checkbox set, window ID: " << checkboxEvent->GetWindowId() << ", widget ID: " << checkboxEvent->GetWidgetId() << ", value: " << (checkboxEvent->GetValue() ? "true" : "false") << "\n";
+                if (true == _isGuiServerRunning)
+                {
+                    _widgetEventNotificationQueue.Enqueue({ checkboxEvent->GetWindowId(), checkboxEvent->GetWidgetId(), checkboxEvent->GetValue() });
+                }
+                _onWidgetEventOccured((static_cast<uint32_t>(checkboxEvent->GetWindowId()) << 16) | static_cast<uint32_t>(checkboxEvent->GetWidgetId()), checkboxEvent->GetValue()); 
+            }
+        }
+        else if (EventTypes_E::RADIO_SELECTED == event->GetType())
+        {
+            auto radioEvent = std::dynamic_pointer_cast<EventRadioSelected_C>(event);
+            if (radioEvent)
+            {
+                // Handle radio button selected event
+                std::cout << "Event Handler: Radio button selected, window ID: " << radioEvent->GetWindowId() << ", widget ID: " << radioEvent->GetWidgetId() << ", option: " << radioEvent->GetValue() << "\n";
+                if (true == _isGuiServerRunning)
+                {
+                    _widgetEventNotificationQueue.Enqueue({ radioEvent->GetWindowId(), radioEvent->GetWidgetId(), radioEvent->GetValue() });
+                }
+                _onWidgetEventOccured((static_cast<uint32_t>(radioEvent->GetWindowId()) << 16) | static_cast<uint32_t>(radioEvent->GetWidgetId()), radioEvent->GetValue()); 
+            }
+        }
+        else
+        {
+            std::cout << "Event Handler: Error! Unknown event type\n";
+        }
+    }
+}
+
+void DynamicGui_C::DefaultOnWidgetEvent(uint32_t widgetId, WidgetValueVariant_T val)
+{
+    // Default callback for widget events
 }
 
 void DynamicGui_C::ParseJsonData()
@@ -391,106 +479,18 @@ bool DynamicGui_C::RunGuiServer(const GuiServerInitParams_T& initParams)
 
             _guiServer->ProcessReceivedMessage(msgBuf, msgSize);
         }
-        else if (0 != _eventQueue.Size())
+        else if (0 != _widgetEventNotificationQueue.Size())
         {
             std::cout << "Sending Widget Event Notification\n";
-            auto event = _eventQueue.Dequeue();
-            if (EventTypes_E::BUTTON_PRESS == event->GetType())
+            auto event = _widgetEventNotificationQueue.Dequeue();                   
+            GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(event.windowId, event.widgetId, event.value);
+            if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
             {
-                auto buttonEvent = std::dynamic_pointer_cast<EventButtonPress_C>(event);
-                if (buttonEvent)
-                {
-                    // Handle button press event
-                    std::cout << "GUI Server: Button pressed, window ID: " << buttonEvent->GetWindowId() << ", widget ID: " << buttonEvent->GetWidgetId() << "\n";
-                    GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(buttonEvent->GetWindowId(), buttonEvent->GetWidgetId(), true);
-                    if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
-                    {
-                        std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
-                    }
-                    else
-                    {
-                        std::cout << "Widget Event Notification sent\n";
-                    }
-                }
-            }
-            else if (EventTypes_E::SLIDER_SET == event->GetType())
-            {
-                auto sliderEvent = std::dynamic_pointer_cast<EventSliderSet_C>(event);
-                if (sliderEvent)
-                {
-                    // Handle slider set event
-                    auto val = sliderEvent->GetValue();
-                    if (std::holds_alternative<int>(val))
-                    {
-                        std::cout << "GUI Server: Slider set, window ID: " << sliderEvent->GetWindowId() << ", widget ID: " << sliderEvent->GetWidgetId() << ", value: " << std::get<int>(val) << "\n";
-                        GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(sliderEvent->GetWindowId(), sliderEvent->GetWidgetId(), std::get<int>(val));
-                        if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
-                        {
-                            std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
-                        }
-                        else
-                        {
-                            std::cout << "Widget Event Notification sent\n";
-                        }
-                    }
-                    else if (std::holds_alternative<float>(val))
-                    {
-                        std::cout << "GUI Server: Slider set, window ID: " << sliderEvent->GetWindowId() << ", widget ID: " << sliderEvent->GetWidgetId() << ", value: " << std::get<float>(val) << "\n";
-                        GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(sliderEvent->GetWindowId(), sliderEvent->GetWidgetId(), std::get<float>(val));
-                        if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
-                        {
-                            std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
-                        }
-                        else
-                        {
-                            std::cout << "Widget Event Notification sent\n";
-                        }
-                    }
-                    else
-                    {
-                        std::cout << "GUI Server: Slider set, window ID: " << sliderEvent->GetWindowId() << ", widget ID: " << sliderEvent->GetWidgetId() << ", value: unknown type\n";
-                    }
-                }
-            }
-            else if (EventTypes_E::CHECKBOX_TOGGLE == event->GetType())
-            {
-                auto checkboxEvent = std::dynamic_pointer_cast<EventCheckboxToggle_C>(event);
-                if (checkboxEvent)
-                {
-                    // Handle checkbox set event
-                    std::cout << "GUI Server: Checkbox set, window ID: " << checkboxEvent->GetWindowId() << ", widget ID: " << checkboxEvent->GetWidgetId() << ", value: " << (checkboxEvent->GetValue() ? "true" : "false") << "\n";
-                    GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(checkboxEvent->GetWindowId(), checkboxEvent->GetWidgetId(), checkboxEvent->GetValue());
-                    if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
-                    {
-                        std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
-                    }
-                    else
-                    {
-                        std::cout << "Widget Event Notification sent\n";
-                    }
-                }
-            }
-            else if (EventTypes_E::RADIO_SELECTED == event->GetType())
-            {
-                auto radioEvent = std::dynamic_pointer_cast<EventRadioSelected_C>(event);
-                if (radioEvent)
-                {
-                    // Handle radio button selected event
-                    std::cout << "GUI Server: Radio button selected, window ID: " << radioEvent->GetWindowId() << ", widget ID: " << radioEvent->GetWidgetId() << ", option: " << radioEvent->GetValue() << "\n";
-                    GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(radioEvent->GetWindowId(), radioEvent->GetWidgetId(), radioEvent->GetValue());
-                    if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
-                    {
-                        std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
-                    }
-                    else
-                    {
-                        std::cout << "Widget Event Notification sent\n";
-                    }
-                }
+                std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
             }
             else
             {
-                std::cout << "Gui Server: Error! Unknown event type\n";
+                std::cout << "Widget Event Notification sent\n";
             }
         }
         else 
@@ -611,7 +611,7 @@ GuiProtocol::WidgetReplyStatus_E DynamicGui_C::GuiServer_OnWidgetSetValueRequest
 GuiProtocol::WidgetReplyStatus_E DynamicGui_C::SetValueReq_UpdateWidget(std::shared_ptr<WidgetInterface_I> widget, 
                                                                         WidgetTypes_E type, 
                                                                         GuiProtocol::WidgetDataTypes_E dataType, 
-                                                                        GuiProtocol::WidgetValueVariant_T val)
+                                                                        WidgetValueVariant_T val)
 {
     auto retVal = GuiProtocol::WidgetReplyStatus_E::SET_VAL_UNKNOWN_WIDGET;
     switch (static_cast<WidgetTypes_E>(type))
@@ -631,7 +631,7 @@ GuiProtocol::WidgetReplyStatus_E DynamicGui_C::SetValueReq_UpdateWidget(std::sha
 
 GuiProtocol::WidgetReplyStatus_E DynamicGui_C::SetValueReq_UpdateTextWidget(std::shared_ptr<WidgetText_C> textWidget, 
                                                                             GuiProtocol::WidgetDataTypes_E dataType, 
-                                                                            GuiProtocol::WidgetValueVariant_T val)
+                                                                            WidgetValueVariant_T val)
 {
     bool setRetVal = false;
     switch (dataType)

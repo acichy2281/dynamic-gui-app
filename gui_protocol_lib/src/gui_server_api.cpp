@@ -96,7 +96,7 @@ namespace GuiProtocol
     
     GuiServerReqStatus_E GuiServer_C::SendWidgetEventNotification(uint16_t windowId, uint16_t widgetId, WidgetValueVariant_T val)
     {
-        GuiServerReqStatus_E retVal = GuiServerReqStatus_E::ERROR;
+        GuiServerReqStatus_E retVal = GuiServerReqStatus_E::REQ_STATUS_ERROR;
         if (GuiServerState_E::READY == _state)
         {
             std::vector<uint8_t> buffer;

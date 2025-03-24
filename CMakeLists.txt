@@ -43,8 +43,12 @@ FetchContent_Declare(
     GIT_TAG v1.91.7  
 )
 
-# Make both available
+# Set 3rd party library options
 set(JSON_BuildTests OFF CACHE INTERNAL "")
+set(SDL_TESTS OFF)
+set(SDL_EXAMPLES OFF)
+
+# Make both available
 FetchContent_MakeAvailable(nlohmann_json SDL imgui)
 
 # Create library for imgui 
@@ -66,7 +70,7 @@ target_sources(imgui PUBLIC
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 )
 
-target_link_libraries(imgui PUBLIC SDL3::SDL3)
+target_link_libraries(imgui PRIVATE SDL3::SDL3)
 
 # Add applications 
 add_subdirectory(gui_protocol_lib)

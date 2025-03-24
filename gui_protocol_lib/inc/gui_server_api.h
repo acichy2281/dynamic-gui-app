@@ -28,7 +28,7 @@ namespace GuiProtocol
     {
         SUCCESS,
         FAILED_TO_SEND_MSG,
-        ERROR,
+        REQ_STATUS_ERROR,
     };
 
     class GuiServer_C

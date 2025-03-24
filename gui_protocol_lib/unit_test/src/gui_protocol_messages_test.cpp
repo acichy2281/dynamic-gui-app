@@ -133,7 +133,7 @@ namespace GuiProtocolTest
 
     bool GuiProtocolMessageSerializationTest_C::TestSerializeWidgetSetValueRequest()
     {
-        GuiProtocol::WidgetValueVariant_T value = std::string("TestValue");
+        WidgetValueVariant_T value = std::string("TestValue");
         GuiProtocol::WidgetSetValueRequestContainer_T setValueContainer = {0x12345678, value};
         std::vector<GuiProtocol::WidgetSetValueRequestContainer_T> setValueList = {setValueContainer};
         GuiProtocol::WidgetSetValueRequest_T request = {{0x01, 0x02, 0x9ABC}, static_cast<uint16_t>(setValueList.size()), setValueList};
@@ -141,7 +141,7 @@ namespace GuiProtocolTest
 
         uint16_t size = _msgSerializer.Serialize(request, outBuff);
         
-        uint8_t widgetVariantIdentifier = static_cast<uint8_t>(GuiProtocol::WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING);
+        uint8_t widgetVariantIdentifier = static_cast<uint8_t>(WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING);
         std::vector<uint8_t> expected = {0x01, 0x02, 0xBC, 0x9A, 0x01, 0x00, 0x78, 0x56, 0x34, 0x12, widgetVariantIdentifier, 'T', 'e', 's', 't', 'V', 'a', 'l', 'u', 'e', '\0'};
         bool match = true;
         if (outBuff.size() != expected.size()) 
@@ -172,7 +172,7 @@ namespace GuiProtocolTest
 
     bool GuiProtocolMessageSerializationTest_C::TestSerializeWidgetSetValueReply()
     {
-        GuiProtocol::WidgetValueVariant_T value = std::string("TestValue");
+        WidgetValueVariant_T value = std::string("TestValue");
         uint16_t status = 0x0001;
         GuiProtocol::WidgetSetValueReplyContainer_T setValueContainer = {0x12345678, value, status};
         std::vector<GuiProtocol::WidgetSetValueReplyContainer_T> setValueList = {setValueContainer};
@@ -181,7 +181,7 @@ namespace GuiProtocolTest
 
         uint16_t size = _msgSerializer.Serialize(reply, outBuff);
 
-        uint8_t widgetVariantIdentifier = static_cast<uint8_t>(GuiProtocol::WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING);
+        uint8_t widgetVariantIdentifier = static_cast<uint8_t>(WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING);
         std::vector<uint8_t> expected = {0x01, 0x02, 0xBC, 0x9A, 0x01, 0x00, 0x78, 0x56, 0x34, 0x12, widgetVariantIdentifier, 'T', 'e', 's', 't', 'V', 'a', 'l', 'u', 'e', '\0', 0x01, 0x00, 0x01, 0x00};
         bool match = true;
         if (outBuff.size() != expected.size()) 
@@ -343,7 +343,7 @@ namespace GuiProtocolTest
 
     bool GuiProtocolMessageSerializationTest_C::TestDeserializeWidgetSetValueRequest()
     {
-        uint8_t widgetVariantIdentifier = static_cast<uint8_t>(GuiProtocol::WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING);
+        uint8_t widgetVariantIdentifier = static_cast<uint8_t>(WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING);
         std::vector<uint8_t> inBuff = {0x01, 0x02, 0xBC, 0x9A, 0x01, 0x00, 0x78, 0x56, 0x34, 0x12, widgetVariantIdentifier, 'T', 'e', 's', 't', 'V', 'a', 'l', 'u', 'e', '\0'};
         GuiProtocol::WidgetSetValueRequest_T message;
         _msgSerializer.Deserialize(message, inBuff);
@@ -385,10 +385,10 @@ namespace GuiProtocolTest
                       << std::hex << message.setValuesList[0].widgetId << std::dec << "\n";
             success = false;
         }
-        if (message.setValuesList[0].value.index() != GuiProtocol::WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING)
+        if (message.setValuesList[0].value.index() != WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING)
         {
             std::cout << "DeserializeWidgetSetValueRequest failed: value type mismatch. Expected string type ("
-                      << GuiProtocol::WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING << "), got "
+                      << WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING << "), got "
                       << message.setValuesList[0].value.index() << "\n";
             success = false;
         }
@@ -413,7 +413,7 @@ namespace GuiProtocolTest
 
     bool GuiProtocolMessageSerializationTest_C::TestDeserializeWidgetSetValueReply()
     {
-        uint8_t widgetVariantIdentifier = static_cast<uint8_t>(GuiProtocol::WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING);
+        uint8_t widgetVariantIdentifier = static_cast<uint8_t>(WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING);
         std::vector<uint8_t> inBuff = {0x01, 0x02, 0xBC, 0x9A, 0x01, 0x00, 0x78, 0x56, 0x34, 0x12, widgetVariantIdentifier, 'T', 'e', 's', 't', 'V', 'a', 'l', 'u', 'e', '\0', 0x01, 0x00, 0x01, 0x00};
         GuiProtocol::WidgetSetValueReply_T message;
         _msgSerializer.Deserialize(message, inBuff);
@@ -456,10 +456,10 @@ namespace GuiProtocolTest
                       << std::hex << message.setValuesList[0].widgetId << std::dec << "\n";
             success = false;
         }
-        if (message.setValuesList[0].value.index() != GuiProtocol::WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING)
+        if (message.setValuesList[0].value.index() != WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING)
         {
             std::cout << "DeserializeWidgetSetValueReply failed: value type mismatch. Expected string type ("
-                      << GuiProtocol::WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING << "), got "
+                      << WidgetValueVariantType_E::WIDGET_VARIANT_TYPE_STRING << "), got "
                       << message.setValuesList[0].value.index() << "\n";
             success = false;
         }

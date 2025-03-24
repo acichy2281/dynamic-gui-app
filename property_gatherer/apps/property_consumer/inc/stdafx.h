@@ -1,5 +1,5 @@
-#ifndef STDAFX_H
-#define STDAFX_H
+#ifndef PROPERTY_CONSUMER_STDAFX_H
+#define PROPERTY_CONSUMER_STDAFX_H
 
 /* System includes */
 #include <string>
@@ -32,4 +32,4 @@
 /* 3rd party includes */
 // #include <nlohmann/json.hpp>
 
-#endif // STDAFX_H
+#endif // PROPERTY_CONSUMER_STDAFX_H

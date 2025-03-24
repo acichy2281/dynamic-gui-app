@@ -15,7 +15,7 @@
 #include <memory>
 #include <cstring>
 
-/* Project include */
+/* Shared include */
 #include "custom_types.h"
 
 namespace GuiProtocol
@@ -47,16 +47,7 @@ namespace GuiProtocol
         SET_VAL_ERROR,
     };
 
-    enum WidgetValueVariantType_E 
-    {
-        WIDGET_VARIANT_TYPE_STRING,
-        WIDGET_VARIANT_TYPE_INT,
-        WIDGET_VARIANT_TYPE_FLOAT,
-        WIDGET_VARIANT_TYPE_BOOL,
-    };
-
     /* Type defs */
-    using WidgetValueVariant_T = std::variant<std::string, int, float, bool>;
     typedef std::vector<std::pair<uint32_t, WidgetValueVariant_T>> WidgetSetValueIdentifier_T; 
 
     /* Structs */
