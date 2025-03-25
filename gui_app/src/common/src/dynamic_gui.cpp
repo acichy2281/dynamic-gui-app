@@ -286,7 +286,7 @@ void DynamicGui_C::ParseJsonData()
             auto staticFieldValue = widget.find("static");
             bool isStaticField = false;
             if (staticFieldValue != widget.end()) {
-                if (widget["static"] == "true") {
+                if (widget["Static"] == "True" || widget["Static"] == "true") {
                     isStaticField = true;
                 }
             }
