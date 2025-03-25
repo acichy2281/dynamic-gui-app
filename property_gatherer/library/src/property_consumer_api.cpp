@@ -146,11 +146,32 @@ namespace PropertyGatherer
 
     void PropertyConsumer_C::ProcessReceivedPropertyListReply(Message_T& msg)
     {
+        PropertyListReply_T reply;
+        std::vector<uint8_t> msgBuf(msg.data.get(), msg.data.get() + msg.size);
+        _msgSerializer.Deserialize(reply, msgBuf);
 
+        if (PropertyReplyStatus_E::SET_VAL_SUCCESS == static_cast<PropertyReplyStatus_E>(reply.status))
+        {
+            _propertyListReceived = true;
+
+            /* Probably maintain some internal storage of available properties */
+
+            ProcessStateMachine();
+        }
+
+        OnPropertyListReplyReceived(static_cast<PropertyReplyStatus_E>(reply.status), reply.propertyDescriptorList);
     }
 
     void PropertyConsumer_C::ProcessReceivedPropertyGetValueReply(Message_T& msg)
     {
+        GetValueReply_T reply;
+        std::vector<uint8_t> msgBuf(msg.data.get(), msg.data.get() + msg.size);
+        _msgSerializer.Deserialize(reply, msgBuf);
 
+        if (PropertyReplyStatus_E::SET_VAL_SUCCESS == static_cast<PropertyReplyStatus_E>(reply.status))
+        {
+            // Do something
+        }
+        OnPropertyGetValueReplyRecieved(static_cast<PropertyReplyStatus_E>(reply.status), reply.propValues);
     }
 }
