@@ -4,8 +4,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True )
 
 project( property_consumer )
 
-add_library(${PROJECT_NAME} SHARED)
-
 # Project includes 
 include_directories( ${CMAKE_CURRENT_LIST_DIR}/src/common/inc )
 include_directories( ${CMAKE_SOURCE_DIR}/shared/common/inc )
