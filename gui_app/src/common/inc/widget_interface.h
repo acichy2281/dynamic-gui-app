@@ -11,6 +11,13 @@ class WidgetInterface_I
         virtual void ShowWidget() = 0;
 
         virtual WidgetTypes_E GetType() = 0;
-        virtual void AssignId(uint16_t widgetId) = 0;
+        void SetWindowId(uint16_t windowId) { _windowId = windowId; };
+        void SetWidgetId(uint16_t widgetId) { _widgetId = widgetId; };
+        uint16_t GetWindowId() const { return _windowId; };
+        uint16_t GetWidgetId() const { return _widgetId; };
+
+    private:
+        uint16_t _windowId; // Assigned by the window that contains this widget
+        uint16_t _widgetId; // Assigned by the window that contains this widget
 };
 #endif // WIDGET_INTERFACE_H

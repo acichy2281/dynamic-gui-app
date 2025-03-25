@@ -8,9 +8,12 @@
 #include "widget_text.h"
 #include "widget_button.h"
 #include "widget_slider.h"
+#include "widget_checkbox.h"
+#include "widget_radio.h"
 
 
-class DynamicGui_C : GuiProtocol::GuiServer_C
+
+class DynamicGui_C
 {
     public: 
         DynamicGui_C();
@@ -71,10 +74,12 @@ class DynamicGui_C : GuiProtocol::GuiServer_C
         GuiProtocol::WidgetReplyStatus_E GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>& widgetSetValueList);
         GuiProtocol::WidgetReplyStatus_E SetValueReq_UpdateWidget(std::shared_ptr<WidgetInterface_I> widget, WidgetTypes_E type, GuiProtocol::WidgetDataTypes_E dataType, GuiProtocol::WidgetValueVariant_T val);
         GuiProtocol::WidgetReplyStatus_E SetValueReq_UpdateTextWidget(std::shared_ptr<WidgetText_C> textWidget, GuiProtocol::WidgetDataTypes_E dataType, GuiProtocol::WidgetValueVariant_T val);
+        void GuiServer_OnWidgetEventNotificationAckReceived(GuiProtocol::WidgetReplyStatus_E status, uint16_t windowId, uint16_t widgetId);
 
         /* Variables */
         bool                                                    _isRunning                      = false;
         bool                                                    _initialized                    = false;
+        bool                                                    _isConfigFileSet                = false;
         std::shared_ptr<TransportInterface>                     _transport;
         std::shared_ptr<GuiProtocol::GuiServer_C>               _guiServer;
         // uint16_t                                                _widgetKeyCount                 = 0;
@@ -90,8 +95,8 @@ class DynamicGui_C : GuiProtocol::GuiServer_C
         SDL_Window*                                             _window;
         PortInfo_T                                              _guiClientPortInfo;
         uint32_t                                                _rxBufferSize;
-
-        std::vector<EventInterface_I>                           _eventQueue;
+        bool                                                    _testEventNotification        = false;
+        ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>    _eventQueue;
 
 };
 

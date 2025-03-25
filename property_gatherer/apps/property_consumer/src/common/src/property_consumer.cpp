@@ -1,18 +1,20 @@
 #include "stdafx.h"
 #include "property_consumer.h"
 
-PropertyConsumer_C::PropertyConsumer_C(PropertyConsumerInitParams_C initParams) : _producerInfo(initParams.producerInfo), _guiAppInfo(initParams.guiAppInfo), _guiClient(std::make_shared<GuiProtocol::GuiClient_C>())
+PropertyConsumer_C::PropertyConsumer_C(PropertyConsumerInitParams_C initParams) : 
+    _producerInfo(initParams.producerInfo), _guiAppInfo(initParams.guiAppInfo),     
+    _guiClient(std::make_shared<GuiProtocol::GuiClient_C>(
+        std::bind(&PropertyConsumer_C::GuiClient_SendMessage, this, std::placeholders::_1),
+        std::bind(&PropertyConsumer_C::GuiClient_OnWidgetListReplyReceived, this, std::placeholders::_1),
+        std::bind(&PropertyConsumer_C::GuiClient_OnWidgetSetValueReplyReceived, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&PropertyConsumer_C::GuiClient_OnWidgetEventNotificationReceived, this, std::placeholders::_1, std::placeholders::_2)
+    ))
 {
     _transport = UdpTransportFactory::CreateTransport();
     _transport->InitializeSocket(initParams.myIp, initParams.myPort);
     _rxBufferSize = 2048;
     _guiAppDevKey = _guiAppInfo.destIp + ":" + std::to_string(_guiAppInfo.destPort);
     _producerAppDevKey = _producerInfo.destIp + ":" + std::to_string(_producerInfo.destPort);
-
-    /* Set GUI Client Callbacks */
-    _guiClient->SendMessage = std::bind(&PropertyConsumer_C::GuiClient_SendMessage, this, std::placeholders::_1);
-    _guiClient->OnWidgetListReplyReceived = std::bind(&PropertyConsumer_C::GuiClient_OnWidgetListReplyReceived, this, std::placeholders::_1);
-    _guiClient->OnWidgetSetValueReplyReceived = std::bind(&PropertyConsumer_C::GuiClient_OnWidgetSetValueReplyReceived, this, std::placeholders::_1, std::placeholders::_2); 
 }
 
 PropertyConsumer_C::~PropertyConsumer_C()
@@ -65,12 +67,19 @@ void PropertyConsumer_C::HandleMessage()
 void PropertyConsumer_C::RunSetValueTest()
 {
     std::cout << "Running Set Value test\n";
-    std::vector<std::pair<std::string, GuiProtocol::WidgetValueVariant_T>> setWidgetList;
-    for (const auto& [widgetName, widgetDesc] : _guiClient->WidgetList())
+    std::vector<std::pair<uint32_t, GuiProtocol::WidgetValueVariant_T>> setWidgetList;
+    for (const auto& [widgetId, widgetStorage] : _guiClient->WidgetList())
     {
-        std::string newWidgetValue = "Consumer Set Widget " + widgetDesc.desc.widgetName;
-        setWidgetList.push_back({widgetName, newWidgetValue});
-        std::cout << newWidgetValue << "\n";
+        if (false == widgetStorage.desc.isWritable)
+        {
+            std::cout << "Widget " << widgetId << " is not writable, skipping...\n";
+        }
+        else
+        {
+            std::string newWidgetValue = "Consumer Set Widget " + widgetStorage.desc.widgetName;
+            setWidgetList.push_back({widgetId, newWidgetValue});
+            std::cout << newWidgetValue << "\n";
+        }
     }
 
     auto setValReturn = _guiClient->SendSetValueRequest(setWidgetList);
@@ -111,5 +120,30 @@ void PropertyConsumer_C::GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::Wi
     else
     {
         std::cout << "Widget Set Value reply status was not success!\n";
+    }
+}
+
+void PropertyConsumer_C::GuiClient_OnWidgetEventNotificationReceived(uint32_t widgetId, GuiProtocol::WidgetValueVariant_T updatedValue)
+{
+    std::cout << "Widget Event Notification received for widgetId: " << widgetId << "\n";
+    if (std::holds_alternative<std::string>(updatedValue))
+    {
+        std::cout << "Updated value: " << std::get<std::string>(updatedValue) << "\n";
+    }
+    else if (std::holds_alternative<int>(updatedValue))
+    {
+        std::cout << "Updated value: " << std::get<int>(updatedValue) << "\n";
+    }
+    else if (std::holds_alternative<float>(updatedValue))
+    {
+        std::cout << "Updated value: " << std::get<float>(updatedValue) << "\n";
+    }
+    else if (std::holds_alternative<bool>(updatedValue))
+    {
+        std::cout << "Updated value: " << (std::get<bool>(updatedValue) ? "true" : "false") << "\n";
+    }
+    else
+    {
+        std::cout << "Unknown updated value type!\n";
     }
 }

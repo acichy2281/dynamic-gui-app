@@ -1,23 +1,23 @@
-#ifndef BUTTON_WIDGET_H
-#define BUTTON_WIDGET_H
+#ifndef WIDGET_BUTTON_H
+#define WIDGET_BUTTON_H
 
 #include "stdafx.h"
 #include "widget_interface.h"
+#include "event_button_press.h"
 
 class WidgetButton_C : public WidgetInterface_I
 {
 public:
-    WidgetButton_C();
+    WidgetButton_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId);
     ~WidgetButton_C();
 
     void ShowWidget() override;
     bool SetWidgetValue(const char* label);
 
     WidgetTypes_E GetType() override;
-    void AssignId(uint16_t widgetId) override;
 
 private:
-    uint16_t _id;
     std::string _buttonLabel;
+    ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
 };
-#endif // BUTTON_WIDGET_H
+#endif // WIDGET_BUTTON_H

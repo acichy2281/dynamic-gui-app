@@ -25,6 +25,7 @@ class PropertyConsumer_C
         int32_t GuiClient_SendMessage(const std::vector<uint8_t> &message);
         void GuiClient_OnWidgetListReplyReceived(GuiProtocol::WidgetReplyStatus_E status);
         void GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::WidgetReplyStatus_E status, std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& setValuesList);
+        void GuiClient_OnWidgetEventNotificationReceived(uint32_t widgetId, GuiProtocol::WidgetValueVariant_T updatedValue);
         void HandleMessage();
         std::shared_ptr<TransportInterface> _transport;
         std::shared_ptr<GuiProtocol::GuiClient_C> _guiClient;

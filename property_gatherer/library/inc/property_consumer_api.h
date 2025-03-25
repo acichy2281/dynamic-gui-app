@@ -13,6 +13,7 @@
 
 /* Shared Includes */
 #include "thread_safe_queue.h"
+#include "custom_types.h"
 
 /* Project Includes */
 #include "property_gatherer_messages.h"

@@ -2,9 +2,9 @@
 #include "stdafx.h"
 #include "widget_button.h"
 
-WidgetButton_C::WidgetButton_C()
+WidgetButton_C::WidgetButton_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId) : _eventQueue(eventQueue)
 {
-    this->_id = -1;
+    SetWindowId(windowId);
 }
 
 WidgetButton_C::~WidgetButton_C()
@@ -17,8 +17,9 @@ void WidgetButton_C::ShowWidget()
     // ShowWidget override
     if (ImGui::Button(_buttonLabel.c_str())) 
     {
-        std::cout << "Button Press!\n";
-        // TODO: How do I send the event to the main window?
+        std::cout << "Button Press! Window ID: " << GetWindowId() << " Widget ID: " << GetWidgetId() << "\n";
+        auto event = std::make_shared<EventButtonPress_C>(GetWindowId(), GetWidgetId());
+        _eventQueue.Enqueue(std::move(event));
     }
 }
 
@@ -36,9 +37,4 @@ bool WidgetButton_C::SetWidgetValue(const char* label)
 WidgetTypes_E WidgetButton_C::GetType()
 {
     return WidgetTypes_E::BUTTON;
-}
-
-void WidgetButton_C::AssignId(uint16_t widgetId)
-{
-    this->_id = widgetId;
 }

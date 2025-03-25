@@ -6,36 +6,30 @@
 #include <memory>
 #include <iostream>
 
-struct Message_T
-{
-    std::unique_ptr<char[]> data;
-    uint16_t size;
-};
-
 template <typename QueueType>
 class ThreadSafeQueue_C
 {
     public:
-        // Add a message to the queue in a thread-safe manner.
-        void AddMessageToQueue(QueueType&& message)
+        // Add a item to the queue in a thread-safe manner.
+        void Enqueue(QueueType&& item)
         {
             std::unique_lock<std::mutex> lock(_queueMutex);
-            _messageQueue.push(std::move(message));
+            _itemQueue.push(std::move(item));
         }
 
-        // Retrieve and remove a message from the queue in a thread-safe manner.
-        QueueType GetMessageFromQueue()
+        // Retrieve and remove a item from the queue in a thread-safe manner.
+        QueueType Dequeue()
         {
             QueueType retVal{};
             std::unique_lock<std::mutex> lock(_queueMutex);
-            if (!_messageQueue.empty()) 
+            if (!_itemQueue.empty()) 
             {
-                retVal = std::move(_messageQueue.front());
-                _messageQueue.pop();
+                retVal = std::move(_itemQueue.front());
+                _itemQueue.pop();
             }
             else
             {
-                std::cout << "Error message queue is empty!\n";
+                std::cout << "Error queue is empty!\n";
             }
             return retVal;
         }
@@ -44,19 +38,19 @@ class ThreadSafeQueue_C
         bool IsQueueEmpty()
         {
             std::unique_lock<std::mutex> lock(_queueMutex);
-            return _messageQueue.empty();
+            return _itemQueue.empty();
         }
 
         size_t Size()
         {
-            return _messageQueue.size();
+            return _itemQueue.size();
         }
     
     private:
-        // Message queue for thread-safe communication.
-        std::queue<QueueType> _messageQueue;
+        // item queue for thread-safe communication.
+        std::queue<QueueType> _itemQueue;
 
-        // Mutex for synchronizing access to the message queue.
+        // Mutex for synchronizing access to the item queue.
         std::mutex _queueMutex;
 
 };

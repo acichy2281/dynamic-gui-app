@@ -9,9 +9,11 @@
 #include <stdio.h>
 #include <memory>
 #include <inttypes.h>
+#include <map>
 
 /* Shared Includes */
 #include "thread_safe_queue.h"
+#include "custom_types.h"
 
 /* Project Includes */
 #include "property_gatherer_messages.h"
@@ -50,7 +52,7 @@ namespace PropertyGatherer
             PropertyProducerState_E _state = PropertyProducerState_E::INITIALIZED;
             ThreadSafeQueue_C<Message_T> _msgQueue;
             PropertyGathererMessageSerializer _msgSerializer;
-            std::_In_place_key_extract_map<uint32_t PropertyDescriptor_T> _propertyMap;
+            std::map<uint16_t, PropertyDescriptor_T> _propertyMap;
 
     };
 }

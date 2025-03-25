@@ -2,17 +2,17 @@
 #include "stdafx.h"
 #include "dynamic_gui.h"
 
-DynamicGui_C::DynamicGui_C() : _guiServer(std::make_shared<GuiProtocol::GuiServer_C>())
+DynamicGui_C::DynamicGui_C() : _guiServer(std::make_shared<GuiProtocol::GuiServer_C>(
+    std::bind(&DynamicGui_C::GuiServer_SendMessage, this, std::placeholders::_1),
+    std::bind(&DynamicGui_C::GuiServer_OnWidgetListRequestReceived, this),
+    std::bind(&DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived, this, std::placeholders::_1),
+    std::bind(&DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)))
 {
     _rxBufferSize = 2048;
     _transport = UdpTransportFactory::CreateTransport();
     _transport->InitializeSocket("127.0.0.1", 8001);
     _guiClientPortInfo.destIp = "127.0.0.1";
     _guiClientPortInfo.destPort = 8000;
-
-    _guiServer->SendMessage = std::bind(&DynamicGui_C::GuiServer_SendMessage, this, std::placeholders::_1);
-    _guiServer->OnWidgetListRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetListRequestReceived, this);
-    _guiServer->OnWidgetSetValueRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived, this, std::placeholders::_1);
 }
 
 
@@ -53,6 +53,7 @@ bool DynamicGui_C::SetConfigFile(const std::string& configFilePath)
     {
         _jsonData = nlohmann::json::parse(_configFile);
         ParseJsonData();
+        _isConfigFileSet = true;
         retVal = true;
     }
     return retVal;
@@ -62,7 +63,11 @@ bool DynamicGui_C::Initialize()
 {
     bool retVal = false;
     // Setup SDL
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
+    if (true == _initialized)
+    {
+        std::cout << "Error: SDL already initialized\n";
+    }
+    else if (false == SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
     {
         std::cout << "Error: SDL_Init(): " << SDL_GetError() << "\n";
     }
@@ -116,6 +121,10 @@ bool DynamicGui_C::ShowGui()
     bool retVal = false;
 
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
+    if (true == _mainWindowName.empty())
+    {
+        _mainWindowName = "Dynamic GUI App";
+    }
     _window = SDL_CreateWindow(_mainWindowName.c_str(), 1280, 720, window_flags);
     if (_window == nullptr)
     {
@@ -148,12 +157,12 @@ bool DynamicGui_C::ShowGui()
     bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    std::string filePath = "";
 
     // Main loop
     _isRunning = true;
     std::cout << "Running GUI App\n";
     std::thread guiServerThread(&DynamicGui_C::RunGuiServer, this);
-    uint16_t testPrintInt = 0;
 #ifdef __EMSCRIPTEN__
     // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
     // You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
@@ -192,24 +201,6 @@ bool DynamicGui_C::ShowGui()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
-        
-        /*
-        // ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
-        // ImGui::Begin(_widgetWindowName.c_str());
-        // for (const auto& [key, widget] : _widgetMap)
-        // {
-        //     switch (widget.type)
-        //     {
-        //         case WidgetTypes_E::TEXT:
-        //             ImGui::Text(std::any_cast<std::string>(widget.value).c_str());
-        //             break;
-
-        //         default:
-        //             break;
-        //     }
-        // }
-        // ImGui::End();
-        */
 
         for (auto& window : _windowList)
         {
@@ -232,44 +223,29 @@ bool DynamicGui_C::ShowGui()
            }
             window.ShowWindow();
         }
-        testPrintInt++;
 
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        // if (show_demo_window)
-        // ImGui::ShowDemoWindow(&show_demo_window);
-
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+        // Show JSON file selector window to load JSON config file 
+        if (false == _isConfigFileSet)
         {
-           static float f = 0.0f;
-           static int counter = 0;
+            ImGui::Begin("JSON File Selector"); 
 
-           ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+            if (ImGui::Button("Choose File"))
+            {
+                filePath = GetJSONFile(); 
+                if (false == filePath.empty())
+                {
+                    if (true == SetConfigFile(filePath))
+                    {
+                        SDL_SetWindowTitle(_window, _mainWindowName.c_str());
+                        _isConfigFileSet = true;
+                        std::cout << "JSON file set to: " << filePath << "\n";
+                    }
+                }
+            }
 
-           ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-           ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-           ImGui::Checkbox("Another Window", &show_another_window);
-
-           ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-           ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-           if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-               counter++;
-           ImGui::SameLine();
-           ImGui::Text("counter = %d", counter);
-
-           ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-           ImGui::End();
+            ImGui::Text("Select a JSON file to generate a GUI from.");               
+            ImGui::End();
         }
-
-        // 3. Show another simple window.
-        // if (show_another_window)
-        // {
-        //    ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        //    ImGui::Text("Hello from another window!");
-        //    if (ImGui::Button("Close Me"))
-        //        show_another_window = false;
-        //    ImGui::End();
-        // }
 
         // Rendering
         ImGui::Render();
@@ -304,34 +280,70 @@ void DynamicGui_C::ParseJsonData()
             std::regex textBoxRegex("text", std::regex_constants::icase);
             std::regex buttonRegex("button", std::regex_constants::icase);
             std::regex sliderRegex("slider", std::regex_constants::icase);
+            std::regex checkboxRegex("checkbox", std::regex_constants::icase);
+            std::regex radiobuttonRegex("radio", std::regex_constants::icase);
 
             if (true == std::regex_search(widgetTypeStr, textBoxRegex))
             {
                 // widgetInfo.type = WidgetTypes_E::TEXT;
                 // widgetInfo.value = std::string(widget["Value"]);
 
-                auto newWidget = std::make_shared<WidgetText_C>();
-                newWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
-                auto widgetId = newWindow.AddWidget(newWidget);
-                std::cout << "Adding text widget to Main Window\n";
+                // auto newWidget = std::make_shared<WidgetText_C>();
 
-                auto widgetDes = _guiServer->GetWidgetDesc(numWindows, widgetId, false, false, WidgetTypes_E::TEXT, GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING, widgetName);
-                widgetDescList.push_back(widgetDes);
+                auto widgetId = newWindow.AddWidget(std::make_shared<WidgetText_C>(numWindows));
+                std::shared_ptr<WidgetInterface_I> newWidget;
+                newWindow.GetWidgetAt(widgetId, newWidget);
+
+                if (auto newTextWidget = std::dynamic_pointer_cast<WidgetText_C>(newWidget))
+                {
+                    newTextWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
+                    std::cout << "Adding text widget to Main Window, Window ID: " << numWindows << " Widget ID: " << widgetId << "\n";
+                    auto widgetDes = GuiProtocol::GetTextWidgetDescriptor(numWindows, widgetId, true, true, widgetName);
+                    widgetDescList.push_back(widgetDes);
+                }
+                else
+                {
+                    std::cout << "Failed to add " << widgetName << " as a text widget to window\n";
+                }
             }
             else if (true == std::regex_search(widgetTypeStr, buttonRegex))
             {
-                auto newWidget = std::make_shared<WidgetButton_C>();
-                newWidget->SetWidgetValue(std::string(widget["Text"]).c_str());
-                newWindow.AddWidget(newWidget);
-                std::cout << "Adding button widget to window\n";
+                auto widgetId = newWindow.AddWidget(std::make_shared<WidgetButton_C>(_eventQueue, numWindows));
+                std::shared_ptr<WidgetInterface_I> newWidget;
+                newWindow.GetWidgetAt(widgetId, newWidget);
+
+                if (auto newButtonWidget = std::dynamic_pointer_cast<WidgetButton_C>(newWidget))
+                {
+                    newButtonWidget->SetWidgetValue(std::string(widget["Text"]).c_str());
+                    auto widgetDes = GuiProtocol::GetButtonWidgetDescriptor(numWindows, widgetId, widgetName);
+                    widgetDescList.push_back(widgetDes);
+                    std::cout << "Adding button widget to Main Window, Window ID: " << numWindows << " Widget ID: " << widgetId << "\n";
+                }
+                else
+                {
+                    std::cout << "Failed to add " << widgetName << " as a button widget to window\n";
+                }
             }
             else if (true == std::regex_search(widgetTypeStr, sliderRegex))
             {
-                auto newWidget = std::make_shared<WidgetSlider_C>();
+                auto newWidget = std::make_shared<WidgetSlider_C>(_eventQueue, numWindows);
                 float * value = new float(widget["Value"].get<float>());
                 newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), value, widget["MinValue"].get<float>(), widget["MaxValue"].get<float>());
                 newWindow.AddWidget(newWidget);
                 std::cout << "Adding slider to window\n";
+            }
+            else if (true == std::regex_search(widgetTypeStr, checkboxRegex)){
+                auto newWidget = std::make_shared<WidgetCheckbox_C>(_eventQueue, numWindows);
+                newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), false);
+                newWindow.AddWidget(newWidget);
+                std::cout << "Adding checkbox to window\n";
+            }
+            else if (true == std::regex_search(widgetTypeStr, radiobuttonRegex)){
+                auto newWidget = std::make_shared<WidgetRadio_C>(_eventQueue, numWindows);
+                std::vector<std::string> options(widget["Options"].begin(), widget["Options"].end());
+                newWidget->SetWidgetValue(options, 0);
+                newWindow.AddWidget(newWidget);
+                std::cout << "Adding radio button to window\n";
             }
             else {
                 std::cout << "Unfamiliar widget\n";
@@ -379,7 +391,113 @@ void DynamicGui_C::RunGuiServer()
 
             _guiServer->ProcessReceivedMessage(msgBuf, msgSize);
         }
-        _guiServer->ProcessTimedActivities();
+        else if (0 != _eventQueue.Size())
+        {
+            std::cout << "Sending Widget Event Notification\n";
+            auto event = _eventQueue.Dequeue();
+            if (EventTypes_E::BUTTON_PRESS == event->GetType())
+            {
+                auto buttonEvent = std::dynamic_pointer_cast<EventButtonPress_C>(event);
+                if (buttonEvent)
+                {
+                    // Handle button press event
+                    std::cout << "GUI Server: Button pressed, window ID: " << buttonEvent->GetWindowId() << ", widget ID: " << buttonEvent->GetWidgetId() << "\n";
+                    GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(buttonEvent->GetWindowId(), buttonEvent->GetWidgetId(), true);
+                    if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
+                    {
+                        std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
+                    }
+                    else
+                    {
+                        std::cout << "Widget Event Notification sent\n";
+                    }
+                }
+            }
+            else if (EventTypes_E::SLIDER_SET == event->GetType())
+            {
+                auto sliderEvent = std::dynamic_pointer_cast<EventSliderSet_C>(event);
+                if (sliderEvent)
+                {
+                    // Handle slider set event
+                    auto val = sliderEvent->GetValue();
+                    if (std::holds_alternative<int>(val))
+                    {
+                        std::cout << "GUI Server: Slider set, window ID: " << sliderEvent->GetWindowId() << ", widget ID: " << sliderEvent->GetWidgetId() << ", value: " << std::get<int>(val) << "\n";
+                        GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(sliderEvent->GetWindowId(), sliderEvent->GetWidgetId(), std::get<int>(val));
+                        if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
+                        {
+                            std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
+                        }
+                        else
+                        {
+                            std::cout << "Widget Event Notification sent\n";
+                        }
+                    }
+                    else if (std::holds_alternative<float>(val))
+                    {
+                        std::cout << "GUI Server: Slider set, window ID: " << sliderEvent->GetWindowId() << ", widget ID: " << sliderEvent->GetWidgetId() << ", value: " << std::get<float>(val) << "\n";
+                        GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(sliderEvent->GetWindowId(), sliderEvent->GetWidgetId(), std::get<float>(val));
+                        if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
+                        {
+                            std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
+                        }
+                        else
+                        {
+                            std::cout << "Widget Event Notification sent\n";
+                        }
+                    }
+                    else
+                    {
+                        std::cout << "GUI Server: Slider set, window ID: " << sliderEvent->GetWindowId() << ", widget ID: " << sliderEvent->GetWidgetId() << ", value: unknown type\n";
+                    }
+                }
+            }
+            else if (EventTypes_E::CHECKBOX_TOGGLE == event->GetType())
+            {
+                auto checkboxEvent = std::dynamic_pointer_cast<EventCheckboxToggle_C>(event);
+                if (checkboxEvent)
+                {
+                    // Handle checkbox set event
+                    std::cout << "GUI Server: Checkbox set, window ID: " << checkboxEvent->GetWindowId() << ", widget ID: " << checkboxEvent->GetWidgetId() << ", value: " << (checkboxEvent->GetValue() ? "true" : "false") << "\n";
+                    GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(checkboxEvent->GetWindowId(), checkboxEvent->GetWidgetId(), checkboxEvent->GetValue());
+                    if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
+                    {
+                        std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
+                    }
+                    else
+                    {
+                        std::cout << "Widget Event Notification sent\n";
+                    }
+                }
+            }
+            else if (EventTypes_E::RADIO_SELECTED == event->GetType())
+            {
+                auto radioEvent = std::dynamic_pointer_cast<EventRadioSelected_C>(event);
+                if (radioEvent)
+                {
+                    // Handle radio button selected event
+                    std::cout << "GUI Server: Radio button selected, window ID: " << radioEvent->GetWindowId() << ", widget ID: " << radioEvent->GetWidgetId() << ", option: " << radioEvent->GetValue() << "\n";
+                    GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(radioEvent->GetWindowId(), radioEvent->GetWidgetId(), radioEvent->GetValue());
+                    if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
+                    {
+                        std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
+                    }
+                    else
+                    {
+                        std::cout << "Widget Event Notification sent\n";
+                    }
+                }
+            }
+            else
+            {
+                std::cout << "Gui Server: Error! Unknown event type\n";
+            }
+            // _testEventNotification = false;
+        }
+        else 
+        {
+            _guiServer->ProcessTimedActivities();
+        }
         SleepMs(10);
     }
 }
@@ -387,6 +505,7 @@ void DynamicGui_C::RunGuiServer()
 void DynamicGui_C::GuiServer_OnWidgetListRequestReceived()
 {
     std::cout << "Widget List Request Received\n";
+    _testEventNotification = true;
 }
 
 int32_t DynamicGui_C::GuiServer_SendMessage(const std::vector<uint8_t>& message)
@@ -490,4 +609,16 @@ GuiProtocol::WidgetReplyStatus_E DynamicGui_C::SetValueReq_UpdateTextWidget(std:
         retVal = GuiProtocol::WidgetReplyStatus_E::SET_VAL_FAILED_TO_SET;
     }
     return retVal;
+}
+
+void DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived(GuiProtocol::WidgetReplyStatus_E status, uint16_t windowId, uint16_t widgetId)
+{
+    if (GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS == status)
+    {
+        std::cout << "Widget Event Notification Ack Success\n";
+    }
+    else 
+    {
+        std::cout << "Error! Widget Event Notification Ack Failed\n";
+    }
 }
