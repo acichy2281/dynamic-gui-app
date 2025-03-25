@@ -36,6 +36,10 @@ void WidgetSlider_C::ShowWidget()
 
 bool WidgetSlider_C::SetWidgetValue(const char* label, float* value, float min, float max)
 {
+    if (GetIsStatic()) 
+    {
+        return false;
+    }
     // Check for invalid input for the slider values, abort if so
     if (!label || !value || min >= max)
     {
