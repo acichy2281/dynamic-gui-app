@@ -283,7 +283,7 @@ void DynamicGui_C::ParseJsonData()
             std::regex checkboxRegex("checkbox", std::regex_constants::icase);
             std::regex radiobuttonRegex("radio", std::regex_constants::icase);
 
-            auto staticFieldValue = widget.find("static");
+            auto staticFieldValue = widget.find("Static");
             bool isStaticField = false;
             if (staticFieldValue != widget.end()) {
                 if (widget["Static"] == "True" || widget["Static"] == "true") {
