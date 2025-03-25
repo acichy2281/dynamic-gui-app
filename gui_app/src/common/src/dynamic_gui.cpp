@@ -283,6 +283,14 @@ void DynamicGui_C::ParseJsonData()
             std::regex checkboxRegex("checkbox", std::regex_constants::icase);
             std::regex radiobuttonRegex("radio", std::regex_constants::icase);
 
+            auto staticFieldValue = widget.find("static");
+            bool isStaticField = false;
+            if (staticFieldValue != widget.end()) {
+                if (widget["static"] == "true") {
+                    isStaticField = true;
+                }
+            }
+
             if (true == std::regex_search(widgetTypeStr, textBoxRegex))
             {
                 // widgetInfo.type = WidgetTypes_E::TEXT;
@@ -296,7 +304,9 @@ void DynamicGui_C::ParseJsonData()
 
                 if (auto newTextWidget = std::dynamic_pointer_cast<WidgetText_C>(newWidget))
                 {
+                    newTextWidget->SetIsStatic(false);  // Ensure initial value can be set
                     newTextWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
+                    newTextWidget->SetIsStatic(isStaticField);
                     std::cout << "Adding text widget to Main Window, Window ID: " << numWindows << " Widget ID: " << widgetId << "\n";
                     auto widgetDes = GuiProtocol::GetTextWidgetDescriptor(numWindows, widgetId, true, true, widgetName);
                     widgetDescList.push_back(widgetDes);
