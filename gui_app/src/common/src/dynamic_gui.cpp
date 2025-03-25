@@ -286,9 +286,7 @@ void DynamicGui_C::ParseJsonData()
             auto staticFieldValue = widget.find("Static");
             bool isStaticField = false;
             if (staticFieldValue != widget.end()) {
-                if (widget["Static"] == "True" || widget["Static"] == "true") {
-                    isStaticField = true;
-                }
+                isStaticField = widget["Static"];
             }
 
             if (true == std::regex_search(widgetTypeStr, textBoxRegex))
