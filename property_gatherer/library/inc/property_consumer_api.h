@@ -54,7 +54,7 @@ namespace PropertyGatherer
             std::function<void(PropertyReplyStatus_E, std::vector<PropertyStorageVariant>&)> OnPropertyGetValueReplyRecieved;
 
         private:
-            uint16_t GetCurrentTimeMs();
+            uint64_t GetCurrentTimeMs();
             void ProcessStateMachine();
             void ProcessReceivedMessageQueue();
             void ProcessReceivedPropertyListReply(Message_T& msg);

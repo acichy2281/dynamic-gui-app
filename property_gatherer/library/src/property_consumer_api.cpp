@@ -16,7 +16,7 @@ namespace PropertyGatherer
     {
         auto queueSizeBeforeAdd = _msgQueue.Size();
         Message_T rxMsg = { std::move(msg), size };
-        _msgQueue.AddMessageToQueue(std::move(rxMsg));
+        _msgQueue.Enqueue(std::move(rxMsg));
 
         if (queueSizeBeforeAdd == _msgQueue.Size())
         {
@@ -67,7 +67,7 @@ namespace PropertyGatherer
             std::cout << "Sending Get Property request\n";
             std::vector<uint8_t> buffer;
             auto getPropertyRequest = GetPropertyGetValueRequest(maxResponseLength, propertyIds);
-            _msgSerializer.Serialize(propertyListReq, buffer);
+            _msgSerializer.Serialize(getPropertyRequest, buffer);
             if (0 < SendMessage(buffer))
             {
                 retVal = PropertyConsumerReqStatus_E::SUCCESS;
@@ -102,7 +102,7 @@ namespace PropertyGatherer
             case PropertyConsumerState_E::INITIALIZED:
                 if (true == _propertyListRequested)
                 {
-                    _state = GuiClientState_E::WIDGET_LIST_REQUESTED;
+                    _state = PropertyConsumerState_E::PROPERTY_LIST_REQUESTED;
                 }
                 break;
 
@@ -124,7 +124,7 @@ namespace PropertyGatherer
 
     void PropertyConsumer_C::ProcessReceivedMessageQueue()
     {
-        auto msg = _msgQueue.GetMessageFromQueue();
+        auto msg = _msgQueue.Dequeue();
         uint16_t msgId = (static_cast<uint8_t>(msg.data[3]) << 8) | static_cast<uint8_t>(msg.data[2]);
         switch (static_cast<MessageID_E>(msgId))
         {
