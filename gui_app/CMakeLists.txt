@@ -4,8 +4,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True )
 
 project( gui_app )
 
-# find_package(OpenGL REQUIRED)
-
 # Project includes 
 set(GUI_APP_COMMON_SRC 
     "src/main.cpp"

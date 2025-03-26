@@ -22,6 +22,11 @@ endif()
 set(FETCHCONTENT_BASE_DIR "3rd_party")  # Set base directory for fetched content
 include(FetchContent)
 
+set(SDL_TESTS OFF)
+set(SDL_EXAMPLES OFF)
+set(SDL_SHARED OFF)
+set(SDL_STATIC ON)
+
 # Fetch nlohmann_json
 FetchContent_Declare(
     nlohmann_json
@@ -45,8 +50,6 @@ FetchContent_Declare(
 
 # Set 3rd party library options
 set(JSON_BuildTests OFF CACHE INTERNAL "")
-set(SDL_TESTS OFF)
-set(SDL_EXAMPLES OFF)
 
 # Make both available
 FetchContent_MakeAvailable(nlohmann_json SDL imgui)
