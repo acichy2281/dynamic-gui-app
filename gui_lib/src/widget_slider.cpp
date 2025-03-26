@@ -6,6 +6,7 @@ WidgetSlider_C::WidgetSlider_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_
 {
     SetWindowId(windowId);
     SetWidgetId(0); // Default widget ID
+    SetIsStatic(false);
 }
 
 WidgetSlider_C::~WidgetSlider_C()
@@ -36,6 +37,10 @@ void WidgetSlider_C::ShowWidget()
 
 bool WidgetSlider_C::SetWidgetValue(const char* label, float* value, float min, float max)
 {
+    if (GetIsStatic()) 
+    {
+        return false;
+    }
     // Check for invalid input for the slider values, abort if so
     if (!label || !value || min >= max)
     {

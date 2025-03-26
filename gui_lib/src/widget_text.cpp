@@ -7,6 +7,7 @@ WidgetText_C::WidgetText_C(uint16_t windowId)
 {
     SetWindowId(windowId);
     SetWidgetId(0); // Default widget ID
+    SetIsStatic(false);
 }
 
 WidgetText_C::~WidgetText_C()
@@ -23,6 +24,10 @@ void WidgetText_C::ShowWidget()
 
 bool WidgetText_C::SetWidgetValue(const char* format, ...)
 {
+    if (GetIsStatic()) {
+        return false;
+    }
+
     va_list args;
     va_start(args, format);
     

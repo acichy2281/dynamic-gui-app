@@ -5,6 +5,7 @@
 WidgetCheckbox_C::WidgetCheckbox_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId) : _eventQueue(eventQueue)
 {
     SetWindowId(windowId);
+    SetIsStatic(false);
 }
 
 WidgetCheckbox_C::~WidgetCheckbox_C()
@@ -24,7 +25,11 @@ void WidgetCheckbox_C::ShowWidget()
 }
 
 bool WidgetCheckbox_C::SetWidgetValue(const char* label, bool status)
-{
+{   
+    if (GetIsStatic()) 
+    {
+        return false;
+    }
     if (!label)
     {
         _checkLabel.clear();

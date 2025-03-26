@@ -6,6 +6,7 @@ WidgetRadio_C::WidgetRadio_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>
 {
     SetWindowId(windowId);
     this->_selected = 0;
+    SetIsStatic(false);
 }
 
 WidgetRadio_C::~WidgetRadio_C()
@@ -28,6 +29,10 @@ void WidgetRadio_C::ShowWidget()
 
 bool WidgetRadio_C::SetWidgetValue(std::vector<std::string> options, int selected)
 {
+    if (GetIsStatic()) 
+    {
+        return false;
+    }
     if (options.empty() || selected < 0 || selected >= static_cast<int>(options.size()))
     {
         _options.clear();

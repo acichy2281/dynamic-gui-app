@@ -5,6 +5,7 @@
 WidgetButton_C::WidgetButton_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId) : _eventQueue(eventQueue)
 {
     SetWindowId(windowId);
+    SetIsStatic(false);
 }
 
 WidgetButton_C::~WidgetButton_C()
@@ -25,6 +26,10 @@ void WidgetButton_C::ShowWidget()
 
 bool WidgetButton_C::SetWidgetValue(const char* label)
 {
+    if (GetIsStatic()) 
+    {
+        return false;
+    }
     if (!label)
     {
         _buttonLabel.clear();

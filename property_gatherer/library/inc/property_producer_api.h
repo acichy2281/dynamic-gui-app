@@ -10,6 +10,7 @@
 #include <memory>
 #include <inttypes.h>
 #include <map>
+#include <functional>
 
 /* Shared Includes */
 #include "thread_safe_queue.h"
@@ -26,6 +27,12 @@ namespace PropertyGatherer
         PROPERTY_LIST_POPULATED,
         PROPERTY_LIST_REPLY_SENT,
     };
+    enum class PropertyProducerRepStatus_E
+    {
+        SUCCESS,
+        FAILED_TO_SEND_MSG,
+        ERROR,
+    };
 
     class PropertyProducer_C
     {
@@ -36,12 +43,15 @@ namespace PropertyGatherer
             void PropertyProducer_ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
             void PropertyProducer_ProcessTimedActivities();
 
+            bool SetPropertyList(std::vector<PropertyDescriptor_T>& descList, std::vector<PropertyStorageVariant>& values);
+
             /* Callbacks */
-            virtual void PropertyProducer_OnPropertyListRequestRecieved() = 0;
-            virtual void PropertyProducer_OnPropertyGetValueRequestRecieved() = 0;
+            std::function<int32_t(const std::vector<uint8_t>&)> SendMessage;
+            std::function<void(PropertyReplyStatus_E, std::vector<PropertyDescriptor_T>&)> OnPropertyListRequestReceived;
+            std::function<PropertyReplyStatus_E(std::vector<PropertyStorageVariant>&)> OnPropertyGetValueRequestRecieved;
 
         private:
-            uint16_t GetCurrentTimeMs();
+            uint64_t GetCurrentTimeMs();
             void ProcessStateMachine();
             void ProcessReceivedMessageQueue();
             void ProcessReceivedPropertyListRequest();
@@ -53,6 +63,10 @@ namespace PropertyGatherer
             ThreadSafeQueue_C<Message_T> _msgQueue;
             PropertyGathererMessageSerializer _msgSerializer;
             std::map<uint16_t, PropertyDescriptor_T> _propertyMap;
+            std::map<uint16_t, PropertyStorageVariant> _propertyValues;
+            bool _propertListPopulated = false;
+            bool _propertyListReplySent = false;
+            bool _propertyGetValueReplySent = false;
 
     };
 }
