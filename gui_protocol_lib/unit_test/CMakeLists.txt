@@ -6,7 +6,7 @@ project(gui_protocol_library_unit_test)
 
 set(GUI_PROTOCOL_UNIT_TEST_SRC 
     "src/main.cpp"
-    "src/command_line_parser.cpp"
+    "src/gui_protocol_messages_test.cpp"
 )
 add_executable( ${PROJECT_NAME} ${GUI_PROTOCOL_UNIT_TEST_SRC})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/inc )
