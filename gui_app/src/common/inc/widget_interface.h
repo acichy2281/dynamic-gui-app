@@ -16,8 +16,12 @@ class WidgetInterface_I
         uint16_t GetWindowId() const { return _windowId; };
         uint16_t GetWidgetId() const { return _widgetId; };
 
+        bool GetIsStatic() { return _isStatic; };
+        void SetIsStatic(bool isStatic) { _isStatic = isStatic; };
+
     private:
         uint16_t _windowId; // Assigned by the window that contains this widget
         uint16_t _widgetId; // Assigned by the window that contains this widget
+        bool _isStatic; // Field assigned at construction
 };
 #endif // WIDGET_INTERFACE_H

@@ -23,6 +23,10 @@ void WidgetText_C::ShowWidget()
 
 bool WidgetText_C::SetWidgetValue(const char* format, ...)
 {
+    if (GetIsStatic()) {
+        return false;
+    }
+
     va_list args;
     va_start(args, format);
     

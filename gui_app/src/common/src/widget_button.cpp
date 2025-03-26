@@ -25,6 +25,10 @@ void WidgetButton_C::ShowWidget()
 
 bool WidgetButton_C::SetWidgetValue(const char* label)
 {
+    if (GetIsStatic()) 
+    {
+        return false;
+    }
     if (!label)
     {
         _buttonLabel.clear();

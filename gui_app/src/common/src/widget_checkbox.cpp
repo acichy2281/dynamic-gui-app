@@ -24,7 +24,11 @@ void WidgetCheckbox_C::ShowWidget()
 }
 
 bool WidgetCheckbox_C::SetWidgetValue(const char* label, bool status)
-{
+{   
+    if (GetIsStatic()) 
+    {
+        return false;
+    }
     if (!label)
     {
         _checkLabel.clear();
