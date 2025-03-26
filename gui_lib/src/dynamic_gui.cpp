@@ -24,7 +24,15 @@ DynamicGui_C::~DynamicGui_C()
 bool DynamicGui_C::RunGui()
 {
     bool retVal = false;
-    if (false == ShowGui())
+    if (false == _initialized)
+    {
+        std::cout << "Error: GUI not initialized\n";
+    }
+    else if (true == _isGuiWindowRunning)
+    {
+        std::cout << "Error: GUI window already running\n";
+    }
+    else if (false == ShowGui())
     {
         std::cout << "Failed to show GUI window\n";
     }
@@ -58,6 +66,10 @@ void DynamicGui_C::SetCallbacks(const GuiLibraryCallbacks_T& callBacks)
     if (callBacks.onWidgetEventOccured != nullptr)
     {
         _onWidgetEventOccured = callBacks.onWidgetEventOccured;
+    }
+    if (callBacks.onWindowClose != nullptr)
+    {
+        _onWindowClose = callBacks.onWindowClose;
     }
 }
 
@@ -259,10 +271,19 @@ bool DynamicGui_C::ShowGui()
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         SDL_GL_SwapWindow(_window);
     }
+    if (nullptr != _onWindowClose)
+    {
+        _onWindowClose();
+    }
 #ifdef __EMSCRIPTEN__
     EMSCRIPTEN_MAINLOOP_END;
 #endif
     return true;
+}
+
+void DynamicGui_C::CloseGui()
+{
+    _isGuiWindowRunning = false;
 }
 
 void DynamicGui_C::ProcessEventQueue()
@@ -282,7 +303,8 @@ void DynamicGui_C::ProcessEventQueue()
                 {
                     _widgetEventNotificationQueue.Enqueue({ buttonEvent->GetWindowId(), buttonEvent->GetWidgetId(), true });
                 }
-                _onWidgetEventOccured((static_cast<uint32_t>(buttonEvent->GetWindowId()) << 16) | static_cast<uint32_t>(buttonEvent->GetWidgetId()), true); 
+                auto desc = _guiServer->GetWidgetDescriptor((static_cast<uint32_t>(buttonEvent->GetWindowId()) << 16) | static_cast<uint32_t>(buttonEvent->GetWidgetId()));
+                _onWidgetEventOccured(desc, true); 
             }
         }
         else if (EventTypes_E::SLIDER_SET == event->GetType())
@@ -297,7 +319,8 @@ void DynamicGui_C::ProcessEventQueue()
                     {
                         _widgetEventNotificationQueue.Enqueue({ sliderEvent->GetWindowId(), sliderEvent->GetWidgetId(), arg });
                     }
-                    _onWidgetEventOccured((static_cast<uint32_t>(sliderEvent->GetWindowId()) << 16) | static_cast<uint32_t>(sliderEvent->GetWidgetId()), arg); 
+                    auto desc = _guiServer->GetWidgetDescriptor((static_cast<uint32_t>(sliderEvent->GetWindowId()) << 16) | static_cast<uint32_t>(sliderEvent->GetWidgetId()));
+                    _onWidgetEventOccured(desc, arg); 
                 }, sliderEvent->GetValue());
             }
         }
@@ -312,7 +335,8 @@ void DynamicGui_C::ProcessEventQueue()
                 {
                     _widgetEventNotificationQueue.Enqueue({ checkboxEvent->GetWindowId(), checkboxEvent->GetWidgetId(), checkboxEvent->GetValue() });
                 }
-                _onWidgetEventOccured((static_cast<uint32_t>(checkboxEvent->GetWindowId()) << 16) | static_cast<uint32_t>(checkboxEvent->GetWidgetId()), checkboxEvent->GetValue()); 
+                auto desc = _guiServer->GetWidgetDescriptor((static_cast<uint32_t>(checkboxEvent->GetWindowId()) << 16) | static_cast<uint32_t>(checkboxEvent->GetWidgetId()));
+                _onWidgetEventOccured(desc, checkboxEvent->GetValue()); 
             }
         }
         else if (EventTypes_E::RADIO_SELECTED == event->GetType())
@@ -326,7 +350,8 @@ void DynamicGui_C::ProcessEventQueue()
                 {
                     _widgetEventNotificationQueue.Enqueue({ radioEvent->GetWindowId(), radioEvent->GetWidgetId(), radioEvent->GetValue() });
                 }
-                _onWidgetEventOccured((static_cast<uint32_t>(radioEvent->GetWindowId()) << 16) | static_cast<uint32_t>(radioEvent->GetWidgetId()), radioEvent->GetValue()); 
+                auto desc = _guiServer->GetWidgetDescriptor((static_cast<uint32_t>(radioEvent->GetWindowId()) << 16) | static_cast<uint32_t>(radioEvent->GetWidgetId()));
+                _onWidgetEventOccured(desc, radioEvent->GetValue()); 
             }
         }
         else
@@ -336,14 +361,14 @@ void DynamicGui_C::ProcessEventQueue()
     }
 }
 
-void DynamicGui_C::DefaultOnWidgetEvent(uint32_t widgetId, WidgetValueVariant_T val)
+void DynamicGui_C::DefaultOnWidgetEvent(WidgetDescriptor_T& widgetId, WidgetValueVariant_T val)
 {
     // Default callback for widget events
 }
 
 void DynamicGui_C::ParseJsonData()
 {
-    std::vector<GuiProtocol::WidgetDescriptor_T> widgetDescList;
+    std::vector<WidgetDescriptor_T> widgetDescList;
     _mainWindowName = _jsonData["Title"];
     uint16_t numWindows = 0;
     // _widgetWindowName = _jsonData["MainWindow"]["Title"];
@@ -441,11 +466,6 @@ void DynamicGui_C::ParseJsonData()
             else {
                 std::cout << "Unfamiliar widget\n";
             }
-
-
-            // _widgetMap[_widgetKeyCount] = widgetInfo;
-            // _widgetKeyCount++;
-            // std::cout << "Widget Count: " << _widgetKeyCount << "\n";
         }
         _windowList.push_back(newWindow);
         numWindows++;
@@ -459,13 +479,17 @@ void DynamicGui_C::DeInitialize()
     std::cout << "Deinitializing GUI app\n";
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
+    std::cout << "Shutdown OpenGL3\n";
     ImGui_ImplSDL3_Shutdown();
+    std::cout << "Shutdown SDL3\n";
     ImGui::DestroyContext();
+    std::cout << "Destroyed Context\n";
 
     SDL_GL_DestroyContext(_glContext);
     SDL_DestroyWindow(_window);
     SDL_Quit();
-
+    
+    std::cout << "GUI app deinitialized\n";
     _initialized = false;
 }
 

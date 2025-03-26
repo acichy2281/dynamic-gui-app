@@ -13,6 +13,5 @@ int main(int argc, char **argv)
 
     PropertyConsumer_C app(initParams);
     app.RunTest();
-    std::cout << "Hello world consumer\n";
     return 0;
 }

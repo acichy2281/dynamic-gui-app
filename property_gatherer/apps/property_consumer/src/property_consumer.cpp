@@ -14,12 +14,7 @@ PropertyConsumer_C::PropertyConsumer_C(PropertyConsumerInitParams_C initParams) 
     _transport->InitializeSocket(initParams.myIp, initParams.myPort);
     _rxBufferSize = 2048;
     _guiAppDevKey = _guiAppInfo.destIp + ":" + std::to_string(_guiAppInfo.destPort);
-    _producerAppDevKey = _producerInfo.destIp + ":" + std::to_string(_producerInfo.destPort);    
-    
-    if (false == _gui.InitializeGui())
-    {
-        std::cerr << "Error: Failed to initialize GUI app\n";
-    }
+    _producerAppDevKey = _producerInfo.destIp + ":" + std::to_string(_producerInfo.destPort);  
 }
 
 PropertyConsumer_C::~PropertyConsumer_C()
@@ -27,15 +22,39 @@ PropertyConsumer_C::~PropertyConsumer_C()
 
 }
 
+void PropertyConsumer_C::OnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val)
+{
+    std::cout << "Widget event callback: Widget ID = " << widgetDesc.widgetId << ", Value = ";
+    std::visit([](auto&& arg) { std::cout << arg; }, val);
+    std::cout << "\n";
+}
+
+void PropertyConsumer_C::OnGuiWindowClosed()
+{
+    std::cout << "GUI window closed\n";
+    _isQuit = true;
+}
+
 void PropertyConsumer_C::RunTest()
+{
+    if (false == _gui.InitializeGui())
+    {
+        std::cerr << "Error: Failed to initialize GUI app\n";
+    }
+    _gui.SetCallbacks({ std::bind(&PropertyConsumer_C::OnWidgetEvent, this, std::placeholders::_1, std::placeholders::_2), 
+                        std::bind(&PropertyConsumer_C::OnGuiWindowClosed, this) });
+    std::thread guiClientThread(&PropertyConsumer_C::RunGuiClientTest, this);  
+    _gui.RunGui();
+    guiClientThread.join();
+}
+
+void PropertyConsumer_C::RunGuiClientTest()
 {
     auto guiClientStatus = _guiClient->SendWidgetListRequest();
     if (GuiProtocol::GuiClientReqStatus_E::SUCCESS != guiClientStatus)
     {
         std::cout << "Failed to request widget list, error: " << static_cast<uint8_t>(guiClientStatus) << "\n";
     }
-    
-    std::thread guiServerThread(&DynamicGui_C::RunGui, std::ref(_gui));
     while (false == _isQuit)
     {
         if (true == _transport->PollReceiveSocket())
@@ -47,9 +66,12 @@ void PropertyConsumer_C::RunTest()
             RunSetValueTest();
         }
         _guiClient->ProcessTimedActivities();
-        _isQuit = IsUserQuit();
+        if (true == IsUserQuit())
+        {
+            _isQuit = true;
+        }
     }
-    guiServerThread.join();
+    _gui.CloseGui();
 }
 
 void PropertyConsumer_C::HandleMessage()

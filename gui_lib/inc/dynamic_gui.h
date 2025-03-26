@@ -28,7 +28,8 @@ struct WidgetEventNotificationInfo_T
 
 struct GuiLibraryCallbacks_T
 {
-    std::function<void(uint32_t, WidgetValueVariant_T)> onWidgetEventOccured = [](uint32_t, WidgetValueVariant_T) {};
+    std::function<void(WidgetDescriptor_T&, WidgetValueVariant_T)> onWidgetEventOccured = [](WidgetDescriptor_T&, WidgetValueVariant_T) {};
+    std::function<void()> onWindowClose = []() {};
 };
 
 class DynamicGui_C
@@ -78,6 +79,11 @@ class DynamicGui_C
          */
         bool RunGuiServer(const GuiServerInitParams_T& initParams);
 
+        /** 
+         * @brief Closes the GUI window
+         */
+        void CloseGui();
+
     private: 
         /* Functions */
 
@@ -110,10 +116,10 @@ class DynamicGui_C
         /**
          * @brief Empty Callback function for widget events. Called when no callback is set by the user
          * 
-         * @param widgetId 
+         * @param widgetDesc 
          * @param val 
          */
-        void DefaultOnWidgetEvent(uint32_t widgetId, WidgetValueVariant_T val);
+        void DefaultOnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val);
 
         /* Gui Server functions  */
         bool GuiServer_ValidateInitParams(const GuiServerInitParams_T& initParams);
@@ -127,36 +133,37 @@ class DynamicGui_C
         /* Variables */
 
         // Flags
-        bool                                                    _isGuiWindowRunning             = false;
-        bool                                                    _isGuiServerRunning             = false;
-        bool                                                    _initialized                    = false;
-        bool                                                    _isConfigFileSet                = false;
-        bool                                                    _guiServerSpinSleep             = false;
+        bool                                                                _isGuiWindowRunning             = false;
+        bool                                                                _isGuiServerRunning             = false;
+        bool                                                                _initialized                    = false;
+        bool                                                                _isConfigFileSet                = false;
+        bool                                                                _guiServerSpinSleep             = false;
         
         // Config member variables
-        std::ifstream                                           _configFile;
-        std::string                                             _configFilePath;
-        nlohmann::json                                          _jsonData;
+        std::ifstream                                                       _configFile;
+        std::string                                                         _configFilePath;
+        nlohmann::json                                                      _jsonData;
 
         // Window member variables
-        std::string                                             _mainWindowName;
-        std::string                                             _glslVersion;
-        std::vector<GuiWindow_C>                                _windowList;
-        SDL_GLContext                                           _glContext;
-        SDL_Window*                                             _window;
+        std::string                                                         _mainWindowName;
+        std::string                                                         _glslVersion;
+        std::vector<GuiWindow_C>                                            _windowList;
+        SDL_GLContext                                                       _glContext;
+        SDL_Window*                                                         _window;
         
         // Event member variables
-        ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>    _eventQueue;
-        std::function<void(uint32_t, WidgetValueVariant_T)>     _onWidgetEventOccured;
+        ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>                _eventQueue;
+        std::function<void(WidgetDescriptor_T&, WidgetValueVariant_T)>      _onWidgetEventOccured;
+        std::function<void()>                                               _onWindowClose;
 
         // GuiServer member variables
-        std::shared_ptr<GuiProtocol::GuiServer_C>               _guiServer;
-        ThreadSafeQueue_C<WidgetEventNotificationInfo_T>          _widgetEventNotificationQueue;
-        PortInfo_T                                              _guiServerPortInfo;
-        PortInfo_T                                              _guiClientPortInfo;
-        std::shared_ptr<TransportInterface>                     _guiServerTransport;
-        uint32_t                                                _guiServerRxBufferSize;
-        int64_t                                                 _guiServerSpinSleepMs;
+        std::shared_ptr<GuiProtocol::GuiServer_C>                           _guiServer;
+        ThreadSafeQueue_C<WidgetEventNotificationInfo_T>                    _widgetEventNotificationQueue;
+        PortInfo_T                                                          _guiServerPortInfo;
+        PortInfo_T                                                          _guiClientPortInfo;
+        std::shared_ptr<TransportInterface>                                 _guiServerTransport;
+        uint32_t                                                            _guiServerRxBufferSize;
+        int64_t                                                             _guiServerSpinSleepMs;
 
 };
 

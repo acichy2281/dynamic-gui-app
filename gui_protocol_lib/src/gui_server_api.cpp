@@ -47,30 +47,6 @@ namespace GuiProtocol
         ProcessStateMachine();
     }
 
-    WidgetDescriptor_T GuiServer_C::GetWidgetDesc(uint16_t windowId, 
-                                                  uint16_t widgetId, 
-                                                  bool isInteractable, 
-                                                  bool isStatic,
-                                                  bool isReadable,
-                                                  bool isWritable,
-                                                  WidgetTypes_E widgetType, 
-                                                  WidgetDataTypes_E widgetDataType, 
-                                                  std::string& widgetName
-                                                )
-    {
-        WidgetDescriptor_T retVal;
-        retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
-        retVal.isInteractable = isInteractable;
-        retVal.isStatic = isStatic;
-        retVal.isReadable = isReadable;
-        retVal.isWritable = isWritable;
-        retVal.reserved = 0;
-        retVal.widgetType = static_cast<uint8_t>(widgetType);
-        retVal.dataType = static_cast<uint8_t>(widgetDataType);
-        retVal.widgetName = widgetName;
-        return retVal;
-    }
-
     bool GuiServer_C::SetWidgetList(std::vector<WidgetDescriptor_T>& descList)
     {
         bool retVal = false;

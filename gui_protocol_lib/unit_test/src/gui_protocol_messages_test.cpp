@@ -95,8 +95,8 @@ namespace GuiProtocolTest
         uint8_t widgetType = 0x01;
         uint8_t dataType = 0x02;
         std::string widgetName = "TestWidget";
-        GuiProtocol::WidgetDescriptor_T widgetDesc = {0x12345678, isInteractable, isStatic, isReadable, isWritable, reserved, widgetType, dataType, widgetName};
-        std::vector<GuiProtocol::WidgetDescriptor_T> widgetList = {widgetDesc};
+        WidgetDescriptor_T widgetDesc = {0x12345678, isInteractable, isStatic, isReadable, isWritable, reserved, widgetType, dataType, widgetName};
+        std::vector<WidgetDescriptor_T> widgetList = {widgetDesc};
         GuiProtocol::WidgetListReply_T reply = {{0x01, 0x02, 0x5678}, static_cast<uint16_t>(widgetList.size()), widgetList, 0x0001};
         std::vector<uint8_t> outBuff;
 

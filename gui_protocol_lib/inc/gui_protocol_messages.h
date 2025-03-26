@@ -63,22 +63,6 @@ namespace GuiProtocol
     };
 
     /**
-     * @brief Contains widget information such as ID, type, and interactability status
-     */
-    struct WidgetDescriptor_T
-    {
-        uint32_t widgetId;
-        bool isInteractable : 1;
-        bool isStatic : 1;
-        bool isReadable : 1;
-        bool isWritable : 1;
-        uint8_t reserved : 4; // Reserved for future use
-        uint8_t widgetType;
-        uint8_t dataType; 
-        std::string widgetName;
-    };
-
-    /**
      * @brief Message structure for requesting list of available widgets
      */
     struct WidgetListRequest_T

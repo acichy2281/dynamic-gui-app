@@ -3,9 +3,9 @@
 #include "command_line_parser.h"
 #include "dynamic_gui.h"
 
-void WidgetEventCb(uint32_t widgetId, WidgetValueVariant_T val)
+void WidgetEventCb(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val)
 {
-    std::cout << "Widget event callback: Widget ID = " << widgetId << ", Value = ";
+    std::cout << "Widget event callback: Widget ID = " << widgetDesc.widgetId << ", Value = ";
     std::visit([](auto&& arg) { std::cout << arg; }, val);
     std::cout << "\n";
 }
