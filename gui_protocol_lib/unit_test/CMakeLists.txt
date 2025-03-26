@@ -4,10 +4,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED True )
 
 project(gui_protocol_library_unit_test)
 
-include(files.cmake)
-
-include_directories( ${CMAKE_CURRENT_LIST_DIR}/inc )
-add_executable( ${PROJECT_NAME} ${_GUI_PROTOCOL_LIBRARY_UNIT_TESTS_SOURCEFILES})
+set(GUI_PROTOCOL_UNIT_TEST_SRC 
+    "src/main.cpp"
+    "src/command_line_parser.cpp"
+)
+add_executable( ${PROJECT_NAME} ${GUI_PROTOCOL_UNIT_TEST_SRC})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/inc )
 
 target_link_libraries( ${PROJECT_NAME} PRIVATE gui_protocol_library)
 

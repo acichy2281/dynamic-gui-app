@@ -42,7 +42,6 @@ set( _GUI_LIBRARY_SOURCEFILES
 )
 
 source_group( "" FILES ${GUI_LIBRARY_TOPLEVEL})
-source_group( gui_library/common/src FILES ${GUI_LIBRARY_COMMON_SRC})
-source_group( gui_library/common/inc FILES ${GUI_LIBRARY_COMMON_INC})
+source_group( gui_library/src FILES ${GUI_LIBRARY_COMMON_SRC})
 source_group( gui_library/platform/windows FILES ${GUI_LIBRARY_WIN})
 source_group( gui_library/platform/linux FILES ${GUI_LIBRARY_LINUX})
