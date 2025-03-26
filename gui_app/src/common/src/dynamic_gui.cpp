@@ -302,7 +302,6 @@ void DynamicGui_C::ParseJsonData()
 
                 if (auto newTextWidget = std::dynamic_pointer_cast<WidgetText_C>(newWidget))
                 {
-                    newTextWidget->SetIsStatic(false);  // Ensure initial value can be set
                     newTextWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
                     newTextWidget->SetIsStatic(isStaticField);
                     std::cout << "Adding text widget to Main Window, Window ID: " << numWindows << " Widget ID: " << widgetId << "\n";
@@ -322,7 +321,6 @@ void DynamicGui_C::ParseJsonData()
 
                 if (auto newButtonWidget = std::dynamic_pointer_cast<WidgetButton_C>(newWidget))
                 {
-                    newButtonWidget->SetIsStatic(false);  // Ensure initial value can be set
                     newButtonWidget->SetWidgetValue(std::string(widget["Text"]).c_str());
                     newButtonWidget->SetIsStatic(isStaticField);
                     auto widgetDes = GuiProtocol::GetButtonWidgetDescriptor(numWindows, widgetId, widgetName);
@@ -339,7 +337,6 @@ void DynamicGui_C::ParseJsonData()
                 auto newWidget = std::make_shared<WidgetSlider_C>(_eventQueue, numWindows);
                 float * value = new float(widget["Value"].get<float>());
                 
-                newWidget->SetIsStatic(false);  // Ensure initial value can be set
                 newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), value, widget["MinValue"].get<float>(), widget["MaxValue"].get<float>());
                 newWidget->SetIsStatic(isStaticField);
                 newWindow.AddWidget(newWidget);
@@ -347,7 +344,6 @@ void DynamicGui_C::ParseJsonData()
             }
             else if (true == std::regex_search(widgetTypeStr, checkboxRegex)){
                 auto newWidget = std::make_shared<WidgetCheckbox_C>(_eventQueue, numWindows);
-                newWidget->SetIsStatic(false);  // Ensure initial value can be set
                 newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), false);
                 newWidget->SetIsStatic(isStaticField);
                 newWindow.AddWidget(newWidget);
@@ -356,7 +352,6 @@ void DynamicGui_C::ParseJsonData()
             else if (true == std::regex_search(widgetTypeStr, radiobuttonRegex)){
                 auto newWidget = std::make_shared<WidgetRadio_C>(_eventQueue, numWindows);
                 std::vector<std::string> options(widget["Options"].begin(), widget["Options"].end());
-                newWidget->SetIsStatic(false);  // Ensure initial value can be set
                 
                 newWidget->SetWidgetValue(options, 0);
                 newWindow.AddWidget(newWidget);

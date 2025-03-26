@@ -7,6 +7,7 @@ WidgetText_C::WidgetText_C(uint16_t windowId)
 {
     SetWindowId(windowId);
     SetWidgetId(0); // Default widget ID
+    SetIsStatic(false);
 }
 
 WidgetText_C::~WidgetText_C()

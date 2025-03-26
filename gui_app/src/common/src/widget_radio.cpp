@@ -6,6 +6,7 @@ WidgetRadio_C::WidgetRadio_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>
 {
     SetWindowId(windowId);
     this->_selected = 0;
+    SetIsStatic(false);
 }
 
 WidgetRadio_C::~WidgetRadio_C()

@@ -6,6 +6,7 @@ WidgetSlider_C::WidgetSlider_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_
 {
     SetWindowId(windowId);
     SetWidgetId(0); // Default widget ID
+    SetIsStatic(false);
 }
 
 WidgetSlider_C::~WidgetSlider_C()
