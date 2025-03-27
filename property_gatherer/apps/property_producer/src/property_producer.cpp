@@ -56,9 +56,34 @@ void PropertyProducerApp_C::RunProducerTest()
     propertyValues.push_back({0, "TestString"});
     propertyValues.push_back({1, "123"});
     propertyValues.push_back({2, static_cast<uint8_t>(255)});
+
+    _gui.SetWidgetValue(1, "Name: Device Name");
+
+    AddWidgetInfo_T testStringAddWidgetInfo;
+    testStringAddWidgetInfo.windowId = 0;
+    testStringAddWidgetInfo.widgetName = "TestString";
+    testStringAddWidgetInfo.isReadable = true;
+    testStringAddWidgetInfo.isWritable = true;
+    testStringAddWidgetInfo.isInteractable = false;
+    testStringAddWidgetInfo.isStaticField = false;
+    testStringAddWidgetInfo.type = WidgetTypes_E::TEXT;
+    testStringAddWidgetInfo.dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING;
+    auto testStringDesc = _gui.AddWidgetToWindow(testStringAddWidgetInfo);
+    _gui.SetWidgetValue(testStringDesc.widgetId, "TestString: 123");
+
+    AddWidgetInfo_T testIntAddWidgetInfo;
+    testIntAddWidgetInfo.windowId = 0;
+    testIntAddWidgetInfo.widgetName = "TestInt";
+    testIntAddWidgetInfo.isReadable = true;
+    testIntAddWidgetInfo.isWritable = true;
+    testIntAddWidgetInfo.isInteractable = false;
+    testIntAddWidgetInfo.isStaticField = false;
+    testIntAddWidgetInfo.type = WidgetTypes_E::TEXT;
+    testIntAddWidgetInfo.dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING;
+    auto testIntDesc = _gui.AddWidgetToWindow(testIntAddWidgetInfo);
+    _gui.SetWidgetValue(testIntDesc.widgetId, "TestInt: 255");
+
     _propertyProducer->SetPropertyValue(propertyValues);
-    // _propertyProducer->SetPropertyValue(std::vector<std::pair<uint16_t, PropertyGatherer::PropertyStorageVariant>>{});
-    // _propertyProducer->SetPropertyValue(std::vector<std::pair<uint16_t, PropertyGatherer::PropertyStorageVariant>>{});
     while (false == _isQuit)
     {
         if (true == _transport->PollReceiveSocket())

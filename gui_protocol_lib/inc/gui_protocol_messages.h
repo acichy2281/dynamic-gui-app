@@ -165,7 +165,16 @@ namespace GuiProtocol
     };
 
     /* Widget Descriptor Creator functions*/
-    WidgetDescriptor_T GetTextWidgetDescriptor(uint16_t windowId, uint16_t widgetId, bool isReadable, bool isWritable, std::string& widgetName);
+    WidgetDescriptor_T GetWidgetDescriptor(uint16_t windowId, 
+                                           uint16_t widgetId,
+                                           bool isReadable,
+                                           bool isWritable,
+                                           bool isInteractable,
+                                           bool isStatic,
+                                           WidgetTypes_E widgetType,
+                                           WidgetDataTypes_E dataType,
+                                           std::string& widgetName);
+    // WidgetDescriptor_T GetTextWidgetDescriptor(uint16_t windowId, uint16_t widgetId, bool isReadable, bool isWritable, std::string& widgetName);
     WidgetDescriptor_T GetButtonWidgetDescriptor(uint16_t windowId, uint16_t widgetId, std::string& widgetName);
     WidgetDescriptor_T GetSliderWidgetDescriptor(uint16_t windowId, uint16_t widgetId, std::string& widgetName);
 

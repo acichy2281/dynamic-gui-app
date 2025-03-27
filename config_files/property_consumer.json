@@ -3,18 +3,40 @@
     "Windows" :
     [
         {
-            "Title" : "Conusmer Test Window",
+            "Title" : "Property Conusmer Test Window",
             "WidgetList":
             [
                 {
-                    "Name": "GetPropertyListButton",
-                    "Type": "Button",
-                    "Text": "Get Property List"
+                    "Name": "Get Property List",
+                    "Type": "Button"
                 },
                 {
-                    "Name": "GetValueButton",
-                    "Type": "Button",
-                    "Text": "Get Value"
+                    "Name": "Get Value",
+                    "Type": "Button"
+                }
+            ]
+        },
+        {
+            "Title" : "Gui Client Test Window",
+            "WidgetList":
+            [
+                {
+                    "Name": "Set Value",
+                    "Type": "Button"
+                }
+            ]
+        },
+        {
+            "Title" : "Thread Starter Window",
+            "WidgetList":
+            [
+                {
+                    "Name": "Start Gui Client Thread",
+                    "Type": "Button"
+                },
+                {
+                    "Name": "Start Property Consumer Thread",
+                    "Type": "Button"
                 }
             ]
         }

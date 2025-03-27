@@ -2,7 +2,13 @@
 #include "stdafx.h"
 #include "widget_slider.h"
 
-WidgetSlider_C::WidgetSlider_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId) : _eventQueue(eventQueue)
+WidgetSlider_C::WidgetSlider_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, 
+                               uint16_t windowId,
+                               SliderValueVariant_T min,
+                               SliderValueVariant_T max) : 
+    _eventQueue(eventQueue),
+    _sliderMin(min),
+    _sliderMax(max)
 {
     SetWindowId(windowId);
     SetWidgetId(0); // Default widget ID
@@ -16,8 +22,22 @@ WidgetSlider_C::~WidgetSlider_C()
 
 void WidgetSlider_C::ShowWidget()
 {
-    // ShowWidget override
-    ImGui::SliderFloat(_sliderLabel.c_str(), &_sliderValue, _sliderMin, _sliderMax);
+    if (std::holds_alternative<int>(_sliderValue))
+    {
+        int currentValue = std::get<int>(_sliderValue);
+        if (ImGui::SliderInt(GetWidgetName().c_str(), &currentValue, std::get<int>(_sliderMin), std::get<int>(_sliderMax)))
+        {
+            _sliderValue = currentValue;
+        }
+    }
+    else if (std::holds_alternative<float>(_sliderValue))
+    {
+        float currentValue = std::get<float>(_sliderValue);
+        if (ImGui::SliderFloat(GetWidgetName().c_str(), &currentValue, std::get<float>(_sliderMin), std::get<float>(_sliderMax)))
+        {
+            _sliderValue = currentValue;
+        }
+    }
     
     if (ImGui::IsItemActive()) {
         _isSliderActive = true; // The user is modifying the slider
@@ -27,7 +47,9 @@ void WidgetSlider_C::ShowWidget()
         _isSliderActive = false; // The user just stopped modifying the slider
         if (_previousValue != _sliderValue) 
         {
-            std::cout << "Show Widget: Updated Slider value: " << _sliderValue << std::endl;
+            std::cout << "Show Widget: Updated Slider value: ";
+            std::visit([](auto&& arg) { std::cout << arg; }, _sliderValue);
+            std::cout << std::endl;
             auto event = std::make_shared<EventSliderSet_C>(GetWindowId(), GetWidgetId(), _sliderValue);
             _eventQueue.Enqueue(std::move(event));
             _previousValue = _sliderValue; // Update previous value
@@ -35,23 +57,32 @@ void WidgetSlider_C::ShowWidget()
     }
 }
 
-bool WidgetSlider_C::SetWidgetValue(const char* label, float* value, float min, float max)
+bool WidgetSlider_C::SetWidgetValue(WidgetValueVariant_T val)
 {
     if (GetIsStatic()) 
     {
         return false;
     }
     // Check for invalid input for the slider values, abort if so
-    if (!label || !value || min >= max)
+    if (std::holds_alternative<int>(val) && (std::get<int>(val) < std::get<int>(_sliderMin) || std::get<int>(val) > std::get<int>(_sliderMax)))
     {
-        _sliderLabel.clear();
+        return false;
+    }
+    else if (std::holds_alternative<float>(val) && (std::get<float>(val) < std::get<float>(_sliderMin) || std::get<float>(val) > std::get<float>(_sliderMax)))
+    {
+        return false;
+    }
+    else if (false == std::holds_alternative<int>(val) && false == std::holds_alternative<float>(val))
+    {
         return false;
     }
 
-    _sliderLabel = label;
-    _sliderValue = *value;
-    _sliderMin = min;
-    _sliderMax = max;
+    if (std::holds_alternative<int>(val)) {
+        _sliderValue = std::get<int>(val);
+    } else if (std::holds_alternative<float>(val)) {
+        _sliderValue = std::get<float>(val);
+    }
+
     return true;
 }
 

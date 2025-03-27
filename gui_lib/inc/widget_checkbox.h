@@ -13,12 +13,11 @@ class WidgetCheckbox_C : public WidgetInterface_I
         ~WidgetCheckbox_C();
 
         void ShowWidget() override;
-        bool SetWidgetValue(const char* label, bool status);
+        bool SetWidgetValue(WidgetValueVariant_T val) override;
 
         WidgetTypes_E GetType() override;
     
     private:
-        std::string _checkLabel;
         ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
         bool _status;
 };

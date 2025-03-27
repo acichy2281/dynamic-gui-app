@@ -22,33 +22,19 @@ void WidgetText_C::ShowWidget()
     ImGui::Text("%s", _widgetText.c_str());
 }
 
-bool WidgetText_C::SetWidgetValue(const char* format, ...)
+bool WidgetText_C::SetWidgetValue(WidgetValueVariant_T val)
 {
-    if (GetIsStatic()) {
+    if (true == GetIsStatic()) 
+    {
         return false;
     }
-
-    va_list args;
-    va_start(args, format);
-    
-    // Calculate required size
-    int size = std::vsnprintf(nullptr, 0, format, args);
-    va_end(args);
-
-    if (size <= 0) {
-        _widgetText.clear();
+    else if (false == std::holds_alternative<std::string>(val))
+    {
         return false;
     }
-
-    std::vector<char> buffer(size + 1);  // Dynamic buffer
-    va_start(args, format);
-    std::vsnprintf(buffer.data(), buffer.size(), format, args);
-    va_end(args);
-
-    _widgetText = buffer.data();  // Assign formatted text
+    _widgetText = std::get<std::string>(val);
     return true;
 }
-
 
 WidgetTypes_E WidgetText_C::GetType()
 {

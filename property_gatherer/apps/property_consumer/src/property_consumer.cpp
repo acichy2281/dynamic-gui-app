@@ -31,7 +31,7 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
 {
     std::cout << "Widget event callback: Widget ID = " << widgetDesc.widgetId << ", Value = ";
     std::visit([](auto&& arg) { std::cout << arg; }, val);
-    if (widgetDesc.widgetName == "GetPropertyListButton")
+    if (widgetDesc.widgetName == "Get Property List")
     {
         std::cout << "Requesting Property List\n";
         auto propListReqStatus = _propertyConsumer->SendPropertyListRequest();
@@ -40,7 +40,7 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
             std::cout << "Failed to request property list, error: " << static_cast<uint8_t>(propListReqStatus) << "\n";
         }
     }
-    else if (widgetDesc.widgetName == "GetValueButton")
+    else if (widgetDesc.widgetName == "Get Value")
     {
         std::cout << "Requesting Property Value\n";
         auto propValReqStatus = _propertyConsumer->SendGetValueRequest(255, {0});
@@ -49,15 +49,22 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
             std::cout << "Failed to request property value, error: " << static_cast<uint8_t>(propValReqStatus) << "\n";
         }
     }
-    // else if (widgetDesc.widgetName == "SetValueButton")  
-    // {
-    //     std::cout << "Setting Property Value\n";
-    //     auto propValReqStatus = _propertyConsumer->SendPropertyValueSetRequest(0, "Consumer Set Value");
-    //     if (PropertyGatherer::PropertyConsumerReqStatus_E::SUCCESS != propValReqStatus)
-    //     {
-    //         std::cout << "Failed to set property value, error: " << static_cast<uint8_t>(propValReqStatus) << "\n";
-    //     }
-    // }
+    else if (widgetDesc.widgetName == "Set Value")
+    {
+        RunSetValueTest();
+    }
+    else if (widgetDesc.widgetName == "Start Gui Client Thread")
+    {
+        std::cout << "Starting Gui Client Thread\n";
+        std::thread guiClientThread(&PropertyConsumerApp_C::RunGuiClientTest, this);  
+        guiClientThread.detach();
+    }
+    else if (widgetDesc.widgetName == "Start Property Consumer Thread")
+    {
+        std::cout << "Starting Property Consumer Thread\n";
+        std::thread propertyConsumerThread(&PropertyConsumerApp_C::RunPropertyConsumerTest, this);  
+        propertyConsumerThread.detach();
+    }
     std::cout << "\n";
 }
 
@@ -76,10 +83,12 @@ void PropertyConsumerApp_C::RunTest()
     _gui.SetCallbacks({ std::bind(&PropertyConsumerApp_C::Gui_OnWidgetEvent, this, std::placeholders::_1, std::placeholders::_2), 
                         std::bind(&PropertyConsumerApp_C::Gui_OnGuiWindowClosed, this) });
     // std::thread guiClientThread(&PropertyConsumerApp_C::RunGuiClientTest, this);  
-    std::thread propertyConsumerThread(&PropertyConsumerApp_C::RunPropertyConsumerTest, this);  
+    // std::thread propertyConsumerThread(&PropertyConsumerApp_C::RunPropertyConsumerTest, this);
+    std::thread messageHandlerThread(&PropertyConsumerApp_C::MessageHandlerThread, this);  
     _gui.RunGui();
+    messageHandlerThread.join();
     // guiClientThread.join();
-    propertyConsumerThread.join();
+    // propertyConsumerThread.join();
 }
 
 void PropertyConsumerApp_C::RunGuiClientTest()
@@ -91,24 +100,27 @@ void PropertyConsumerApp_C::RunGuiClientTest()
     }
     while (false == _isQuit)
     {
-        if (true == _transport->PollReceiveSocket())
-        {
-            HandleMessage();
-        }
-        if (true == _runSetValTest)
-        {
-            RunSetValueTest();
-        }
         _guiClient->ProcessTimedActivities();
         if (true == IsUserQuit())
         {
             _isQuit = true;
         }
     }
-    _gui.CloseGui();
 }
 
 void PropertyConsumerApp_C::RunPropertyConsumerTest()
+{
+    while (false == _isQuit)
+    {
+        _propertyConsumer->ProcessTimedActivities();
+        if (true == IsUserQuit())
+        {
+            _isQuit = true;
+        }
+    }
+}
+
+void PropertyConsumerApp_C::MessageHandlerThread()
 {
     while (false == _isQuit)
     {
@@ -116,7 +128,6 @@ void PropertyConsumerApp_C::RunPropertyConsumerTest()
         {
             HandleMessage();
         }
-        _propertyConsumer->ProcessTimedActivities();
         if (true == IsUserQuit())
         {
             _isQuit = true;
@@ -160,7 +171,7 @@ void PropertyConsumerApp_C::RunSetValueTest()
         {
             std::cout << "Widget " << widgetId << " is not writable, skipping...\n";
         }
-        else
+        else if (widgetStorage.desc.widgetType == static_cast<uint8_t>(WidgetTypes_E::TEXT))
         {
             std::string newWidgetValue = "Consumer Set Widget " + widgetStorage.desc.widgetName;
             setWidgetList.push_back({widgetId, newWidgetValue});

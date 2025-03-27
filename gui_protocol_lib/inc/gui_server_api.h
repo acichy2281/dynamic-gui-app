@@ -49,6 +49,10 @@ namespace GuiProtocol
             {
                 return _widgetMap[widgetId];
             }
+            const std::map<uint32_t, WidgetDescriptor_T>& GetWidgetList() const
+            {
+                return _widgetMap;
+            }
 
             /* Callbacks */
             /**

@@ -16,7 +16,7 @@ WidgetButton_C::~WidgetButton_C()
 void WidgetButton_C::ShowWidget()
 {
     // ShowWidget override
-    if (ImGui::Button(_buttonLabel.c_str())) 
+    if (ImGui::Button(GetWidgetName().c_str())) 
     {
         std::cout << "Button Press! Window ID: " << GetWindowId() << " Widget ID: " << GetWidgetId() << "\n";
         auto event = std::make_shared<EventButtonPress_C>(GetWindowId(), GetWidgetId());
@@ -24,19 +24,10 @@ void WidgetButton_C::ShowWidget()
     }
 }
 
-bool WidgetButton_C::SetWidgetValue(const char* label)
+bool WidgetButton_C::SetWidgetValue(WidgetValueVariant_T val)
 {
-    if (GetIsStatic()) 
-    {
-        return false;
-    }
-    if (!label)
-    {
-        _buttonLabel.clear();
-        return false;
-    }
-    _buttonLabel = label;
-    return true;
+    // Cannot set value for a button widget
+    return false;
 }
 
 WidgetTypes_E WidgetButton_C::GetType()

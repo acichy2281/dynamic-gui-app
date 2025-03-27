@@ -13,12 +13,11 @@ public:
     ~WidgetButton_C();
 
     void ShowWidget() override;
-    bool SetWidgetValue(const char* label);
+    bool SetWidgetValue(WidgetValueVariant_T val) override;
 
     WidgetTypes_E GetType() override;
 
 private:
-    std::string _buttonLabel;
     ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
 };
 #endif // WIDGET_BUTTON_H

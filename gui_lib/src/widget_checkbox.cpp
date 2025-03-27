@@ -16,7 +16,7 @@ WidgetCheckbox_C::~WidgetCheckbox_C()
 void WidgetCheckbox_C::ShowWidget()
 {
     // ShowWidget override
-    if (ImGui::Checkbox(_checkLabel.c_str(), &_status)) 
+    if (ImGui::Checkbox(GetWidgetName().c_str(), &_status)) 
     {
         std::cout << "Checkbox toggled! Window ID: " << GetWindowId() << " Widget ID: " << GetWidgetId() << "\n";
         auto event = std::make_shared<EventCheckboxToggle_C>(GetWindowId(), GetWidgetId(), _status);
@@ -24,19 +24,17 @@ void WidgetCheckbox_C::ShowWidget()
     }
 }
 
-bool WidgetCheckbox_C::SetWidgetValue(const char* label, bool status)
+bool WidgetCheckbox_C::SetWidgetValue(WidgetValueVariant_T val)
 {   
-    if (GetIsStatic()) 
+    if (true == GetIsStatic()) 
     {
         return false;
     }
-    if (!label)
+    else if (false == std::holds_alternative<bool>(val))
     {
-        _checkLabel.clear();
         return false;
     }
-    _status = status;
-    _checkLabel = label;
+    _status = std::get<bool>(val);
     return true;
 }
 

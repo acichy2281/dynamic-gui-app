@@ -10,7 +10,8 @@ class WidgetText_C : public WidgetInterface_I
         WidgetText_C(uint16_t windowId);
         ~WidgetText_C();
         void ShowWidget() override;
-        bool SetWidgetValue(const char* format, ...);
+        
+        bool SetWidgetValue(WidgetValueVariant_T val) override;
 
         WidgetTypes_E GetType() override;
     

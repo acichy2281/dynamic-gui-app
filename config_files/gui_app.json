@@ -30,8 +30,7 @@
             [
                 {
                     "Name": "Generic button 1",
-                    "Type": "Button",
-                    "Text": "Test Button"
+                    "Type": "Button"
                 },
                 {
                     "Name": "Generic Checkbox",

@@ -2,23 +2,25 @@
 
 namespace GuiProtocol
 {
-    WidgetDescriptor_T GetTextWidgetDescriptor(uint16_t windowId, uint16_t widgetId, bool isReadable, bool isWritable, std::string& widgetName)
+    WidgetDescriptor_T GetWidgetDescriptor(uint16_t windowId, 
+                                           uint16_t widgetId,
+                                           bool isReadable,
+                                           bool isWritable,
+                                           bool isInteractable,
+                                           bool isStatic,
+                                           WidgetTypes_E widgetType,
+                                           WidgetDataTypes_E dataType,
+                                           std::string& widgetName)
     {
-        bool isInteractable = false;
-        bool isStatic = false;
-        uint8_t reserved = 0;
-        uint8_t widgetType = static_cast<uint8_t>(WidgetTypes_E::TEXT);
-        uint8_t dataType = static_cast<uint8_t>(WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING); // Assuming text is a string
-
         WidgetDescriptor_T retVal;
         retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
         retVal.isInteractable = isInteractable;
         retVal.isStatic = isStatic;
         retVal.isReadable = isReadable;
         retVal.isWritable = isWritable;
-        retVal.reserved = reserved;
-        retVal.widgetType = widgetType;
-        retVal.dataType = dataType;
+        retVal.reserved = 0;
+        retVal.widgetType = static_cast<uint8_t>(widgetType);
+        retVal.dataType = static_cast<uint8_t>(dataType);
         retVal.widgetName = widgetName;
 
         return retVal;

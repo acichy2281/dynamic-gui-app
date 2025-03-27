@@ -15,6 +15,9 @@ class WidgetInterface_I
         void SetWidgetId(uint16_t widgetId) { _widgetId = widgetId; };
         uint16_t GetWindowId() const { return _windowId; };
         uint16_t GetWidgetId() const { return _widgetId; };
+        std::string GetWidgetName() { return _widgetName; };
+        void SetWidgetName(std::string widgetName) { _widgetName = widgetName; };
+        virtual bool SetWidgetValue(WidgetValueVariant_T val) = 0;
 
         bool GetIsStatic() { return _isStatic; };
         void SetIsStatic(bool isStatic) { _isStatic = isStatic; };
@@ -22,6 +25,7 @@ class WidgetInterface_I
     private:
         uint16_t _windowId; // Assigned by the window that contains this widget
         uint16_t _widgetId; // Assigned by the window that contains this widget
+        std::string _widgetName;
         bool _isStatic; // Field assigned at construction
 };
 #endif // WIDGET_INTERFACE_H

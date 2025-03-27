@@ -26,6 +26,22 @@ struct WidgetEventNotificationInfo_T
     WidgetValueVariant_T value;
 };
 
+struct AddWidgetInfo_T
+{
+    uint16_t windowId;
+    bool isReadable;
+    bool isWritable;
+    bool isStaticField;
+    bool isInteractable;
+    WidgetTypes_E type;
+    GuiProtocol::WidgetDataTypes_E dataType;
+    std::string widgetName;
+    WidgetValueVariant_T defaultValue;
+    std::vector<std::string> radioWidgetOptionsList;
+    SliderValueVariant_T sliderMin;
+    SliderValueVariant_T sliderMax;
+};
+
 struct GuiLibraryCallbacks_T
 {
     std::function<void(WidgetDescriptor_T&, WidgetValueVariant_T)> onWidgetEventOccured = [](WidgetDescriptor_T&, WidgetValueVariant_T) {};
@@ -78,6 +94,33 @@ class DynamicGui_C
          * @return false 
          */
         bool RunGuiServer(const GuiServerInitParams_T& initParams);
+        
+        /**
+         * @brief Get the Widget Descriptor object
+         */
+        WidgetDescriptor_T& GetWidgetDescriptor(uint32_t widgetId);
+        
+        /**
+         * @brief Get the Widget List object
+         */
+        const std::map<uint32_t, WidgetDescriptor_T>& GetWidgetList() const;
+
+        /**
+         * @brief Set the Widget Value object
+         * 
+         * @param widgetId 
+         * @param val 
+         * 
+         * @return true 
+         * @return false 
+         */
+        bool SetWidgetValue(uint32_t widgetId, WidgetValueVariant_T val);
+
+        /**
+         * @brief Add a widget to the GUI window
+         * 
+         */
+        WidgetDescriptor_T AddWidgetToWindow(AddWidgetInfo_T addWidgetInfo);
 
         /** 
          * @brief Closes the GUI window

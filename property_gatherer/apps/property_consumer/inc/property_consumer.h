@@ -24,6 +24,7 @@ class PropertyConsumerApp_C
 
     private:
         void HandleMessage();
+        void MessageHandlerThread();
         
         /* GUI Client Functions */
         void RunGuiClientTest();
