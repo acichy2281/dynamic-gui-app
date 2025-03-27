@@ -7,10 +7,10 @@ project( gui_app )
 # Project includes 
 set(GUI_APP_COMMON_SRC 
     "src/main.cpp"
-    "src/command_line_parser.cpp"
 )
 add_executable(${PROJECT_NAME} ${GUI_APP_COMMON_SRC})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/shared/common/inc)
 
 if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
     target_link_libraries(${PROJECT_NAME} PRIVATE gui_library)

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "command_line_parser.h"
 
 CommandLineParser_C::CommandLineParser_C(int& argc, char** argv) {

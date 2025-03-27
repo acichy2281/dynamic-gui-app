@@ -1,7 +1,8 @@
 #ifndef COMMAND_LINE_PARSER_H
 #define COMMAND_LINE_PARSER_H
 
-#include "stdafx.h"
+#include <string>
+#include <vector>
 
 class CommandLineParser_C
 {
