@@ -19,6 +19,7 @@ PropertyConsumerApp_C::PropertyConsumerApp_C(PropertyConsumerInitParams_C initPa
     _propertyConsumer->SetCallbacks({ std::bind(&PropertyConsumerApp_C::PropertyConsumer_SendMessage, this, std::placeholders::_1),
                                       std::bind(&PropertyConsumerApp_C::PropertyConsumer_OnPropertyListReplyReceived, this, std::placeholders::_1, std::placeholders::_2),
                                       std::bind(&PropertyConsumerApp_C::PropertyConsumer_OnPropertyGetValueReplyRecieved, this, std::placeholders::_1, std::placeholders::_2) });
+    if (false == initParams.configFile.empty()) _gui.SetConfigFile(initParams.configFile);
 }
 
 PropertyConsumerApp_C::~PropertyConsumerApp_C()

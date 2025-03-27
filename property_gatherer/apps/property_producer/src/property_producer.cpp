@@ -10,6 +10,7 @@ PropertyProducerApp_C::PropertyProducerApp_C(PropertyProducerInitParams_C initPa
     _propertyProducer->SetCallbacks({ std::bind(&PropertyProducerApp_C::PropertyProducer_SendMessage, this, std::placeholders::_1),
                                       std::bind(&PropertyProducerApp_C::PropertyProducer_OnPropertyListRequestReceived, this, std::placeholders::_1),
                                       std::bind(&PropertyProducerApp_C::PropertyProducer_OnPropertyGetValueRequestRecieved, this, std::placeholders::_1) });
+    if (false == initParams.configFile.empty()) _gui.SetConfigFile(initParams.configFile);
 }
 
 PropertyProducerApp_C::~PropertyProducerApp_C()
@@ -47,11 +48,17 @@ void PropertyProducerApp_C::RunTest()
 void PropertyProducerApp_C::RunProducerTest()
 {
     auto propertyDescList = std::vector<PropertyGatherer::PropertyDescriptor_T>();
-    propertyDescList.push_back(PropertyGatherer::CreatePropertyDescriptor(0, false, true, true, true, PropertyGatherer::PropertyStorageVariantType_E::STRING, 30, "AB"));
-    // propertyDescList.push_back(PropertyGatherer::CreatePropertyDescriptor(1, true, true, true, true, PropertyGatherer::PropertyStorageVariantType_E::STRING, 30, "TestString"));
-    // propertyDescList.push_back(PropertyGatherer::CreatePropertyDescriptor(2, true, true, true, true, PropertyGatherer::PropertyStorageVariantType_E::UNSIGNED_8_BIT_INT, 30, "TestInt"));
+    propertyDescList.push_back(PropertyGatherer::CreatePropertyDescriptor(0, false, true, true, true, PropertyGatherer::PropertyStorageVariantType_E::STRING, 30, "Name"));
+    propertyDescList.push_back(PropertyGatherer::CreatePropertyDescriptor(1, true, true, true, true, PropertyGatherer::PropertyStorageVariantType_E::STRING, 30, "TestString"));
+    propertyDescList.push_back(PropertyGatherer::CreatePropertyDescriptor(2, true, true, true, true, PropertyGatherer::PropertyStorageVariantType_E::UNSIGNED_8_BIT_INT, 30, "TestInt"));
     _propertyProducer->SetPropertyList(propertyDescList);
-
+    std::vector<std::pair<uint16_t, PropertyGatherer::PropertyStorageVariant>> propertyValues;
+    propertyValues.push_back({0, "TestString"});
+    propertyValues.push_back({1, "123"});
+    propertyValues.push_back({2, static_cast<uint8_t>(255)});
+    _propertyProducer->SetPropertyValue(propertyValues);
+    // _propertyProducer->SetPropertyValue(std::vector<std::pair<uint16_t, PropertyGatherer::PropertyStorageVariant>>{});
+    // _propertyProducer->SetPropertyValue(std::vector<std::pair<uint16_t, PropertyGatherer::PropertyStorageVariant>>{});
     while (false == _isQuit)
     {
         if (true == _transport->PollReceiveSocket())

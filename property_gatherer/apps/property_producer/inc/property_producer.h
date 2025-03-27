@@ -9,6 +9,7 @@
 struct PropertyProducerInitParams_C
 {
     PortInfo_T myInfo;
+    std::string configFile;
 };
 
 class PropertyProducerApp_C

@@ -11,6 +11,7 @@ struct PropertyConsumerInitParams_C
     PortInfo_T producerInfo;
     PortInfo_T guiAppInfo;
     PortInfo_T myInfo;
+    std::string configFile;
 };
 
 class PropertyConsumerApp_C

@@ -67,6 +67,21 @@ namespace PropertyGatherer
         return true;
     }
 
+    void PropertyProducer_C::SetPropertyValue(std::vector<std::pair<uint16_t, PropertyStorageVariant>>& propertyValues)
+    {
+        for (auto& [propertyId, propertyValue] : propertyValues)
+        {
+            auto it = _propertyMap.find(propertyId);
+            if (it != _propertyMap.end())
+            {
+                _propertyValues[propertyId] = propertyValue;
+            }
+            else
+            {
+                std::cout << "Property ID " << propertyId << " not found in property map\n";
+            }
+        }
+    }
     
     uint64_t PropertyProducer_C::GetCurrentTimeMs()
     {
@@ -165,9 +180,21 @@ namespace PropertyGatherer
 
             for (auto& propertyToGet : reqMsg.propIds)
             {
-                auto it = _propertyValues.find(propertyToGet);
-                if (it != _propertyValues.end()) {
+                auto val = _propertyValues.find(propertyToGet);
+                auto desc = _propertyMap.find(propertyToGet);
+                if (val != _propertyValues.end() && 
+                    desc != _propertyMap.end() &&
+                    desc->second.isReadable) 
+                {
                     propertyGetValueResponseList.push_back(_propertyValues[propertyToGet]);
+                }
+                else if (desc != _propertyMap.end() && false == desc->second.isReadable)
+                {
+                    std::cout << "Property ID " << propertyToGet << " is not readable\n";
+                }
+                else 
+                {
+                    std::cout << "Property ID " << propertyToGet << " not found in property values\n";
                 }
             }
 

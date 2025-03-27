@@ -51,6 +51,7 @@ namespace PropertyGatherer
             void PropertyProducer_ProcessTimedActivities();
 
             bool SetPropertyList(std::vector<PropertyDescriptor_T>& descList);
+            void SetPropertyValue(std::vector<std::pair<uint16_t, PropertyStorageVariant>>&);
             void SetCallbacks(const PropertyProducerCallbacks_T& callbacks);
 
         private:
