@@ -29,26 +29,29 @@ namespace PropertyGatherer
     };
     enum class PropertyProducerRepStatus_E
     {
-        SUCCESS,
-        FAILED_TO_SEND_MSG,
-        ERROR,
+        PROPERTY_PRODUCER_STATUS_SUCCESS,
+        PROPERTY_PRODUCER_STATUS_FAILED_TO_SEND_MSG,
+        PROPERTY_PRODUCER_STATUS_ERROR,
+    };
+    struct PropertyProducerCallbacks_T 
+    {
+        std::function<int32_t(const std::vector<uint8_t>&)> sendMessage;
+        std::function<void(std::vector<PropertyDescriptor_T>&)> onPropertyListRequestReceived;
+        std::function<PropertyReplyStatus_E(std::vector<PropertyStorageVariant>&)> onPropertyGetValueRequestRecieved;
     };
 
     class PropertyProducer_C
     {
         public:
+
             PropertyProducer_C();
             ~PropertyProducer_C();
 
             void PropertyProducer_ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
             void PropertyProducer_ProcessTimedActivities();
 
-            bool SetPropertyList(std::vector<PropertyDescriptor_T>& descList, std::vector<PropertyStorageVariant>& values);
-
-            /* Callbacks */
-            std::function<int32_t(const std::vector<uint8_t>&)> SendMessage;
-            std::function<void(PropertyReplyStatus_E, std::vector<PropertyDescriptor_T>&)> OnPropertyListRequestReceived;
-            std::function<PropertyReplyStatus_E(std::vector<PropertyStorageVariant>&)> OnPropertyGetValueRequestRecieved;
+            bool SetPropertyList(std::vector<PropertyDescriptor_T>& descList);
+            void SetCallbacks(const PropertyProducerCallbacks_T& callbacks);
 
         private:
             uint64_t GetCurrentTimeMs();
@@ -56,6 +59,11 @@ namespace PropertyGatherer
             void ProcessReceivedMessageQueue();
             void ProcessReceivedPropertyListRequest();
             void ProcessReceivedPropertyGetValueRequest(Message_T& msg);
+
+            /* Callbacks */
+            std::function<int32_t(const std::vector<uint8_t>&)> SendMessage;
+            std::function<void(std::vector<PropertyDescriptor_T>&)> OnPropertyListRequestReceived;
+            std::function<PropertyReplyStatus_E(std::vector<PropertyStorageVariant>&)> OnPropertyGetValueRequestRecieved;
 
 
             /* Member variables */

@@ -12,6 +12,13 @@ namespace PropertyGatherer
         
     }
 
+    void PropertyProducer_C::SetCallbacks(const PropertyProducerCallbacks_T& callbacks)
+    {
+        SendMessage = callbacks.sendMessage;
+        OnPropertyListRequestReceived = callbacks.onPropertyListRequestReceived;
+        OnPropertyGetValueRequestRecieved = callbacks.onPropertyGetValueRequestRecieved;
+    }
+
     void PropertyProducer_C::PropertyProducer_ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size)
     {
         auto queueSizeBeforeAdd = _msgQueue.Size();
@@ -36,7 +43,7 @@ namespace PropertyGatherer
         }
     }
 
-    bool PropertyProducer_C::SetPropertyList(std::vector<PropertyDescriptor_T>& descList, std::vector<PropertyStorageVariant>& values)
+    bool PropertyProducer_C::SetPropertyList(std::vector<PropertyDescriptor_T>& descList)
     {
         bool retVal = false;
 
@@ -49,7 +56,6 @@ namespace PropertyGatherer
                 if (it == _propertyMap.end())
                 {
                     _propertyMap[desc.propertyId] = desc;
-                    _propertyValues[desc.propertyId] = values[i];
                 }
                 else
                 {
@@ -79,7 +85,7 @@ namespace PropertyGatherer
                 if (true == _propertListPopulated)
                 {
                     _state = PropertyProducerState_E::PROPERTY_LIST_POPULATED;
-                    std::cout << "Setting state to Property List Populated";
+                    std::cout << "Setting state to Property List Populated\n";
                 }
                 break;
             case PropertyProducerState_E::PROPERTY_LIST_POPULATED:
@@ -117,7 +123,7 @@ namespace PropertyGatherer
 
             // Construct a vector of property descriptors from the map
             std::vector<PropertyDescriptor_T> propertyDescriptors;
-            propertyDescriptors.reserve(_propertyMap.size());
+            // propertyDescriptors.reserve(_propertyMap.size());
 
             for (auto& [propertyId, propertDesc] : _propertyMap)
             {

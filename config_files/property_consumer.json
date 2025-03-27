@@ -1,0 +1,22 @@
+{
+    "Title" : "Property Consumer App",
+    "Windows" :
+    [
+        {
+            "Title" : "Conusmer Test Window",
+            "WidgetList":
+            [
+                {
+                    "Name": "GetPropertyListButton",
+                    "Type": "Button",
+                    "Text": "Get Property List"
+                },
+                {
+                    "Name": "GetValueButton",
+                    "Type": "Button",
+                    "Text": "Get Value"
+                }
+            ]
+        }
+    ]
+}

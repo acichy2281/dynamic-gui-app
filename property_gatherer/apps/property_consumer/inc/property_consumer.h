@@ -10,29 +10,40 @@ struct PropertyConsumerInitParams_C
 {
     PortInfo_T producerInfo;
     PortInfo_T guiAppInfo;
-    std::string myIp;
-    uint16_t myPort;
+    PortInfo_T myInfo;
 };
 
-class PropertyConsumer_C
+class PropertyConsumerApp_C
 {
     public:
-        PropertyConsumer_C(PropertyConsumerInitParams_C initParams);
-        ~PropertyConsumer_C();
+        PropertyConsumerApp_C(PropertyConsumerInitParams_C initParams);
+        ~PropertyConsumerApp_C();
         void RunTest();
         void RunSetValueTest();
 
     private:
+        void HandleMessage();
+        
+        /* GUI Client Functions */
+        void RunGuiClientTest();
         int32_t GuiClient_SendMessage(const std::vector<uint8_t> &message);
         void GuiClient_OnWidgetListReplyReceived(GuiProtocol::WidgetReplyStatus_E status);
         void GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::WidgetReplyStatus_E status, std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& setValuesList);
         void GuiClient_OnWidgetEventNotificationReceived(uint32_t widgetId, WidgetValueVariant_T updatedValue);
-        void HandleMessage();
-        void OnGuiWindowClosed();
-        void OnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val);
-        void RunGuiClientTest();
+
+        /* GUI Functions */
+        void Gui_OnGuiWindowClosed();
+        void Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val);
+
+        /* Property Consumer Fucntions */
+        void RunPropertyConsumerTest();
+        int32_t PropertyConsumer_SendMessage(const std::vector<uint8_t> &message);
+        void PropertyConsumer_OnPropertyListReplyReceived(PropertyGatherer::PropertyReplyStatus_E status, std::vector<PropertyGatherer::PropertyDescriptor_T> &descList);
+        void PropertyConsumer_OnPropertyGetValueReplyRecieved(PropertyGatherer::PropertyReplyStatus_E status, std::vector<PropertyGatherer::PropertyStorageVariant> &values);
+
         std::shared_ptr<TransportInterface> _transport;
         std::shared_ptr<GuiProtocol::GuiClient_C> _guiClient;
+        std::shared_ptr<PropertyGatherer::PropertyConsumer_C> _propertyConsumer;
         PortInfo_T _producerInfo;
         PortInfo_T _guiAppInfo;
         bool _isQuit = false;

@@ -12,6 +12,13 @@ namespace PropertyGatherer
         
     }
 
+    void PropertyConsumer_C::SetCallbacks(const PropertyConsumerCallbacks_T& callbacks)
+    {
+        SendMessage = callbacks.sendMessage;
+        OnPropertyListReplyReceived = callbacks.onPropertyListReplyReceived;
+        OnPropertyGetValueReplyRecieved = callbacks.onPropertyGetValueReplyRecieved;
+    }
+
     void PropertyConsumer_C::ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size)
     {
         auto queueSizeBeforeAdd = _msgQueue.Size();
@@ -38,7 +45,7 @@ namespace PropertyGatherer
 
     PropertyConsumerReqStatus_E PropertyConsumer_C::SendPropertyListRequest()
     {
-        PropertyConsumerReqStatus_E retVal = PropertyConsumerReqStatus_E::ERROR;
+        PropertyConsumerReqStatus_E retVal = PropertyConsumerReqStatus_E::PROPERTY_CONSUMER_STATUS_ERROR;
         if (PropertyConsumerState_E::INITIALIZED == _state)
         {
             std::cout << "Sending Property List request\n";
@@ -48,12 +55,12 @@ namespace PropertyGatherer
             if (0 < SendMessage(buffer))
             {
                 _propertyListRequested = true;
-                retVal = PropertyConsumerReqStatus_E::SUCCESS;
+                retVal = PropertyConsumerReqStatus_E::PROPERTY_CONSUMER_STATUS_SUCCESS;
                 std::cout << "Sent widget list request\n";
             }
             else
             {
-                retVal = PropertyConsumerReqStatus_E::FAILED_TO_SEND_MSG;
+                retVal = PropertyConsumerReqStatus_E::PROPERTY_CONSUMER_STATUS_FAILED_TO_SEND_MSG;
             }
         }
         return retVal;
@@ -61,8 +68,8 @@ namespace PropertyGatherer
 
     PropertyConsumerReqStatus_E PropertyConsumer_C::SendGetValueRequest(uint16_t maxResponseLength, std::vector<uint16_t> propertyIds)
     {
-        PropertyConsumerReqStatus_E retVal = PropertyConsumerReqStatus_E::ERROR;
-        if (PropertyConsumerState_E::PROPERTY_LIST_RECEIVED == _state)
+        PropertyConsumerReqStatus_E retVal = PropertyConsumerReqStatus_E::PROPERTY_CONSUMER_STATUS_ERROR;
+        if (PropertyConsumerState_E::READY == _state)
         {
             std::cout << "Sending Get Property request\n";
             std::vector<uint8_t> buffer;
@@ -70,12 +77,12 @@ namespace PropertyGatherer
             _msgSerializer.Serialize(getPropertyRequest, buffer);
             if (0 < SendMessage(buffer))
             {
-                retVal = PropertyConsumerReqStatus_E::SUCCESS;
+                retVal = PropertyConsumerReqStatus_E::PROPERTY_CONSUMER_STATUS_SUCCESS;
                 std::cout << "Sent Get Property Value request\n";
             }
             else
             {
-                retVal = PropertyConsumerReqStatus_E::FAILED_TO_SEND_MSG;
+                retVal = PropertyConsumerReqStatus_E::PROPERTY_CONSUMER_STATUS_FAILED_TO_SEND_MSG;
                 std::cout << "Failed to send Get Property Value request\n";
             }
         }
@@ -109,9 +116,12 @@ namespace PropertyGatherer
             case PropertyConsumerState_E::PROPERTY_LIST_REQUESTED:
                 if (true == _propertyListReceived)
                 {
-                    _state = PropertyConsumerState_E::PROPERTY_VALUE_RECEIVED;
+                    _state = PropertyConsumerState_E::READY;
                 }
                 // Check for a timeout
+                break;
+            
+            case PropertyConsumerState_E::READY:
                 break;
 
             case PropertyConsumerState_E::PROPERTY_VALUE_RECEIVED:

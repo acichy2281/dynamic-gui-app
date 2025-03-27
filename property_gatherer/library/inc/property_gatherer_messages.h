@@ -15,6 +15,9 @@
 #include <memory>
 #include <cstring>
 
+/* Shared includes */
+#include "custom_types.h"
+
 namespace PropertyGatherer
 {
     enum PropertyStorageVariantType_E 
@@ -46,6 +49,20 @@ namespace PropertyGatherer
         SET_VALUE_REPLY,
     };
 
+    enum class PropertyConsumerStatus_E
+    {
+        PROPERTY_CONSUMER_STATUS_SUCCESS,
+        PROPERTY_CONSUMER_STATUS_FAILED_TO_SEND_MSG,
+        PROPERTY_CONSUMER_STATUS_ERROR,
+    };
+
+    enum class PropertyProducerStatus_E
+    {
+        PROPERTY_PRODUCER_STATUS_SUCCESS,
+        PROPERTY_PRODUCER_STATUS_FAILED_TO_SEND_MSG,
+        PROPERTY_PRODUCER_STATUS_ERROR,
+    };
+
     enum class PropertyReplyStatus_E
     {
         SET_VAL_SUCCESS,
@@ -62,8 +79,8 @@ namespace PropertyGatherer
      */
     struct Header_T
     {
-        uint8_t protocolIdHigh;
-        uint8_t protocolIdLow;
+        uint8_t protocolIdHigh = PROPERTY_GATHERER_PROTOCOL_ID_HIGH;
+        uint8_t protocolIdLow = PROPERTY_GATHERER_PROTOCOL_ID_LOW;
         uint16_t messageId;
     };
 
@@ -82,6 +99,34 @@ namespace PropertyGatherer
         std::string propertyName;
         uint16_t propertyUnits;
     };
+
+    inline PropertyDescriptor_T CreatePropertyDescriptor(
+        uint16_t id,
+        bool writeable,
+        bool readable,
+        bool subscribable,
+        bool isStatic,
+        PropertyStorageVariantType_E type,
+        uint16_t length,
+        const std::string& name,
+        uint16_t units = 0)
+    {
+        PropertyDescriptor_T descriptor;
+        descriptor.propertyId = id;
+        descriptor.isWriteable = writeable;
+        descriptor.isReadable = readable;
+        descriptor.isSubscribable = subscribable;
+        descriptor.isStatic = isStatic;
+        descriptor.reservedForFlags = 0;
+        descriptor.propertyType = static_cast<uint8_t>(type);
+        descriptor.reserved = 0;
+        descriptor.propertyLength = length;
+        descriptor.propertyName = name;
+        descriptor.propertyUnits = units;
+        descriptor.propertyDescriptorLength = sizeof(PropertyDescriptor_T) - sizeof(std::string) + name.length();
+        return descriptor;
+    }
+
 
     struct PropertyListRequest_T
     {

@@ -1,5 +1,6 @@
 set(PROPERTY_PRODUCER_SRC 
     "src/main.cpp"
+    "src/property_producer.cpp"
     "${CMAKE_SOURCE_DIR}/shared/common/src/common_functions.cpp"
 )
 

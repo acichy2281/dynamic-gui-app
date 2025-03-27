@@ -109,12 +109,7 @@ namespace PropertyGatherer
         outBuff.resize(bufSize + sizeof(pDesc.propertyDescriptorLength));
         std::memcpy(outBuff.data() + bufSize, &pDesc.propertyDescriptorLength, sizeof(pDesc.propertyDescriptorLength));
         bufSize = outBuff.size();
-
-        /* Serialize property id */
-        outBuff.resize(bufSize + sizeof(pDesc.propertyId));
-        std::memcpy(outBuff.data() + bufSize, &pDesc.propertyId, sizeof(pDesc.propertyId));
-        bufSize = outBuff.size();
-
+        
         /* Serialize property id */
         outBuff.resize(bufSize + sizeof(pDesc.propertyId));
         std::memcpy(outBuff.data() + bufSize, &pDesc.propertyId, sizeof(pDesc.propertyId));
@@ -331,7 +326,7 @@ namespace PropertyGatherer
 
         if (offset < msgBuff.size())
         {
-            pDesc.propertyName = std::string(reinterpret_cast<const char*>(&msgBuff[startIdx], offset - startIdx));
+            pDesc.propertyName = std::string(reinterpret_cast<const char*>(&msgBuff[startIdx]), offset - startIdx);
             ++offset;
         }
         else

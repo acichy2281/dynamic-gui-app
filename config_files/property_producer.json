@@ -1,0 +1,17 @@
+{
+    "Title" : "Property Producer App",
+    "Windows" :
+    [
+        {
+            "Title" : "Producer Test Window",
+            "WidgetList":
+            [
+                {
+                    "Name" : "PropertyList",
+                    "Type" : "Text",
+                    "Value" : "[EMPTY]"
+                }
+            ]
+        }
+    ]
+}

@@ -17,4 +17,4 @@ elseif( ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
     target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/shared/platform/linux/inc )
 endif()
 
-target_link_libraries(${PROJECT_NAME} PUBLIC property_gatherer_library nlohmann_json::nlohmann_json)
+target_link_libraries(${PROJECT_NAME} PUBLIC property_gatherer_library gui_library)

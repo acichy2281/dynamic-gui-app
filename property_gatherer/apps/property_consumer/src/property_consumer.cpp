@@ -1,54 +1,87 @@
 #include "stdafx.h"
 #include "property_consumer.h"
 
-PropertyConsumer_C::PropertyConsumer_C(PropertyConsumerInitParams_C initParams) : 
+PropertyConsumerApp_C::PropertyConsumerApp_C(PropertyConsumerInitParams_C initParams) : 
     _producerInfo(initParams.producerInfo), _guiAppInfo(initParams.guiAppInfo),     
     _guiClient(std::make_shared<GuiProtocol::GuiClient_C>(
-        std::bind(&PropertyConsumer_C::GuiClient_SendMessage, this, std::placeholders::_1),
-        std::bind(&PropertyConsumer_C::GuiClient_OnWidgetListReplyReceived, this, std::placeholders::_1),
-        std::bind(&PropertyConsumer_C::GuiClient_OnWidgetSetValueReplyReceived, this, std::placeholders::_1, std::placeholders::_2),
-        std::bind(&PropertyConsumer_C::GuiClient_OnWidgetEventNotificationReceived, this, std::placeholders::_1, std::placeholders::_2)
-    ))
+        std::bind(&PropertyConsumerApp_C::GuiClient_SendMessage, this, std::placeholders::_1),
+        std::bind(&PropertyConsumerApp_C::GuiClient_OnWidgetListReplyReceived, this, std::placeholders::_1),
+        std::bind(&PropertyConsumerApp_C::GuiClient_OnWidgetSetValueReplyReceived, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&PropertyConsumerApp_C::GuiClient_OnWidgetEventNotificationReceived, this, std::placeholders::_1, std::placeholders::_2)
+    )),
+    _propertyConsumer(std::make_shared<PropertyGatherer::PropertyConsumer_C>())
 {
     _transport = UdpTransportFactory::CreateTransport();
-    _transport->InitializeSocket(initParams.myIp, initParams.myPort);
+    _transport->InitializeSocket(initParams.myInfo.destIp, initParams.myInfo.destPort);
     _rxBufferSize = 2048;
     _guiAppDevKey = _guiAppInfo.destIp + ":" + std::to_string(_guiAppInfo.destPort);
-    _producerAppDevKey = _producerInfo.destIp + ":" + std::to_string(_producerInfo.destPort);  
+    _producerAppDevKey = _producerInfo.destIp + ":" + std::to_string(_producerInfo.destPort);
+    _propertyConsumer->SetCallbacks({ std::bind(&PropertyConsumerApp_C::PropertyConsumer_SendMessage, this, std::placeholders::_1),
+                                      std::bind(&PropertyConsumerApp_C::PropertyConsumer_OnPropertyListReplyReceived, this, std::placeholders::_1, std::placeholders::_2),
+                                      std::bind(&PropertyConsumerApp_C::PropertyConsumer_OnPropertyGetValueReplyRecieved, this, std::placeholders::_1, std::placeholders::_2) });
 }
 
-PropertyConsumer_C::~PropertyConsumer_C()
+PropertyConsumerApp_C::~PropertyConsumerApp_C()
 {
 
 }
 
-void PropertyConsumer_C::OnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val)
+void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val)
 {
     std::cout << "Widget event callback: Widget ID = " << widgetDesc.widgetId << ", Value = ";
     std::visit([](auto&& arg) { std::cout << arg; }, val);
+    if (widgetDesc.widgetName == "GetPropertyListButton")
+    {
+        std::cout << "Requesting Property List\n";
+        auto propListReqStatus = _propertyConsumer->SendPropertyListRequest();
+        if (PropertyGatherer::PropertyConsumerReqStatus_E::PROPERTY_CONSUMER_STATUS_SUCCESS != propListReqStatus)
+        {
+            std::cout << "Failed to request property list, error: " << static_cast<uint8_t>(propListReqStatus) << "\n";
+        }
+    }
+    else if (widgetDesc.widgetName == "GetValueButton")
+    {
+        std::cout << "Requesting Property Value\n";
+        auto propValReqStatus = _propertyConsumer->SendGetValueRequest(255, {0});
+        if (PropertyGatherer::PropertyConsumerReqStatus_E::PROPERTY_CONSUMER_STATUS_SUCCESS != propValReqStatus)
+        {
+            std::cout << "Failed to request property value, error: " << static_cast<uint8_t>(propValReqStatus) << "\n";
+        }
+    }
+    // else if (widgetDesc.widgetName == "SetValueButton")  
+    // {
+    //     std::cout << "Setting Property Value\n";
+    //     auto propValReqStatus = _propertyConsumer->SendPropertyValueSetRequest(0, "Consumer Set Value");
+    //     if (PropertyGatherer::PropertyConsumerReqStatus_E::SUCCESS != propValReqStatus)
+    //     {
+    //         std::cout << "Failed to set property value, error: " << static_cast<uint8_t>(propValReqStatus) << "\n";
+    //     }
+    // }
     std::cout << "\n";
 }
 
-void PropertyConsumer_C::OnGuiWindowClosed()
+void PropertyConsumerApp_C::Gui_OnGuiWindowClosed()
 {
     std::cout << "GUI window closed\n";
     _isQuit = true;
 }
 
-void PropertyConsumer_C::RunTest()
+void PropertyConsumerApp_C::RunTest()
 {
     if (false == _gui.InitializeGui())
     {
         std::cerr << "Error: Failed to initialize GUI app\n";
     }
-    _gui.SetCallbacks({ std::bind(&PropertyConsumer_C::OnWidgetEvent, this, std::placeholders::_1, std::placeholders::_2), 
-                        std::bind(&PropertyConsumer_C::OnGuiWindowClosed, this) });
-    std::thread guiClientThread(&PropertyConsumer_C::RunGuiClientTest, this);  
+    _gui.SetCallbacks({ std::bind(&PropertyConsumerApp_C::Gui_OnWidgetEvent, this, std::placeholders::_1, std::placeholders::_2), 
+                        std::bind(&PropertyConsumerApp_C::Gui_OnGuiWindowClosed, this) });
+    // std::thread guiClientThread(&PropertyConsumerApp_C::RunGuiClientTest, this);  
+    std::thread propertyConsumerThread(&PropertyConsumerApp_C::RunPropertyConsumerTest, this);  
     _gui.RunGui();
-    guiClientThread.join();
+    // guiClientThread.join();
+    propertyConsumerThread.join();
 }
 
-void PropertyConsumer_C::RunGuiClientTest()
+void PropertyConsumerApp_C::RunGuiClientTest()
 {
     auto guiClientStatus = _guiClient->SendWidgetListRequest();
     if (GuiProtocol::GuiClientReqStatus_E::SUCCESS != guiClientStatus)
@@ -74,7 +107,24 @@ void PropertyConsumer_C::RunGuiClientTest()
     _gui.CloseGui();
 }
 
-void PropertyConsumer_C::HandleMessage()
+void PropertyConsumerApp_C::RunPropertyConsumerTest()
+{
+    while (false == _isQuit)
+    {
+        if (true == _transport->PollReceiveSocket())
+        {
+            HandleMessage();
+        }
+        _propertyConsumer->ProcessTimedActivities();
+        if (true == IsUserQuit())
+        {
+            _isQuit = true;
+        }
+    }
+    _gui.CloseGui();
+}
+
+void PropertyConsumerApp_C::HandleMessage()
 {
     std::string senderIp;
     uint16_t senderPort;
@@ -88,13 +138,18 @@ void PropertyConsumer_C::HandleMessage()
         std::cout << "Processing Gui Client msg\n";
         _guiClient->ProcessReceivedMessage(msgBuf, msgSize);
     }
+    else if (_producerAppDevKey == devKey)
+    {
+        std::cout << "Processing Property Producer msg\n";
+        _propertyConsumer->ProcessReceivedMessage(msgBuf, msgSize);
+    }
     else
     {
         std::cout << "Unknown sender, known senders: " << _guiAppDevKey << ", " << _producerAppDevKey << "\n";
     }
 }
 
-void PropertyConsumer_C::RunSetValueTest()
+void PropertyConsumerApp_C::RunSetValueTest()
 {
     std::cout << "Running Set Value test\n";
     std::vector<std::pair<uint32_t, WidgetValueVariant_T>> setWidgetList;
@@ -122,12 +177,12 @@ void PropertyConsumer_C::RunSetValueTest()
 }
 
 /* GUI Client callback implementations */
-int32_t PropertyConsumer_C::GuiClient_SendMessage(const std::vector<uint8_t>& message)
+int32_t PropertyConsumerApp_C::GuiClient_SendMessage(const std::vector<uint8_t>& message)
 {
     return _transport->TransportSendMessage(_guiAppInfo.destIp, _guiAppInfo.destPort, message);
 }
 
-void PropertyConsumer_C::GuiClient_OnWidgetListReplyReceived(GuiProtocol::WidgetReplyStatus_E status)
+void PropertyConsumerApp_C::GuiClient_OnWidgetListReplyReceived(GuiProtocol::WidgetReplyStatus_E status)
 {
     if (GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS == status)
     {
@@ -141,7 +196,7 @@ void PropertyConsumer_C::GuiClient_OnWidgetListReplyReceived(GuiProtocol::Widget
     }
 }
 
-void PropertyConsumer_C::GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::WidgetReplyStatus_E status, std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& setValuesList)
+void PropertyConsumerApp_C::GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::WidgetReplyStatus_E status, std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& setValuesList)
 {
     if (GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS == status)
     {
@@ -153,7 +208,7 @@ void PropertyConsumer_C::GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::Wi
     }
 }
 
-void PropertyConsumer_C::GuiClient_OnWidgetEventNotificationReceived(uint32_t widgetId, WidgetValueVariant_T updatedValue)
+void PropertyConsumerApp_C::GuiClient_OnWidgetEventNotificationReceived(uint32_t widgetId, WidgetValueVariant_T updatedValue)
 {
     std::cout << "Widget Event Notification received for widgetId: " << widgetId << "\n";
     if (std::holds_alternative<std::string>(updatedValue))
@@ -176,4 +231,32 @@ void PropertyConsumer_C::GuiClient_OnWidgetEventNotificationReceived(uint32_t wi
     {
         std::cout << "Unknown updated value type!\n";
     }
+}
+
+int32_t PropertyConsumerApp_C::PropertyConsumer_SendMessage(const std::vector<uint8_t>& message)
+{
+    return _transport->TransportSendMessage(_producerInfo.destIp, _producerInfo.destPort, message);
+}
+
+void PropertyConsumerApp_C::PropertyConsumer_OnPropertyListReplyReceived(PropertyGatherer::PropertyReplyStatus_E status, std::vector<PropertyGatherer::PropertyDescriptor_T>& descList)
+{
+    std::cout << "Property List Reply received\n";
+
+    for (const auto& desc : descList)
+    {
+        std::cout << "Property ID: " << desc.propertyId << ", Name: " << desc.propertyName << "\n";
+    }
+}
+
+void PropertyConsumerApp_C::PropertyConsumer_OnPropertyGetValueReplyRecieved(PropertyGatherer::PropertyReplyStatus_E status, std::vector<PropertyGatherer::PropertyStorageVariant>& values)
+{
+    std::cout << "Property Get Value Reply received\n";
+
+    for (const auto& value : values)
+    {
+        std::cout << "Property Value: ";
+        std::visit([](auto&& arg) { std::cout << arg; }, value);
+        std::cout << "\n";
+    }
+    // Handle the reply here
 }
