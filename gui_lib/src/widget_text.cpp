@@ -22,6 +22,12 @@ void WidgetText_C::ShowWidget()
     ImGui::Text("%s", _widgetText.c_str());
 }
 
+WidgetValueVariant_T WidgetText_C::GetWidgetValue()
+{
+    // Return the current text value of the widget
+    return _widgetText;
+}
+
 bool WidgetText_C::SetWidgetValue(WidgetValueVariant_T val)
 {
     if (true == GetIsStatic()) 

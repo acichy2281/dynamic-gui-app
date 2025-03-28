@@ -13,6 +13,7 @@ class EventWidgetClose_C : public EventInterface_I
         EventTypes_E GetType() override { return EventTypes_E::WIDGET_CLOSE; }
         uint16_t GetWindowId() const override { return _windowId; }
         uint16_t GetWidgetId() const override { return _widgetId; }
+        WidgetValueVariant_T GetValue() const override { return true; } // The value of this event is true as a close event has occured.
     
     private:
         uint16_t _windowId;

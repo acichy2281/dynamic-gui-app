@@ -17,8 +17,8 @@ class WidgetInterface_I
         uint16_t GetWidgetId() const { return _widgetId; };
         std::string GetWidgetName() { return _widgetName; };
         void SetWidgetName(std::string widgetName) { _widgetName = widgetName; };
+        virtual WidgetValueVariant_T GetWidgetValue() = 0; 
         virtual bool SetWidgetValue(WidgetValueVariant_T val) = 0;
-
         bool GetIsStatic() { return _isStatic; };
         void SetIsStatic(bool isStatic) { _isStatic = isStatic; };
 

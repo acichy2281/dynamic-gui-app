@@ -8,22 +8,23 @@
 
 class WidgetSlider_C : public WidgetInterface_I
 {
-public:
-    WidgetSlider_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId, SliderValueVariant_T min, SliderValueVariant_T max);
-    ~WidgetSlider_C();
+    public:
+        WidgetSlider_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId, SliderValueVariant_T min, SliderValueVariant_T max);
+        ~WidgetSlider_C();
 
-    void ShowWidget() override;
-    
-    bool SetWidgetValue(WidgetValueVariant_T val) override;
+        void ShowWidget() override;
+        
+        WidgetValueVariant_T GetWidgetValue() override;
+        bool SetWidgetValue(WidgetValueVariant_T val) override;
 
-    WidgetTypes_E GetType() override;
+        WidgetTypes_E GetType() override;
 
-private:
-    bool _isSliderActive = false;
-    SliderValueVariant_T _sliderValue;
-    SliderValueVariant_T _previousValue;
-    SliderValueVariant_T _sliderMin;
-    SliderValueVariant_T _sliderMax;
-    ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
+    private:
+        bool _isSliderActive = false;
+        SliderValueVariant_T _sliderValue;
+        SliderValueVariant_T _previousValue;
+        SliderValueVariant_T _sliderMin;
+        SliderValueVariant_T _sliderMax;
+        ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
 };
 #endif // WIDGET_SLIDER_H

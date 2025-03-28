@@ -13,6 +13,7 @@ class WidgetCheckbox_C : public WidgetInterface_I
         ~WidgetCheckbox_C();
 
         void ShowWidget() override;
+        WidgetValueVariant_T GetWidgetValue() override;
         bool SetWidgetValue(WidgetValueVariant_T val) override;
 
         WidgetTypes_E GetType() override;

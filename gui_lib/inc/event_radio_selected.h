@@ -13,7 +13,7 @@ class EventRadioSelected_C : public EventInterface_I
         EventTypes_E GetType() override { return EventTypes_E::RADIO_SELECTED; }
         uint16_t GetWindowId() const override { return _windowId; }
         uint16_t GetWidgetId() const override { return _widgetId; }
-        int GetValue() const { return _selected; }
+        WidgetValueVariant_T GetValue() const override { return _selected; }
     
     private:
         uint16_t _windowId;

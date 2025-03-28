@@ -29,6 +29,12 @@ void WidgetRadio_C::ShowWidget()
     }     
 }
 
+WidgetValueVariant_T WidgetRadio_C::GetWidgetValue()
+{
+    // Return the currently selected option index
+    return _selectedOptionIndex;
+}
+
 bool WidgetRadio_C::SetWidgetValue(WidgetValueVariant_T val)
 {
     if (GetIsStatic()) 

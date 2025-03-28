@@ -24,6 +24,12 @@ void WidgetButton_C::ShowWidget()
     }
 }
 
+WidgetValueVariant_T WidgetButton_C::GetWidgetValue()
+{
+    // Return false as the button only indicates a press event and does not have a value. True is indicated when a button event occurs. 
+    return false;
+}
+
 bool WidgetButton_C::SetWidgetValue(WidgetValueVariant_T val)
 {
     // Cannot set value for a button widget

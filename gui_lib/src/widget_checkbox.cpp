@@ -24,6 +24,12 @@ void WidgetCheckbox_C::ShowWidget()
     }
 }
 
+WidgetValueVariant_T WidgetCheckbox_C::GetWidgetValue()
+{
+    // Return the current status of the checkbox (checked or not)
+    return _status;
+}
+
 bool WidgetCheckbox_C::SetWidgetValue(WidgetValueVariant_T val)
 {   
     if (true == GetIsStatic()) 

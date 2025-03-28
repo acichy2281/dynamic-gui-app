@@ -201,7 +201,7 @@ class DynamicGui_C
 
         // GuiServer member variables
         std::shared_ptr<GuiProtocol::GuiServer_C>                           _guiServer;
-        ThreadSafeQueue_C<WidgetEventNotificationInfo_T>                    _widgetEventNotificationQueue;
+        ThreadSafeQueue_C<WidgetEventNotificationInfo_T>                    _guiServerWidgetEventNotificationQueue;
         PortInfo_T                                                          _guiServerPortInfo;
         PortInfo_T                                                          _guiClientPortInfo;
         std::shared_ptr<TransportInterface>                                 _guiServerTransport;

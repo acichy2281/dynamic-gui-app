@@ -13,7 +13,7 @@ class EventCheckboxToggle_C : public EventInterface_I
         EventTypes_E GetType() override { return EventTypes_E::CHECKBOX_TOGGLE; }
         uint16_t GetWindowId() const override { return _windowId; }
         uint16_t GetWidgetId() const override { return _widgetId; }
-        bool GetValue() const { return _isChecked; }
+        WidgetValueVariant_T GetValue() const override { return _isChecked; }
     
     private:
         uint16_t _windowId;

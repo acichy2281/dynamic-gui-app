@@ -8,16 +8,17 @@
 
 class WidgetButton_C : public WidgetInterface_I
 {
-public:
-    WidgetButton_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId);
-    ~WidgetButton_C();
+    public:
+        WidgetButton_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId);
+        ~WidgetButton_C();
 
-    void ShowWidget() override;
-    bool SetWidgetValue(WidgetValueVariant_T val) override;
+        void ShowWidget() override;
+        WidgetValueVariant_T GetWidgetValue() override;
+        bool SetWidgetValue(WidgetValueVariant_T val) override;
 
-    WidgetTypes_E GetType() override;
+        WidgetTypes_E GetType() override;
 
-private:
-    ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
+    private:
+        ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
 };
 #endif // WIDGET_BUTTON_H

@@ -13,6 +13,7 @@ class WidgetRadio_C : public WidgetInterface_I
         ~WidgetRadio_C();
         void ShowWidget() override;
         
+        WidgetValueVariant_T GetWidgetValue() override;
         bool SetWidgetValue(WidgetValueVariant_T val) override;
         void AddOption(std::string& newOption);
         WidgetTypes_E GetType() override;

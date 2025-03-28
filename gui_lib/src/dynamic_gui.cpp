@@ -292,72 +292,14 @@ void DynamicGui_C::ProcessEventQueue()
     {
         std::cout << "Processing Widget Event\n";
         auto event = _eventQueue.Dequeue();
-        if (EventTypes_E::BUTTON_PRESS == event->GetType())
+
+        std::cout << "Event Handler: window ID: " << event->GetWindowId() << ", widget ID: " << event->GetWidgetId() << "\n";
+        if (true == _isGuiServerRunning)
         {
-            auto buttonEvent = std::dynamic_pointer_cast<EventButtonPress_C>(event);
-            if (buttonEvent)
-            {
-                // Handle button press event
-                std::cout << "Event Handler: Button pressed, window ID: " << buttonEvent->GetWindowId() << ", widget ID: " << buttonEvent->GetWidgetId() << "\n";
-                if (true == _isGuiServerRunning)
-                {
-                    _widgetEventNotificationQueue.Enqueue({ buttonEvent->GetWindowId(), buttonEvent->GetWidgetId(), true });
-                }
-                auto desc = _guiServer->GetWidgetDescriptor((static_cast<uint32_t>(buttonEvent->GetWindowId()) << 16) | static_cast<uint32_t>(buttonEvent->GetWidgetId()));
-                _onWidgetEventOccured(desc, true); 
-            }
+            _guiServerWidgetEventNotificationQueue.Enqueue({ event->GetWindowId(), event->GetWidgetId(), event->GetValue() });
         }
-        else if (EventTypes_E::SLIDER_SET == event->GetType())
-        {
-            auto sliderEvent = std::dynamic_pointer_cast<EventSliderSet_C>(event);
-            if (sliderEvent)
-            {
-                // Handle slider set event
-                std::visit([&](auto&& arg) {
-                    std::cout << "Event Handler: Slider set, window ID: " << sliderEvent->GetWindowId() << ", widget ID: " << sliderEvent->GetWidgetId() << ", value: " << arg << "\n";
-                    if (true == _isGuiServerRunning)
-                    {
-                        _widgetEventNotificationQueue.Enqueue({ sliderEvent->GetWindowId(), sliderEvent->GetWidgetId(), arg });
-                    }
-                    auto desc = _guiServer->GetWidgetDescriptor((static_cast<uint32_t>(sliderEvent->GetWindowId()) << 16) | static_cast<uint32_t>(sliderEvent->GetWidgetId()));
-                    _onWidgetEventOccured(desc, arg); 
-                }, sliderEvent->GetValue());
-            }
-        }
-        else if (EventTypes_E::CHECKBOX_TOGGLE == event->GetType())
-        {
-            auto checkboxEvent = std::dynamic_pointer_cast<EventCheckboxToggle_C>(event);
-            if (checkboxEvent)
-            {
-                // Handle checkbox set event
-                std::cout << "Event Handler: Checkbox set, window ID: " << checkboxEvent->GetWindowId() << ", widget ID: " << checkboxEvent->GetWidgetId() << ", value: " << (checkboxEvent->GetValue() ? "true" : "false") << "\n";
-                if (true == _isGuiServerRunning)
-                {
-                    _widgetEventNotificationQueue.Enqueue({ checkboxEvent->GetWindowId(), checkboxEvent->GetWidgetId(), checkboxEvent->GetValue() });
-                }
-                auto desc = _guiServer->GetWidgetDescriptor((static_cast<uint32_t>(checkboxEvent->GetWindowId()) << 16) | static_cast<uint32_t>(checkboxEvent->GetWidgetId()));
-                _onWidgetEventOccured(desc, checkboxEvent->GetValue()); 
-            }
-        }
-        else if (EventTypes_E::RADIO_SELECTED == event->GetType())
-        {
-            auto radioEvent = std::dynamic_pointer_cast<EventRadioSelected_C>(event);
-            if (radioEvent)
-            {
-                // Handle radio button selected event
-                std::cout << "Event Handler: Radio button selected, window ID: " << radioEvent->GetWindowId() << ", widget ID: " << radioEvent->GetWidgetId() << ", option: " << radioEvent->GetValue() << "\n";
-                if (true == _isGuiServerRunning)
-                {
-                    _widgetEventNotificationQueue.Enqueue({ radioEvent->GetWindowId(), radioEvent->GetWidgetId(), radioEvent->GetValue() });
-                }
-                auto desc = _guiServer->GetWidgetDescriptor((static_cast<uint32_t>(radioEvent->GetWindowId()) << 16) | static_cast<uint32_t>(radioEvent->GetWidgetId()));
-                _onWidgetEventOccured(desc, radioEvent->GetValue()); 
-            }
-        }
-        else
-        {
-            std::cout << "Event Handler: Error! Unknown event type\n";
-        }
+        auto desc = _guiServer->GetWidgetDescriptor((static_cast<uint32_t>(event->GetWindowId()) << 16) | static_cast<uint32_t>(event->GetWidgetId()));
+        _onWidgetEventOccured(desc, event->GetValue());
     }
 }
 
@@ -602,10 +544,10 @@ bool DynamicGui_C::RunGuiServer(const GuiServerInitParams_T& initParams)
 
             _guiServer->ProcessReceivedMessage(msgBuf, msgSize);
         }
-        else if (0 != _widgetEventNotificationQueue.Size())
+        else if (0 != _guiServerWidgetEventNotificationQueue.Size())
         {
             std::cout << "Sending Widget Event Notification\n";
-            auto event = _widgetEventNotificationQueue.Dequeue();                   
+            auto event = _guiServerWidgetEventNotificationQueue.Dequeue();                   
             GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(event.windowId, event.widgetId, event.value);
             if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
             {

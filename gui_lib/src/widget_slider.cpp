@@ -57,6 +57,12 @@ void WidgetSlider_C::ShowWidget()
     }
 }
 
+WidgetValueVariant_T WidgetSlider_C::GetWidgetValue()
+{
+    // Return the current value of the slider as a WidgetValueVariant_T
+    return std::visit([](auto&& arg) -> WidgetValueVariant_T { return arg; }, _sliderValue);
+}
+
 bool WidgetSlider_C::SetWidgetValue(WidgetValueVariant_T val)
 {
     if (GetIsStatic()) 

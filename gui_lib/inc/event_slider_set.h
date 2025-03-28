@@ -16,7 +16,7 @@ class EventSliderSet_C : public EventInterface_I
         EventTypes_E GetType() override { return EventTypes_E::SLIDER_SET; }
         uint16_t GetWindowId() const override { return _windowId; }
         uint16_t GetWidgetId() const override { return _widgetId; }
-        SliderValueVariant_T GetValue() const { return _sliderValue; }
+        WidgetValueVariant_T GetValue() const override { return std::visit([](auto&& arg) -> WidgetValueVariant_T { return arg; }, _sliderValue); }
     
     private:
         uint16_t _windowId;
