@@ -148,8 +148,6 @@ class DynamicGui_C
         void GuiServer_OnWidgetListRequestReceived();
         int32_t GuiServer_SendMessage(const std::vector<uint8_t>& message);
         GuiProtocol::WidgetReplyStatus_E GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>& widgetSetValueList);
-        GuiProtocol::WidgetReplyStatus_E SetValueReq_UpdateWidget(std::shared_ptr<WidgetInterface_I> widget, WidgetTypes_E type, GuiProtocol::WidgetDataTypes_E dataType, WidgetValueVariant_T val);
-        GuiProtocol::WidgetReplyStatus_E SetValueReq_UpdateTextWidget(std::shared_ptr<WidgetText_C> textWidget, GuiProtocol::WidgetDataTypes_E dataType, WidgetValueVariant_T val);
         void GuiServer_OnWidgetEventNotificationAckReceived(GuiProtocol::WidgetReplyStatus_E status, uint16_t windowId, uint16_t widgetId);
 
         /* Variables */

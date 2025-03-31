@@ -217,23 +217,6 @@ bool DynamicGui_C::ShowGui()
 
         for (auto& window : _windowList)
         {
-            std::shared_ptr<WidgetInterface_I> widget;
-            /*
-            if (true == window.GetWidgetAt(0, widget))
-            {
-                if (auto textWidget = std::dynamic_pointer_cast<WidgetText_C>(widget))
-                {
-                    // textWidget->SetWidgetValue("Updating int: %" PRIu16, testPrintInt);
-                }
-            }
-            */
-           if (true == window.GetWidgetAt(0, widget))
-           {
-                if (auto buttonWidget = std::dynamic_pointer_cast<WidgetButton_C>(widget))
-                {
-
-                }
-           }
             window.ShowWindow();
         }
 
@@ -377,10 +360,7 @@ bool DynamicGui_C::SetWidgetValue(uint32_t widgetId, WidgetValueVariant_T val)
     {
         std::cout << "Unable to find widget " << widgetId << "\n";
     }
-    else if (GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS != SetValueReq_UpdateWidget(outWidget, 
-                                                                                           outWidget->GetType(), 
-                                                                                           static_cast<GuiProtocol::WidgetDataTypes_E>(val.index()), 
-                                                                                           val))
+    else if (false == outWidget->SetWidgetValue(val))
     {
         std::cout << "Failed to set widget " << widgetId << " value\n";
     }
@@ -514,17 +494,11 @@ GuiProtocol::WidgetReplyStatus_E DynamicGui_C::GuiServer_OnWidgetSetValueRequest
         {
             widgetSetValue.status = static_cast<uint16_t>(GuiProtocol::WidgetReplyStatus_E::SET_VAL_UNKNOWN_WIDGET);
         }
-        else
+        else if (true == outWidget->SetWidgetValue(widgetSetValue.val))
         {
-            if (GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS == SetValueReq_UpdateWidget(outWidget, 
-                                                                                              static_cast<WidgetTypes_E>(widgetSetValue.widgetType), 
-                                                                                              static_cast<GuiProtocol::WidgetDataTypes_E>(widgetSetValue.dataType), 
-                                                                                              widgetSetValue.val))
-            {
-                numSetValSuccess++;
-                std::cout << "Successfuly set widget " << widgetSetValue.windowId << "." << widgetSetValue.widgetId << " value\n";
-                widgetSetValue.status = static_cast<uint16_t>(GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS);
-            }
+            numSetValSuccess++;
+            std::cout << "Successfuly set widget " << widgetSetValue.windowId << "." << widgetSetValue.widgetId << " value\n";
+            widgetSetValue.status = static_cast<uint16_t>(GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS);
         }
     }
 
@@ -541,62 +515,6 @@ GuiProtocol::WidgetReplyStatus_E DynamicGui_C::GuiServer_OnWidgetSetValueRequest
     else
     {
         std::cout << "All Set Value requests failed\n";
-    }
-    return retVal;
-}
-
-GuiProtocol::WidgetReplyStatus_E DynamicGui_C::SetValueReq_UpdateWidget(std::shared_ptr<WidgetInterface_I> widget, 
-                                                                        WidgetTypes_E type, 
-                                                                        GuiProtocol::WidgetDataTypes_E dataType, 
-                                                                        WidgetValueVariant_T val)
-{
-    auto retVal = GuiProtocol::WidgetReplyStatus_E::SET_VAL_UNKNOWN_WIDGET;
-    switch (static_cast<WidgetTypes_E>(type))
-    {
-        case WidgetTypes_E::Text:
-            if (auto textWidget = std::dynamic_pointer_cast<WidgetText_C>(widget))
-            {
-                retVal = SetValueReq_UpdateTextWidget(textWidget, dataType, val);
-            }
-            break;
-        
-        default:
-            break;
-    }
-    return retVal;
-}
-
-GuiProtocol::WidgetReplyStatus_E DynamicGui_C::SetValueReq_UpdateTextWidget(std::shared_ptr<WidgetText_C> textWidget, 
-                                                                            GuiProtocol::WidgetDataTypes_E dataType, 
-                                                                            WidgetValueVariant_T val)
-{
-    // bool setRetVal = false;
-    // switch (dataType)
-    // {
-    //     case GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING:
-    //         setRetVal = textWidget->SetWidgetValue("%s", std::get<std::string>(val).c_str());
-    //         break;
-
-    //     case GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_INT:
-    //         setRetVal = textWidget->SetWidgetValue("%d", std::get<int>(val));
-    //         break;
-        
-    //     case GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_FLOAT:
-    //         setRetVal = textWidget->SetWidgetValue("%f", std::get<float>(val));
-    //         break;
-
-    //     default:
-    //         break;
-    // }
-
-    GuiProtocol::WidgetReplyStatus_E retVal = GuiProtocol::WidgetReplyStatus_E::SET_VAL_ERROR;
-    if (true == textWidget->SetWidgetValue(val))
-    {
-        retVal = GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS;
-    }
-    else
-    {
-        retVal = GuiProtocol::WidgetReplyStatus_E::SET_VAL_FAILED_TO_SET;
     }
     return retVal;
 }

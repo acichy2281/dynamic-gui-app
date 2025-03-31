@@ -12,7 +12,7 @@ WidgetSlider_C::WidgetSlider_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_
 {
     SetWindowId(windowId);
 
-    /* Initialize values to ensure type safety */
+    /* Initialize values to ensure variant type safety */
     _sliderValue = min;
     _previousValue = min;
 }
@@ -24,7 +24,7 @@ WidgetSlider_C::~WidgetSlider_C()
 
 void WidgetSlider_C::ShowWidget()
 {
-    if (std::holds_alternative<int>(_sliderValue))
+    if (std::holds_alternative<int>(_sliderValue) && std::holds_alternative<int>(_sliderMin) && std::holds_alternative<int>(_sliderMax))
     {
         int currentValue = std::get<int>(_sliderValue);
         if (ImGui::SliderInt(GetWidgetName().c_str(), &currentValue, std::get<int>(_sliderMin), std::get<int>(_sliderMax)))
@@ -32,13 +32,18 @@ void WidgetSlider_C::ShowWidget()
             _sliderValue = currentValue;
         }
     }
-    else if (std::holds_alternative<float>(_sliderValue))
+    else if (std::holds_alternative<float>(_sliderValue) && std::holds_alternative<float>(_sliderMin) && std::holds_alternative<float>(_sliderMax))
     {
         float currentValue = std::get<float>(_sliderValue);
         if (ImGui::SliderFloat(GetWidgetName().c_str(), &currentValue, std::get<float>(_sliderMin), std::get<float>(_sliderMax)))
         {
             _sliderValue = currentValue;
         }
+    }
+    else
+    {
+        std::cout << "Slider value type mismatch\n";
+        std::throw_with_nested(std::runtime_error("Slider value type mismatch"));
     }
     
     if (ImGui::IsItemActive()) {
