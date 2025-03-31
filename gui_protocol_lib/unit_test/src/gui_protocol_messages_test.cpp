@@ -87,22 +87,19 @@ namespace GuiProtocolTest
 
     bool GuiProtocolMessageSerializationTest_C::TestSerializeWidgetListReply()
     {
-        bool isInteractable = true;
-        bool isStatic = false;
-        bool isReadable = true;
-        bool isWritable = false;
+        uint8_t flags = (Interactable | Readable);
         uint8_t reserved = 0;
         uint8_t widgetType = 0x01;
         uint8_t dataType = 0x02;
         std::string widgetName = "TestWidget";
-        WidgetDescriptor_T widgetDesc = {0x12345678, isInteractable, isStatic, isReadable, isWritable, reserved, widgetType, dataType, widgetName};
+        WidgetDescriptor_T widgetDesc = {0x12345678, flags, reserved, widgetType, dataType, widgetName};
         std::vector<WidgetDescriptor_T> widgetList = {widgetDesc};
         GuiProtocol::WidgetListReply_T reply = {{0x01, 0x02, 0x5678}, static_cast<uint16_t>(widgetList.size()), widgetList, 0x0001};
         std::vector<uint8_t> outBuff;
 
         uint16_t size = _msgSerializer.Serialize(reply, outBuff);
 
-        uint8_t widgetFlags = (isInteractable ? 0x80 : 0x00) | (isStatic ? 0x40 : 0x00) | (isReadable ? 0x20 : 0x00) | (isWritable ? 0x10 : 0x00) | (reserved & 0x0F);
+        uint8_t widgetFlags = (flags << 4) | (reserved & 0x0F);
         std::vector<uint8_t> expected = {0x01, 0x02, 0x78, 0x56, 0x01, 0x00, 0x78, 0x56, 0x34, 0x12, widgetFlags, 0x01, 0x02, 'T', 'e', 's', 't', 'W', 'i', 'd', 'g', 'e', 't', '\0', 0x01, 0x00};
         bool match = true;
         if (outBuff.size() != expected.size()) 
@@ -280,16 +277,14 @@ namespace GuiProtocolTest
                   << message.widgetDescriptorList.size() << "\n";
             success = false;
         }
-        if (message.widgetDescriptorList[0].isInteractable != true)
+        if ((message.widgetDescriptorList[0].flags & Interactable) == 0)
         {
-            std::cout << "DeserializeWidgetListReply failed: isInteractable mismatch. Expected true, got "
-              << std::boolalpha << message.widgetDescriptorList[0].isInteractable << "\n";
+            std::cout << "DeserializeWidgetListReply failed: isInteractable mismatch. Expected true, got false\n";
             success = false;
         }
-        if (message.widgetDescriptorList[0].isStatic != false) 
+        if ((message.widgetDescriptorList[0].flags & Static) != 0) 
         {
-            std::cout << "DeserializeWidgetListReply failed: isStatic mismatch. Expected false, got "
-              << std::boolalpha << message.widgetDescriptorList[0].isStatic << "\n";
+            std::cout << "DeserializeWidgetListReply failed: isStatic mismatch. Expected false, got true\n";
             success = false;
         }
         if (message.widgetDescriptorList[0].reserved != 0x01)

@@ -4,20 +4,14 @@ namespace GuiProtocol
 {
     WidgetDescriptor_T GetWidgetDescriptor(uint16_t windowId, 
                                            uint16_t widgetId,
-                                           bool isReadable,
-                                           bool isWritable,
-                                           bool isInteractable,
-                                           bool isStatic,
+                                           uint8_t flags,
                                            WidgetTypes_E widgetType,
                                            WidgetDataTypes_E dataType,
                                            std::string& widgetName)
     {
         WidgetDescriptor_T retVal;
         retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
-        retVal.isInteractable = isInteractable;
-        retVal.isStatic = isStatic;
-        retVal.isReadable = isReadable;
-        retVal.isWritable = isWritable;
+        retVal.flags = flags;
         retVal.reserved = 0;
         retVal.widgetType = static_cast<uint8_t>(widgetType);
         retVal.dataType = static_cast<uint8_t>(dataType);
@@ -26,53 +20,53 @@ namespace GuiProtocol
         return retVal;
     }
 
-    WidgetDescriptor_T GetButtonWidgetDescriptor(uint16_t windowId, uint16_t widgetId, std::string& widgetName)
-    {
-        bool isInteractable = true;
-        bool isStatic = false;
-        bool isReadable = true;
-        bool isWritable = false;
-        uint8_t reserved = 0;
-        uint8_t widgetType = static_cast<uint8_t>(WidgetTypes_E::BUTTON);
-        uint8_t dataType = static_cast<uint8_t>(WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL); // Assuming button state is boolean
+    // WidgetDescriptor_T GetButtonWidgetDescriptor(uint16_t windowId, uint16_t widgetId, std::string& widgetName)
+    // {
+    //     bool isInteractable = true;
+    //     bool isStatic = false;
+    //     bool isReadable = true;
+    //     bool isWritable = false;
+    //     uint8_t reserved = 0;
+    //     uint8_t widgetType = static_cast<uint8_t>(WidgetTypes_E::Button);
+    //     uint8_t dataType = static_cast<uint8_t>(WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL); // Assuming button state is boolean
 
-        WidgetDescriptor_T retVal;
-        retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
-        retVal.isInteractable = isInteractable;
-        retVal.isStatic = isStatic;
-        retVal.isReadable = isReadable;
-        retVal.isWritable = isWritable;
-        retVal.reserved = reserved;
-        retVal.widgetType = widgetType;
-        retVal.dataType = dataType;
-        retVal.widgetName = widgetName;
+    //     WidgetDescriptor_T retVal;
+    //     retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
+    //     retVal.isInteractable = isInteractable;
+    //     retVal.isStatic = isStatic;
+    //     retVal.isReadable = isReadable;
+    //     retVal.isWritable = isWritable;
+    //     retVal.reserved = reserved;
+    //     retVal.widgetType = widgetType;
+    //     retVal.dataType = dataType;
+    //     retVal.widgetName = widgetName;
 
-        return retVal;
-    }
+    //     return retVal;
+    // }
 
-    WidgetDescriptor_T GetSliderWidgetDescriptor(uint16_t windowId, uint16_t widgetId, std::string& widgetName)
-    {
-        bool isInteractable = true;
-        bool isStatic = false;
-        bool isReadable = true;
-        bool isWritable = true; // Assuming slider can be written to
-        uint8_t reserved = 0;
-        uint8_t widgetType = static_cast<uint8_t>(WidgetTypes_E::SLIDER);
-        uint8_t dataType = static_cast<uint8_t>(WidgetDataTypes_E::WIDGET_DATA_TYPE_FLOAT); // Assuming slider value is float
+    // WidgetDescriptor_T GetSliderWidgetDescriptor(uint16_t windowId, uint16_t widgetId, std::string& widgetName)
+    // {
+    //     bool isInteractable = true;
+    //     bool isStatic = false;
+    //     bool isReadable = true;
+    //     bool isWritable = true; // Assuming slider can be written to
+    //     uint8_t reserved = 0;
+    //     uint8_t widgetType = static_cast<uint8_t>(WidgetTypes_E::Slider);
+    //     uint8_t dataType = static_cast<uint8_t>(WidgetDataTypes_E::WIDGET_DATA_TYPE_FLOAT); // Assuming slider value is float
 
-        WidgetDescriptor_T retVal;
-        retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
-        retVal.isInteractable = isInteractable;
-        retVal.isStatic = isStatic;
-        retVal.isReadable = isReadable;
-        retVal.isWritable = isWritable;
-        retVal.reserved = reserved;
-        retVal.widgetType = widgetType;
-        retVal.dataType = dataType;
-        retVal.widgetName = widgetName;
+    //     WidgetDescriptor_T retVal;
+    //     retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
+    //     retVal.isInteractable = isInteractable;
+    //     retVal.isStatic = isStatic;
+    //     retVal.isReadable = isReadable;
+    //     retVal.isWritable = isWritable;
+    //     retVal.reserved = reserved;
+    //     retVal.widgetType = widgetType;
+    //     retVal.dataType = dataType;
+    //     retVal.widgetName = widgetName;
 
-        return retVal;
-    }
+    //     return retVal;
+    // }
 
     WidgetListRequest_T GetWidgetListRequest()
     {
@@ -215,13 +209,13 @@ namespace GuiProtocol
         std::memcpy(outBuff.data() + bufSize, &pDesc.widgetId, sizeof(pDesc.widgetId));
         bufSize = outBuff.size();
 
-        /* Serialize Flags + Widget Type (2 bytes total) */
-        uint8_t packedFlags =
-        (static_cast<uint16_t>(pDesc.isInteractable) << 7) |
-        (static_cast<uint16_t>(pDesc.isStatic) << 6) |
-        (static_cast<uint16_t>(pDesc.isReadable) << 5) |
-        (static_cast<uint16_t>(pDesc.isWritable) << 4) |
-        (pDesc.reserved & 0xF); // Keep only the lower 4 bits of reserved
+        /* Serialize Flags */
+        uint8_t packedFlags = (pDesc.flags << 4) | pDesc.reserved;
+        // (static_cast<uint16_t>(pDesc.isInteractable) << 7) |
+        // (static_cast<uint16_t>(pDesc.isStatic) << 6) |
+        // (static_cast<uint16_t>(pDesc.isReadable) << 5) |
+        // (static_cast<uint16_t>(pDesc.isWritable) << 4) |
+        // Keep only the lower 4 bits of reserved
         outBuff.push_back(packedFlags);
 
         /* Serialize Widget Type */
@@ -476,15 +470,19 @@ namespace GuiProtocol
         std::memcpy(&pDesc.widgetId, msgBuf.data() + offset, sizeof(pDesc.widgetId));
         offset += sizeof(pDesc.widgetId);
 
-        /* Deserialize Flags + Widget Type (2 bytes total) */
+        /* Deserialize Flags */
         uint8_t packedFlags = msgBuf[offset];
-        pDesc.isInteractable = (packedFlags >> 7) & 0x01;
-        pDesc.isStatic = (packedFlags >> 6) & 0x01;
-        pDesc.isReadable = (packedFlags >> 5) & 0x01;
-        pDesc.isWritable = (packedFlags >> 4) & 0x01;
+        pDesc.flags = packedFlags >> 4; // Extract flags (4 bits)
+        // pDesc.isInteractable = (packedFlags >> 7) & 0x01;
+        // pDesc.isStatic = (packedFlags >> 6) & 0x01;
+        // pDesc.isReadable = (packedFlags >> 5) & 0x01;
+        // pDesc.isWritable = (packedFlags >> 4) & 0x01;
         pDesc.reserved = packedFlags & 0xF; // Extract reserved (4 bits)
-        pDesc.widgetType = msgBuf[offset + 1];
-        offset += 2;
+        offset += 1;
+
+        /* Deserialize Widget Type */
+        pDesc.widgetType = msgBuf[offset];
+        offset += 1;
 
         /* Deserialize Data Type (1 byte) */
         pDesc.dataType = msgBuf[offset];

@@ -5,7 +5,6 @@
 WidgetButton_C::WidgetButton_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId) : _eventQueue(eventQueue)
 {
     SetWindowId(windowId);
-    SetIsStatic(false);
 }
 
 WidgetButton_C::~WidgetButton_C()
@@ -36,7 +35,56 @@ bool WidgetButton_C::SetWidgetValue(WidgetValueVariant_T val)
     return false;
 }
 
+void WidgetButton_C::SetFlags(uint8_t flags)
+{
+    if (flags & WidgetFlags_E::Readable)
+    {
+        _isReadable = true;
+    }
+    if (flags & WidgetFlags_E::Writeable)
+    {
+        _isWritable = true;
+    }
+    if (flags & WidgetFlags_E::Interactable)
+    {
+        _isInteractable = true;
+    }
+    if (flags & WidgetFlags_E::Static)
+    {
+        _isStatic = true;
+    }
+}
+
+WidgetDescriptor_T WidgetButton_C::GetDescriptor()
+{
+    uint8_t flags = 0;
+    if (_isReadable)
+    {
+        flags |= WidgetFlags_E::Readable;
+    }
+    if (_isWritable)
+    {
+        flags |= WidgetFlags_E::Writeable;
+    }
+    if (_isInteractable)
+    {
+        flags |= WidgetFlags_E::Interactable;
+    }
+    if (_isStatic)
+    {
+        flags |= WidgetFlags_E::Static;
+    }
+    
+    return GuiProtocol::GetWidgetDescriptor(
+                           GetWindowId(), 
+                           GetWidgetId(), 
+                           flags,
+                           WidgetTypes_E::Button,
+                           GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL,
+                           GetWidgetName());
+}
+
 WidgetTypes_E WidgetButton_C::GetType()
 {
-    return WidgetTypes_E::BUTTON;
+    return WidgetTypes_E::Button;
 }

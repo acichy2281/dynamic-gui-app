@@ -10,7 +10,7 @@ class EventWidgetOpen_C : public EventInterface_I
 		EventWidgetOpen_C(uint16_t windowId, uint16_t widgetId);
 		~EventWidgetOpen_C();
 
-        EventTypes_E GetType() override { return EventTypes_E::WIDGET_OPEN; }
+        EventTypes_E GetType() override { return EventTypes_E::widgetOpen; }
         uint16_t GetWindowId() const override { return _windowId; }
         uint16_t GetWidgetId() const override { return _widgetId; }
         WidgetValueVariant_T GetValue() const override { return true; } // The value of this event is true as an open event has occured.

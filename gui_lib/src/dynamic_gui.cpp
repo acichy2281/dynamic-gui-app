@@ -322,98 +322,110 @@ void DynamicGui_C::ParseJsonData()
         for (const auto& widget : window["WidgetList"])
         {
             // WidgetInfo_T widgetInfo;
-            std::string widgetTypeStr = widget["Type"];
-            std::string widgetName = widget["Name"];
-            std::regex textBoxRegex("text", std::regex_constants::icase);
-            std::regex buttonRegex("button", std::regex_constants::icase);
-            std::regex sliderRegex("slider", std::regex_constants::icase);
-            std::regex checkboxRegex("checkbox", std::regex_constants::icase);
-            std::regex radiobuttonRegex("radio", std::regex_constants::icase);
+            // std::string widgetTypeStr = widget["Type"];
+            // std::string widgetName = widget["Name"];
+            // std::regex textBoxRegex("text", std::regex_constants::icase);
+            // std::regex buttonRegex("button", std::regex_constants::icase);
+            // std::regex sliderRegex("slider", std::regex_constants::icase);
+            // std::regex checkboxRegex("checkbox", std::regex_constants::icase);
+            // std::regex radiobuttonRegex("radio", std::regex_constants::icase);
 
-            auto staticFieldValue = widget.find("Static");
-            bool isStaticField = false;
-            if (staticFieldValue != widget.end()) {
-                isStaticField = widget["Static"];
-            }
+            // auto staticFieldValue = widget.find("Static");
+            // bool isStaticField = false;
+            // if (staticFieldValue != widget.end()) {
+            //     isStaticField = widget["Static"];
+            // }
+            // CreateWidgetFromJsonInfo_T createWidgetInfo(
+            //     numWindows,
+            //     widget,
+            //     _eventQueue
+            // );
+            // _widgetFactory.CreateWidget(createWidgetInfo);
 
-            AddWidgetInfo_T addWidgetInfo;
-            addWidgetInfo.windowId = numWindows;
-            addWidgetInfo.widgetName = widgetName;
-            addWidgetInfo.isReadable = true;
-            addWidgetInfo.isWritable = true;
-            addWidgetInfo.isInteractable = true;
-            addWidgetInfo.isStaticField = isStaticField;
-            if (true == std::regex_search(widgetTypeStr, textBoxRegex))
-            {
-                addWidgetInfo.type = WidgetTypes_E::TEXT;
-                addWidgetInfo.dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING;
-                addWidgetInfo.defaultValue = widget["Value"].get<std::string>();
-                widgetDescList.push_back(AddWidgetToWindow(addWidgetInfo));
-                // std::shared_ptr<WidgetText_C> newWidget = std::make_shared<WidgetText_C>(numWindows);
-                // newWidget->SetWidgetName(widgetName);
-                // newWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
-                // newWidget->SetIsStatic(isStaticField);
-                // auto widgetId = newWindow.AddWidget(newWidget);
-                // auto widgetDes = GuiProtocol::GetTextWidgetDescriptor(numWindows, static_cast<uint16_t>(newWidgetId & 0xFFFF), true, true, widgetName);
-                // widgetDescList.push_back(widgetDes);
-            }
-            else if (true == std::regex_search(widgetTypeStr, buttonRegex))
-            {
-                addWidgetInfo.type = WidgetTypes_E::BUTTON;
-                addWidgetInfo.dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL;
-                widgetDescList.push_back(AddWidgetToWindow(addWidgetInfo));
-                // std::shared_ptr<WidgetButton_C> newWidget = std::make_shared<WidgetButton_C>(_eventQueue, numWindows);
-                // newWidget->SetWidgetName(widgetName);
-                // newWidget->SetIsStatic(isStaticField);
-                // auto widgetId = newWindow.AddWidget(newWidget);
-                // auto widgetDes = GuiProtocol::GetButtonWidgetDescriptor(numWindows, static_cast<uint16_t>(newWidgetId & 0xFFFF), widgetName);
-                // widgetDescList.push_back(widgetDes);
-            }
-            else if (true == std::regex_search(widgetTypeStr, sliderRegex))
-            {
-                addWidgetInfo.type = WidgetTypes_E::SLIDER;
-                addWidgetInfo.dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_FLOAT;
-                addWidgetInfo.sliderMin = widget["MinValue"].get<float>();
-                addWidgetInfo.sliderMax = widget["MaxValue"].get<float>();
-                addWidgetInfo.defaultValue = widget["Value"].get<float>();
-                widgetDescList.push_back(AddWidgetToWindow(addWidgetInfo));
-                // auto newWidget = std::make_shared<WidgetSlider_C>(_eventQueue, numWindows);
-                // float * value = new float(widget["Value"].get<float>());
+            // AddWidgetInfo_T addWidgetInfo;
+            // addWidgetInfo.windowId = numWindows;
+            // addWidgetInfo.widgetName = widgetName;
+            // addWidgetInfo.isReadable = true;
+            // addWidgetInfo.isWritable = true;
+            // addWidgetInfo.isInteractable = true;
+            // addWidgetInfo.isStaticField = isStaticField;
+
+            auto parsedWidgetInfo = _widgetFactory.ParseWidgetData(widget);
+            parsedWidgetInfo->windowId = numWindows;
+            widgetDescList.push_back(AddWidgetToWindow(parsedWidgetInfo));
+            // _widgetFactory.CreateWidget(parsedWidgetInfo, _eventQueue);
+
+            // if (true == std::regex_search(widgetTypeStr, textBoxRegex))
+            // {
+            //     addWidgetInfo.type = WidgetTypes_E::Text;
+            //     addWidgetInfo.dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING;
+            //     addWidgetInfo.defaultValue = widget["Value"].get<std::string>();
+            //     widgetDescList.push_back(AddWidgetToWindow(addWidgetInfo));
+            //     // std::shared_ptr<WidgetText_C> newWidget = std::make_shared<WidgetText_C>(numWindows);
+            //     // newWidget->SetWidgetName(widgetName);
+            //     // newWidget->SetWidgetValue(std::string(widget["Value"]).c_str());
+            //     // newWidget->SetIsStatic(isStaticField);
+            //     // auto widgetId = newWindow.AddWidget(newWidget);
+            //     // auto widgetDes = GuiProtocol::GetTextWidgetDescriptor(numWindows, static_cast<uint16_t>(newWidgetId & 0xFFFF), true, true, widgetName);
+            //     // widgetDescList.push_back(widgetDes);
+            // }
+            // else if (true == std::regex_search(widgetTypeStr, buttonRegex))
+            // {
+            //     addWidgetInfo.type = WidgetTypes_E::Button;
+            //     addWidgetInfo.dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL;
+            //     widgetDescList.push_back(AddWidgetToWindow(addWidgetInfo));
+            //     // std::shared_ptr<WidgetButton_C> newWidget = std::make_shared<WidgetButton_C>(_eventQueue, numWindows);
+            //     // newWidget->SetWidgetName(widgetName);
+            //     // newWidget->SetIsStatic(isStaticField);
+            //     // auto widgetId = newWindow.AddWidget(newWidget);
+            //     // auto widgetDes = GuiProtocol::GetButtonWidgetDescriptor(numWindows, static_cast<uint16_t>(newWidgetId & 0xFFFF), widgetName);
+            //     // widgetDescList.push_back(widgetDes);
+            // }
+            // else if (true == std::regex_search(widgetTypeStr, sliderRegex))
+            // {
+            //     addWidgetInfo.type = WidgetTypes_E::Slider;
+            //     addWidgetInfo.dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_FLOAT;
+            //     addWidgetInfo.sliderMin = widget["MinValue"].get<float>();
+            //     addWidgetInfo.sliderMax = widget["MaxValue"].get<float>();
+            //     addWidgetInfo.defaultValue = widget["Value"].get<float>();
+            //     widgetDescList.push_back(AddWidgetToWindow(addWidgetInfo));
+            //     // auto newWidget = std::make_shared<WidgetSlider_C>(_eventQueue, numWindows);
+            //     // float * value = new float(widget["Value"].get<float>());
                 
-                // newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), value, widget["MinValue"].get<float>(), widget["MaxValue"].get<float>());
-                // newWidget->SetIsStatic(isStaticField);
-                // newWindow.AddWidget(newWidget);
-                // std::cout << "Adding slider to window\n";
-            }
-            else if (true == std::regex_search(widgetTypeStr, checkboxRegex)){
-                addWidgetInfo.type = WidgetTypes_E::CHECKBOX;
-                addWidgetInfo.dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL;
-                addWidgetInfo.defaultValue = false;
-                widgetDescList.push_back(AddWidgetToWindow(addWidgetInfo));
-                // auto newWidget = std::make_shared<WidgetCheckbox_C>(_eventQueue, numWindows);
-                // newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), false);
-                // newWidget->SetIsStatic(isStaticField);
-                // newWindow.AddWidget(newWidget);
-                // std::cout << "Adding checkbox to window\n";
-            }
-            else if (true == std::regex_search(widgetTypeStr, radiobuttonRegex)){
-                addWidgetInfo.type = WidgetTypes_E::RADIO;
-                addWidgetInfo.dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_INT;
-                std::vector<std::string> options(widget["Options"].begin(), widget["Options"].end());
-                addWidgetInfo.radioWidgetOptionsList = options;
-                widgetDescList.push_back(AddWidgetToWindow(addWidgetInfo));
-                // auto newWidget = std::make_shared<WidgetRadio_C>(_eventQueue, numWindows);
-                // std::vector<std::string> options(widget["Options"].begin(), widget["Options"].end());
+            //     // newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), value, widget["MinValue"].get<float>(), widget["MaxValue"].get<float>());
+            //     // newWidget->SetIsStatic(isStaticField);
+            //     // newWindow.AddWidget(newWidget);
+            //     // std::cout << "Adding slider to window\n";
+            // }
+            // else if (true == std::regex_search(widgetTypeStr, checkboxRegex)){
+            //     addWidgetInfo.type = WidgetTypes_E::Checkbox;
+            //     addWidgetInfo.dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL;
+            //     addWidgetInfo.defaultValue = false;
+            //     widgetDescList.push_back(AddWidgetToWindow(addWidgetInfo));
+            //     // auto newWidget = std::make_shared<WidgetCheckbox_C>(_eventQueue, numWindows);
+            //     // newWidget->SetWidgetValue(std::string(widget["Text"]).c_str(), false);
+            //     // newWidget->SetIsStatic(isStaticField);
+            //     // newWindow.AddWidget(newWidget);
+            //     // std::cout << "Adding checkbox to window\n";
+            // }
+            // else if (true == std::regex_search(widgetTypeStr, radiobuttonRegex)){
+            //     addWidgetInfo.type = WidgetTypes_E::Radio;
+            //     addWidgetInfo.dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_INT;
+            //     std::vector<std::string> options(widget["Options"].begin(), widget["Options"].end());
+            //     addWidgetInfo.radioWidgetOptionsList = options;
+            //     widgetDescList.push_back(AddWidgetToWindow(addWidgetInfo));
+            //     // auto newWidget = std::make_shared<WidgetRadio_C>(_eventQueue, numWindows);
+            //     // std::vector<std::string> options(widget["Options"].begin(), widget["Options"].end());
                 
-                // newWidget->SetWidgetValue(options, 0);
-                // newWindow.AddWidget(newWidget);
-                // newWidget->SetIsStatic(isStaticField);
+            //     // newWidget->SetWidgetValue(options, 0);
+            //     // newWindow.AddWidget(newWidget);
+            //     // newWidget->SetIsStatic(isStaticField);
                 
-                // std::cout << "Adding radio button to window\n";
-            }
-            else {
-                std::cout << "Unfamiliar widget\n";
-            }
+            //     // std::cout << "Adding radio button to window\n";
+            // }
+            // else {
+            //     std::cout << "Unfamiliar widget\n";
+            // }
         }
         numWindows++;
     }
@@ -421,48 +433,51 @@ void DynamicGui_C::ParseJsonData()
     _guiServer->SetWidgetList(widgetDescList);
 }
 
-WidgetDescriptor_T DynamicGui_C::AddWidgetToWindow(AddWidgetInfo_T addWidgetInfo)
+WidgetDescriptor_T DynamicGui_C::AddWidgetToWindow(std::shared_ptr<AddWidgetInfo_T> addWidgetInfo)
 {
+    // WidgetDescriptor_T retVal;
+    // switch (addWidgetInfo.type)
+    // {
+    //     case WidgetTypes_E::Text:
+    //         newWidget = std::make_shared<WidgetText_C>(addWidgetInfo.windowId);
+    //         break;
+    //     case WidgetTypes_E::Button:
+    //         newWidget = std::make_shared<WidgetButton_C>(_eventQueue, addWidgetInfo.windowId);
+    //         break;
+    //     case WidgetTypes_E::Slider:
+    //         newWidget = std::make_shared<WidgetSlider_C>(_eventQueue, addWidgetInfo.windowId, addWidgetInfo.sliderMin, addWidgetInfo.sliderMax);
+    //         break;
+    //     case WidgetTypes_E::Checkbox:
+    //         newWidget = std::make_shared<WidgetCheckbox_C>(_eventQueue, addWidgetInfo.windowId);
+    //         break;
+    //     case WidgetTypes_E::Radio:
+    //         newWidget = std::make_shared<WidgetRadio_C>(_eventQueue, addWidgetInfo.windowId, addWidgetInfo.radioWidgetOptionsList);
+    //         break;
+    //     default:
+    //         std::cout << "Error! Unknown widget type\n";
+    //         break;
+    // }    
     WidgetDescriptor_T retVal;
-    std::shared_ptr<WidgetInterface_I> newWidget;
-    switch (addWidgetInfo.type)
-    {
-        case WidgetTypes_E::TEXT:
-            newWidget = std::make_shared<WidgetText_C>(addWidgetInfo.windowId);
-            break;
-        case WidgetTypes_E::BUTTON:
-            newWidget = std::make_shared<WidgetButton_C>(_eventQueue, addWidgetInfo.windowId);
-            break;
-        case WidgetTypes_E::SLIDER:
-            newWidget = std::make_shared<WidgetSlider_C>(_eventQueue, addWidgetInfo.windowId, addWidgetInfo.sliderMin, addWidgetInfo.sliderMax);
-            break;
-        case WidgetTypes_E::CHECKBOX:
-            newWidget = std::make_shared<WidgetCheckbox_C>(_eventQueue, addWidgetInfo.windowId);
-            break;
-        case WidgetTypes_E::RADIO:
-            newWidget = std::make_shared<WidgetRadio_C>(_eventQueue, addWidgetInfo.windowId, addWidgetInfo.radioWidgetOptionsList);
-            break;
-        default:
-            std::cout << "Error! Unknown widget type\n";
-            break;
-    }
-    if (nullptr != newWidget)
-    {
-        newWidget->SetWidgetName(addWidgetInfo.widgetName);
-        newWidget->SetIsStatic(addWidgetInfo.isStaticField);
-        newWidget->SetWidgetValue(addWidgetInfo.defaultValue);
-        auto widgetId = _windowList.at(addWidgetInfo.windowId).AddWidget(newWidget);
-        retVal = GuiProtocol::GetWidgetDescriptor(addWidgetInfo.windowId, 
-                                                  widgetId, 
-                                                  addWidgetInfo.isReadable, 
-                                                  addWidgetInfo.isWritable, 
-                                                  addWidgetInfo.isInteractable,
-                                                  addWidgetInfo.isStaticField, 
-                                                  addWidgetInfo.type,
-                                                  addWidgetInfo.dataType,
-                                                  addWidgetInfo.widgetName);
-    }
-    return retVal;
+    std::shared_ptr<WidgetInterface_I> newWidget = _widgetFactory.CreateWidget(addWidgetInfo, _eventQueue);
+    auto widgetId = _windowList.at(addWidgetInfo->windowId).AddWidget(newWidget);
+    return newWidget->GetDescriptor();
+    // if (nullptr != newWidget)
+    // {
+    //     // newWidget->SetWidgetName(addWidgetInfo.widgetName);
+    //     // newWidget->SetIsStatic(addWidgetInfo.isStaticField);
+    //     // newWidget->SetWidgetValue(addWidgetInfo.defaultValue);
+    //     // auto widgetId = _windowList.at(addWidgetInfo.windowId).AddWidget(newWidget);
+    //     // retVal = GuiProtocol::GetWidgetDescriptor(addWidgetInfo.windowId, 
+    //     //                                           widgetId, 
+    //     //                                           addWidgetInfo.isReadable, 
+    //     //                                           addWidgetInfo.isWritable, 
+    //     //                                           addWidgetInfo.isInteractable,
+    //     //                                           addWidgetInfo.isStaticField, 
+    //     //                                           addWidgetInfo.type,
+    //     //                                           addWidgetInfo.dataType,
+    //     //                                           addWidgetInfo.widgetName);
+    // }
+    // return retVal;
 }
 
 void DynamicGui_C::DeInitialize()
@@ -681,7 +696,7 @@ GuiProtocol::WidgetReplyStatus_E DynamicGui_C::SetValueReq_UpdateWidget(std::sha
     auto retVal = GuiProtocol::WidgetReplyStatus_E::SET_VAL_UNKNOWN_WIDGET;
     switch (static_cast<WidgetTypes_E>(type))
     {
-        case WidgetTypes_E::TEXT:
+        case WidgetTypes_E::Text:
             if (auto textWidget = std::dynamic_pointer_cast<WidgetText_C>(widget))
             {
                 retVal = SetValueReq_UpdateTextWidget(textWidget, dataType, val);

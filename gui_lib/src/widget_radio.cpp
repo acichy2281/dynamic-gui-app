@@ -9,7 +9,6 @@ WidgetRadio_C::WidgetRadio_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>
     _optionsList(optionList)
 {
     SetWindowId(windowId);
-    SetIsStatic(false);
 }
 WidgetRadio_C::~WidgetRadio_C()
 {
@@ -37,7 +36,7 @@ WidgetValueVariant_T WidgetRadio_C::GetWidgetValue()
 
 bool WidgetRadio_C::SetWidgetValue(WidgetValueVariant_T val)
 {
-    if (GetIsStatic()) 
+    if (false == _isWritable) 
     {
         return false;
     }
@@ -53,6 +52,55 @@ bool WidgetRadio_C::SetWidgetValue(WidgetValueVariant_T val)
     return true;
 }
 
+void WidgetRadio_C::SetFlags(uint8_t flags)
+{
+    if (flags & WidgetFlags_E::Readable)
+    {
+        _isReadable = true;
+    }
+    if (flags & WidgetFlags_E::Writeable)
+    {
+        _isWritable = true;
+    }
+    if (flags & WidgetFlags_E::Interactable)
+    {
+        _isInteractable = true;
+    }
+    if (flags & WidgetFlags_E::Static)
+    {
+        _isStatic = true;
+    }
+}
+
+WidgetDescriptor_T WidgetRadio_C::GetDescriptor() 
+{
+    uint8_t flags = 0;
+    if (_isReadable)
+    {
+        flags |= WidgetFlags_E::Readable;
+    }
+    if (_isWritable)
+    {
+        flags |= WidgetFlags_E::Writeable;
+    }
+    if (_isInteractable)
+    {
+        flags |= WidgetFlags_E::Interactable;
+    }
+    if (_isStatic)
+    {
+        flags |= WidgetFlags_E::Static;
+    }
+    
+    return GuiProtocol::GetWidgetDescriptor(
+                           GetWindowId(), 
+                           GetWidgetId(), 
+                           flags,
+                           WidgetTypes_E::Radio,
+                           GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_INT,
+                           GetWidgetName());
+}
+
 void WidgetRadio_C::AddOption(std::string& newOption)
 {
     _optionsList.push_back(newOption);
@@ -60,5 +108,5 @@ void WidgetRadio_C::AddOption(std::string& newOption)
 
 WidgetTypes_E WidgetRadio_C::GetType()
 {
-    return WidgetTypes_E::RADIO;
+    return WidgetTypes_E::Radio;
 }

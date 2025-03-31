@@ -253,7 +253,7 @@ namespace GuiProtocol
             if (it != _widgetList.end())
             {
                 it->second.val = value;
-                if (it->second.desc.isWritable)
+                if (it->second.desc.flags & WidgetFlags_E::Writeable)
                 {
                     retVal.push_back(it->second);
                 }

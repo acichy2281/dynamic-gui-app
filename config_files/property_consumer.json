@@ -8,11 +8,11 @@
             [
                 {
                     "Name": "Get Property List",
-                    "Type": "Button"
+                    "Type": "button"
                 },
                 {
                     "Name": "Get Value",
-                    "Type": "Button"
+                    "Type": "button"
                 }
             ]
         },
@@ -22,7 +22,7 @@
             [
                 {
                     "Name": "Set Value",
-                    "Type": "Button"
+                    "Type": "button"
                 }
             ]
         },
@@ -32,11 +32,11 @@
             [
                 {
                     "Name": "Start Gui Client Thread",
-                    "Type": "Button"
+                    "Type": "button"
                 },
                 {
                     "Name": "Start Property Consumer Thread",
-                    "Type": "Button"
+                    "Type": "button"
                 }
             ]
         }

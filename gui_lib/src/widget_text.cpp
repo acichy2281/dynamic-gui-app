@@ -6,8 +6,6 @@
 WidgetText_C::WidgetText_C(uint16_t windowId)
 {
     SetWindowId(windowId);
-    SetWidgetId(0); // Default widget ID
-    SetIsStatic(false);
 }
 
 WidgetText_C::~WidgetText_C()
@@ -30,7 +28,7 @@ WidgetValueVariant_T WidgetText_C::GetWidgetValue()
 
 bool WidgetText_C::SetWidgetValue(WidgetValueVariant_T val)
 {
-    if (true == GetIsStatic()) 
+    if (false == _isWritable) 
     {
         return false;
     }
@@ -42,7 +40,56 @@ bool WidgetText_C::SetWidgetValue(WidgetValueVariant_T val)
     return true;
 }
 
+void WidgetText_C::SetFlags(uint8_t flags)
+{
+    if (flags & WidgetFlags_E::Readable)
+    {
+        _isReadable = true;
+    }
+    if (flags & WidgetFlags_E::Writeable)
+    {
+        _isWritable = true;
+    }
+    if (flags & WidgetFlags_E::Interactable)
+    {
+        _isInteractable = true;
+    }
+    if (flags & WidgetFlags_E::Static)
+    {
+        _isStatic = true;
+    }
+}
+
+WidgetDescriptor_T WidgetText_C::GetDescriptor() 
+{
+    uint8_t flags = 0;
+    if (_isReadable)
+    {
+        flags |= WidgetFlags_E::Readable;
+    }
+    if (_isWritable)
+    {
+        flags |= WidgetFlags_E::Writeable;
+    }
+    if (_isInteractable)
+    {
+        flags |= WidgetFlags_E::Interactable;
+    }
+    if (_isStatic)
+    {
+        flags |= WidgetFlags_E::Static;
+    }
+    
+    return GuiProtocol::GetWidgetDescriptor(
+                           GetWindowId(), 
+                           GetWidgetId(), 
+                           flags,
+                           WidgetTypes_E::Text,
+                           GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING,
+                           GetWidgetName());
+}
+
 WidgetTypes_E WidgetText_C::GetType()
 {
-    return WidgetTypes_E::TEXT;
+    return WidgetTypes_E::Text;
 }

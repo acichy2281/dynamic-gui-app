@@ -5,6 +5,12 @@
 #include "event_interface.h"
 #include <variant>
 
+enum class SliderValueType_E
+{
+    Int,
+    Float,
+};
+
 using SliderValueVariant_T = std::variant<int, float>;
 
 class EventSliderSet_C : public EventInterface_I
@@ -13,7 +19,7 @@ class EventSliderSet_C : public EventInterface_I
 		EventSliderSet_C(uint16_t windowId, uint16_t widgetId, SliderValueVariant_T sliderValue);
 		~EventSliderSet_C();
 
-        EventTypes_E GetType() override { return EventTypes_E::SLIDER_SET; }
+        EventTypes_E GetType() override { return EventTypes_E::sliderSet; }
         uint16_t GetWindowId() const override { return _windowId; }
         uint16_t GetWidgetId() const override { return _widgetId; }
         WidgetValueVariant_T GetValue() const override { return std::visit([](auto&& arg) -> WidgetValueVariant_T { return arg; }, _sliderValue); }

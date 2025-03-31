@@ -15,11 +15,17 @@ class WidgetCheckbox_C : public WidgetInterface_I
         void ShowWidget() override;
         WidgetValueVariant_T GetWidgetValue() override;
         bool SetWidgetValue(WidgetValueVariant_T val) override;
+        void SetFlags(uint8_t flags) override;
+        WidgetDescriptor_T GetDescriptor() override;
 
         WidgetTypes_E GetType() override;
     
     private:
         ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
         bool _status;
+        bool _isReadable;
+        bool _isWritable;
+        bool _isStaticField;
+        bool _isInteractable;
 };
 #endif // WIDGET_CHECKBOX_H

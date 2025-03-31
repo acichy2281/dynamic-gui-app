@@ -17,27 +17,36 @@
  */
 enum class WidgetTypes_E
 {
-    NONE,
-    TEXT, 
-    SLIDER, 
-    BUTTON,
-    CHECKBOX,
-    RADIO,
+    None,
+    Text, 
+    Slider, 
+    Button,
+    Checkbox,
+    Radio,
 };
+
+
+enum WidgetFlags_E {
+    Interactable = 1 << 3,   
+    Static = 1 << 2,  
+    Readable = 1 << 1,  
+    Writeable = 1 << 0,  
+};
+
 
 /**
  * @brief Used to define the type of a widget event (i.e Click, ScrollDown, ScrollUp, etc...)
  */
 enum class EventTypes_E
 {
-    NONE,
-    WIDGET_CLOSE,
-    WIDGET_OPEN,
-    WIDGET_RESIZE,
-    BUTTON_PRESS,
-    SLIDER_SET,
-    CHECKBOX_TOGGLE,
-    RADIO_SELECTED,
+    None,
+    widgetClose,
+    widgetOpen,
+    widgetResize,
+    buttonPress,
+    sliderSet,
+    checkBoxToggle,
+    radioSelected,
 };
 
 enum WidgetValueVariantType_E 
@@ -66,10 +75,7 @@ struct WidgetInfo_T
 struct WidgetDescriptor_T
 {
     uint32_t widgetId;
-    bool isInteractable : 1;
-    bool isStatic : 1;
-    bool isReadable : 1;
-    bool isWritable : 1;
+    uint8_t flags : 4; // Interactable, Static, Readable, Writeable
     uint8_t reserved : 4; // Reserved for future use
     uint8_t widgetType;
     uint8_t dataType; 

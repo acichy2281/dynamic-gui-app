@@ -5,7 +5,6 @@
 WidgetCheckbox_C::WidgetCheckbox_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId) : _eventQueue(eventQueue)
 {
     SetWindowId(windowId);
-    SetIsStatic(false);
 }
 
 WidgetCheckbox_C::~WidgetCheckbox_C()
@@ -32,7 +31,7 @@ WidgetValueVariant_T WidgetCheckbox_C::GetWidgetValue()
 
 bool WidgetCheckbox_C::SetWidgetValue(WidgetValueVariant_T val)
 {   
-    if (true == GetIsStatic()) 
+    if (false == _isWritable) 
     {
         return false;
     }
@@ -44,7 +43,56 @@ bool WidgetCheckbox_C::SetWidgetValue(WidgetValueVariant_T val)
     return true;
 }
 
+void WidgetCheckbox_C::SetFlags(uint8_t flags)
+{
+    if (flags & WidgetFlags_E::Readable)
+    {
+        _isReadable = true;
+    }
+    if (flags & WidgetFlags_E::Writeable)
+    {
+        _isWritable = true;
+    }
+    if (flags & WidgetFlags_E::Interactable)
+    {
+        _isInteractable = true;
+    }
+    if (flags & WidgetFlags_E::Static)
+    {
+        _isStatic = true;
+    }
+}
+
+WidgetDescriptor_T WidgetCheckbox_C::GetDescriptor()
+{
+    uint8_t flags = 0;
+    if (_isReadable)
+    {
+        flags |= WidgetFlags_E::Readable;
+    }
+    if (_isWritable)
+    {
+        flags |= WidgetFlags_E::Writeable;
+    }
+    if (_isInteractable)
+    {
+        flags |= WidgetFlags_E::Interactable;
+    }
+    if (_isStatic)
+    {
+        flags |= WidgetFlags_E::Static;
+    }
+    
+    return GuiProtocol::GetWidgetDescriptor(
+                           GetWindowId(), 
+                           GetWidgetId(), 
+                           flags,
+                           WidgetTypes_E::Checkbox,
+                           GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL,
+                           GetWidgetName());
+}
+
 WidgetTypes_E WidgetCheckbox_C::GetType()
 {
-    return WidgetTypes_E::CHECKBOX;
+    return WidgetTypes_E::Checkbox;
 }

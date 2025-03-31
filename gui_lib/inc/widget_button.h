@@ -6,6 +6,13 @@
 #include "event_button_press.h"
 #include "thread_safe_queue.h"
 
+struct AddButtonWidgetInfo_T
+{
+    uint16_t windowId;
+    uint8_t flags;
+    std::string widgetName;
+};
+
 class WidgetButton_C : public WidgetInterface_I
 {
     public:
@@ -15,10 +22,13 @@ class WidgetButton_C : public WidgetInterface_I
         void ShowWidget() override;
         WidgetValueVariant_T GetWidgetValue() override;
         bool SetWidgetValue(WidgetValueVariant_T val) override;
+        void SetFlags(uint8_t flags) override;
+        WidgetDescriptor_T GetDescriptor() override;
 
         WidgetTypes_E GetType() override;
 
     private:
         ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
+        bool _isReadable;
 };
 #endif // WIDGET_BUTTON_H

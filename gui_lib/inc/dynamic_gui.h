@@ -3,13 +3,7 @@
 
 #include "stdafx.h"
 #include "gui_window.h"
-#include "event_interface.h"
-#include "widget_text.h"
-#include "widget_text.h"
-#include "widget_button.h"
-#include "widget_slider.h"
-#include "widget_checkbox.h"
-#include "widget_radio.h"
+#include "widget_factory.h"
 
 struct GuiServerInitParams_T
 {
@@ -26,21 +20,6 @@ struct WidgetEventNotificationInfo_T
     WidgetValueVariant_T value;
 };
 
-struct AddWidgetInfo_T
-{
-    uint16_t windowId;
-    bool isReadable;
-    bool isWritable;
-    bool isStaticField;
-    bool isInteractable;
-    WidgetTypes_E type;
-    GuiProtocol::WidgetDataTypes_E dataType;
-    std::string widgetName;
-    WidgetValueVariant_T defaultValue;
-    std::vector<std::string> radioWidgetOptionsList;
-    SliderValueVariant_T sliderMin;
-    SliderValueVariant_T sliderMax;
-};
 
 struct GuiLibraryCallbacks_T
 {
@@ -120,7 +99,7 @@ class DynamicGui_C
          * @brief Add a widget to the GUI window
          * 
          */
-        WidgetDescriptor_T AddWidgetToWindow(AddWidgetInfo_T addWidgetInfo);
+        WidgetDescriptor_T AddWidgetToWindow(std::shared_ptr<AddWidgetInfo_T> addWidgetInfo);
 
         /** 
          * @brief Closes the GUI window
@@ -193,6 +172,7 @@ class DynamicGui_C
         std::vector<GuiWindow_C>                                            _windowList;
         SDL_GLContext                                                       _glContext;
         SDL_Window*                                                         _window;
+        WidgetFactory_C                                                     _widgetFactory;
         
         // Event member variables
         ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>                _eventQueue;

@@ -6,6 +6,7 @@ set(GUI_LIBRARY_COMMON_SRC
     "src/gui_window.cpp"
     "src/widget_button.cpp"
     "src/widget_checkbox.cpp"
+    "src/widget_factory.cpp"
     "src/widget_radio.cpp"
     "src/widget_slider.cpp"
     "src/widget_text.cpp"

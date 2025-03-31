@@ -6,6 +6,10 @@
 #include "event_radio_selected.h"
 #include "thread_safe_queue.h"
 
+struct AddRadioWidgetInfo_T : public AddWidgetInfo_T {
+    std::vector<std::string> radioWidgetOptionsList;
+};
+
 class WidgetRadio_C : public WidgetInterface_I
 {
     public:
@@ -17,6 +21,8 @@ class WidgetRadio_C : public WidgetInterface_I
         bool SetWidgetValue(WidgetValueVariant_T val) override;
         void AddOption(std::string& newOption);
         WidgetTypes_E GetType() override;
+        void SetFlags(uint8_t flags) override;
+        WidgetDescriptor_T GetDescriptor() override;
 
     private:
         uint16_t _id;

@@ -44,4 +44,13 @@
 #include <SDL3/SDL_opengl.h>
 #endif
 
+NLOHMANN_JSON_SERIALIZE_ENUM(WidgetTypes_E, {
+    {WidgetTypes_E::None, "none"},
+    {WidgetTypes_E::Text, "text"},
+    {WidgetTypes_E::Slider, "slider"},
+    {WidgetTypes_E::Button, "button"},
+    {WidgetTypes_E::Checkbox, "checkbox"},
+    {WidgetTypes_E::Radio, "radio"},
+})
+
 #endif // GUI_LIB_STDAFX_H

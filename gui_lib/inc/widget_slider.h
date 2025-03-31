@@ -6,6 +6,11 @@
 #include "event_slider_set.h"
 #include "thread_safe_queue.h"
 
+struct AddSliderWidgetInfo_T : public AddWidgetInfo_T {
+    SliderValueVariant_T sliderMin;
+    SliderValueVariant_T sliderMax;
+};
+
 class WidgetSlider_C : public WidgetInterface_I
 {
     public:
@@ -16,6 +21,8 @@ class WidgetSlider_C : public WidgetInterface_I
         
         WidgetValueVariant_T GetWidgetValue() override;
         bool SetWidgetValue(WidgetValueVariant_T val) override;
+        WidgetDescriptor_T GetDescriptor() override;
+        void SetFlags(uint8_t flags) override;
 
         WidgetTypes_E GetType() override;
 

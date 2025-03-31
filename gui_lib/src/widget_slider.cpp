@@ -11,8 +11,10 @@ WidgetSlider_C::WidgetSlider_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_
     _sliderMax(max)
 {
     SetWindowId(windowId);
-    SetWidgetId(0); // Default widget ID
-    SetIsStatic(false);
+
+    /* Initialize values to ensure type safety */
+    _sliderValue = min;
+    _previousValue = min;
 }
 
 WidgetSlider_C::~WidgetSlider_C()
@@ -65,7 +67,7 @@ WidgetValueVariant_T WidgetSlider_C::GetWidgetValue()
 
 bool WidgetSlider_C::SetWidgetValue(WidgetValueVariant_T val)
 {
-    if (GetIsStatic()) 
+    if (false == _isWritable) 
     {
         return false;
     }
@@ -92,7 +94,61 @@ bool WidgetSlider_C::SetWidgetValue(WidgetValueVariant_T val)
     return true;
 }
 
+void WidgetSlider_C::SetFlags(uint8_t flags)
+{
+    if (flags & WidgetFlags_E::Readable)
+    {
+        _isReadable = true;
+    }
+    if (flags & WidgetFlags_E::Writeable)
+    {
+        _isWritable = true;
+    }
+    if (flags & WidgetFlags_E::Interactable)
+    {
+        _isInteractable = true;
+    }
+    if (flags & WidgetFlags_E::Static)
+    {
+        _isStatic = true;
+    }
+}
+
+WidgetDescriptor_T WidgetSlider_C::GetDescriptor()
+{
+    uint8_t flags = 0;
+    if (_isReadable)
+    {
+        flags |= WidgetFlags_E::Readable;
+    }
+    if (_isWritable)
+    {
+        flags |= WidgetFlags_E::Writeable;
+    }
+    if (_isInteractable)
+    {
+        flags |= WidgetFlags_E::Interactable;
+    }
+    if (_isStatic)
+    {
+        flags |= WidgetFlags_E::Static;
+    }
+    
+    GuiProtocol::WidgetDataTypes_E dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_INT;
+    if (std::holds_alternative<float>(_sliderValue))
+    {
+        dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_FLOAT;
+    }
+    return GuiProtocol::GetWidgetDescriptor(
+                           GetWindowId(), 
+                           GetWidgetId(), 
+                           flags,
+                           WidgetTypes_E::Slider,
+                           dataType,
+                           GetWidgetName());
+}
+
 WidgetTypes_E WidgetSlider_C::GetType()
 {
-    return WidgetTypes_E::SLIDER;
+    return WidgetTypes_E::Slider;
 }

@@ -8,7 +8,7 @@
             [
                 {
                     "Name" : "Generic Text box 1",
-                    "Type" : "Text",
+                    "Type" : "text",
                     "Value" : "Sample Text 1"
                 }
             ]
@@ -19,7 +19,7 @@
             [
                 {
                     "Name" : "Generic Text box 2",
-                    "Type" : "Text",
+                    "Type" : "text",
                     "Value" : "Sample Text 2"
                 }
             ]
@@ -30,16 +30,16 @@
             [
                 {
                     "Name": "Generic button 1",
-                    "Type": "Button"
+                    "Type": "button"
                 },
                 {
                     "Name": "Generic Checkbox",
-                    "Type": "Checkbox",
+                    "Type": "checkbox",
                     "Text": "Test Checkbox"
                 },
                 {
                     "Name": "Test Radio",
-                    "Type" : "Radio",
+                    "Type" : "radio",
                     "Options" : ["Option 1", "Option 2", "Option 3"]
                 }
             ]
@@ -50,7 +50,7 @@
             [
                 {
                     "Name": "Generic slider 1",
-                    "Type": "Slider",
+                    "Type": "slider",
                     "Text": "Slider Demo",
                     "Value": 50.0,
                     "MaxValue": 100.0,

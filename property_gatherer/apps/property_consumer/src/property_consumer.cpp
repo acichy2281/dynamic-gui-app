@@ -167,11 +167,11 @@ void PropertyConsumerApp_C::RunSetValueTest()
     std::vector<std::pair<uint32_t, WidgetValueVariant_T>> setWidgetList;
     for (const auto& [widgetId, widgetStorage] : _guiClient->WidgetList())
     {
-        if (false == widgetStorage.desc.isWritable)
+        if (0 == (widgetStorage.desc.flags & Writeable))
         {
             std::cout << "Widget " << widgetId << " is not writable, skipping...\n";
         }
-        else if (widgetStorage.desc.widgetType == static_cast<uint8_t>(WidgetTypes_E::TEXT))
+        else if (widgetStorage.desc.widgetType == static_cast<uint8_t>(WidgetTypes_E::Text))
         {
             std::string newWidgetValue = "Consumer Set Widget " + widgetStorage.desc.widgetName;
             setWidgetList.push_back({widgetId, newWidgetValue});

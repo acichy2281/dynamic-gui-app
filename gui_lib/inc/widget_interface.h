@@ -3,6 +3,17 @@
 
 #include "stdafx.h"
 
+struct AddWidgetInfo_T
+{
+    uint16_t windowId;
+    uint8_t flags;
+    WidgetTypes_E type;
+    GuiProtocol::WidgetDataTypes_E dataType;
+    std::string widgetName;
+    WidgetValueVariant_T defaultValue;
+    virtual ~AddWidgetInfo_T() = default;
+};
+
 class WidgetInterface_I 
 {
     public:
@@ -19,13 +30,21 @@ class WidgetInterface_I
         void SetWidgetName(std::string widgetName) { _widgetName = widgetName; };
         virtual WidgetValueVariant_T GetWidgetValue() = 0; 
         virtual bool SetWidgetValue(WidgetValueVariant_T val) = 0;
-        bool GetIsStatic() { return _isStatic; };
-        void SetIsStatic(bool isStatic) { _isStatic = isStatic; };
+        virtual void SetFlags(uint8_t flags) = 0;
+        const nlohmann::json& GetJsonData() const { return _jsonData; }; // Get JSON data for the widget if needed
+        void SetJsonData(const nlohmann::json& jsonData) { _jsonData = jsonData; }; // Set JSON data for the widget if needed
+        virtual WidgetDescriptor_T GetDescriptor() = 0;
+
+    protected:
+        bool _isReadable = false;
+        bool _isWritable = false;
+        bool _isStatic = false;
+        bool _isInteractable = false;
 
     private:
-        uint16_t _windowId; // Assigned by the window that contains this widget
-        uint16_t _widgetId; // Assigned by the window that contains this widget
+        uint16_t _windowId = 0; // Assigned by the window that contains this widget
+        uint16_t _widgetId = 0; // Assigned by the window that contains this widget
         std::string _widgetName;
-        bool _isStatic; // Field assigned at construction
+        nlohmann::json _jsonData;
 };
 #endif // WIDGET_INTERFACE_H

@@ -10,7 +10,7 @@ class EventButtonPress_C : public EventInterface_I
 		EventButtonPress_C(uint16_t windowId, uint16_t widgetId);
 		~EventButtonPress_C();
 
-        EventTypes_E GetType() override { return EventTypes_E::BUTTON_PRESS; }
+        EventTypes_E GetType() override { return EventTypes_E::buttonPress; }
         uint16_t GetWindowId() const override { return _windowId; }
         uint16_t GetWidgetId() const override { return _widgetId; }
         WidgetValueVariant_T GetValue() const override { return true; } // The value of this event is true as a button press indicates an action occurred.
