@@ -29,6 +29,5 @@ class WidgetButton_C : public WidgetInterface_I
 
     private:
         ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
-        bool _isReadable;
 };
 #endif // WIDGET_BUTTON_H

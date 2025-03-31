@@ -23,9 +23,5 @@ class WidgetCheckbox_C : public WidgetInterface_I
     private:
         ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
         bool _status;
-        bool _isReadable;
-        bool _isWritable;
-        bool _isStaticField;
-        bool _isInteractable;
 };
 #endif // WIDGET_CHECKBOX_H
