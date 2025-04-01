@@ -42,6 +42,11 @@
                     "Name": "Test Radio",
                     "Type" : "Radio",
                     "Options" : ["Option 1", "Option 2", "Option 3"]
+                },
+                {
+                    "Name": "Test Ribbon",
+                    "Type": "Ribbon",
+                    "Options": ["Option 1", "Option 2", "Option 3"]
                 }
             ]
         },

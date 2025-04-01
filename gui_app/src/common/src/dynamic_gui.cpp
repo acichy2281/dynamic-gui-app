@@ -241,7 +241,6 @@ bool DynamicGui_C::ShowGui()
            static int counter = 0;
 
            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
            ImGui::Checkbox("Another Window", &show_another_window);
@@ -283,6 +282,7 @@ bool DynamicGui_C::ShowGui()
     return true;
 }
 
+
 void DynamicGui_C::ParseJsonData()
 {
     std::vector<GuiProtocol::WidgetDescriptor_T> widgetDescList;
@@ -292,7 +292,6 @@ void DynamicGui_C::ParseJsonData()
     for (const auto& window : _jsonData["Windows"])
     {
         GuiWindow_C newWindow(window["Title"], numWindows);
-
         for (const auto& widget : window["WidgetList"])
         {
             // WidgetInfo_T widgetInfo;
@@ -303,6 +302,7 @@ void DynamicGui_C::ParseJsonData()
             std::regex sliderRegex("slider", std::regex_constants::icase);
             std::regex checkboxRegex("checkbox", std::regex_constants::icase);
             std::regex radiobuttonRegex("radio", std::regex_constants::icase);
+            std::regex ribbonRegex("ribbon", std::regex_constants::icase);
 
             if (true == std::regex_search(widgetTypeStr, textBoxRegex))
             {
@@ -344,6 +344,23 @@ void DynamicGui_C::ParseJsonData()
                 newWidget->SetWidgetValue(options, 0);
                 newWindow.AddWidget(newWidget);
                 std::cout << "Adding radio button to window\n";
+            }
+            else if (true == std::regex_search(widgetTypeStr, ribbonRegex)){
+                auto newWidget = std::make_shared<WidgetRibbon_C>();
+
+                std::vector<std::string> buttonNames;
+                if (widget.contains("Buttons")) {
+                    for (const auto& btn : widget["Buttons"]) {
+                        buttonNames.push_back(btn.get<std::string>());
+                    }   
+                }
+                else {
+                    buttonNames = {"File", "Edit", "View", "Help"};
+                }
+
+                newWidget->SetRibbonButtons(buttonNames);
+                newWindow.AddWidget(newWidget);
+                std::cout << "Adding ribbon toolbar to window\n";
             }
             else {
                 std::cout << "Unfamiliar widget\n";

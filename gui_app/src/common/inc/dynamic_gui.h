@@ -10,6 +10,7 @@
 #include "widget_slider.h"
 #include "widget_checkbox.h"
 #include "widget_radio.h"
+#include "widget_ribbon.h"
 
 
 

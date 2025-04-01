@@ -20,7 +20,8 @@ enum class WidgetTypes_E
     SLIDER, 
     BUTTON,
     CHECKBOX,
-    RADIOBUTTON
+    RADIOBUTTON,
+    RIBBON
 };
 
 /**
