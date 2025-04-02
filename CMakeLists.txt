@@ -52,8 +52,8 @@ FetchContent_Declare(
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 # Make both available
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 FetchContent_MakeAvailable(nlohmann_json SDL imgui)
-
 # Create library for imgui 
 add_library(imgui STATIC
     ${imgui_SOURCE_DIR}/imgui.cpp
