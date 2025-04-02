@@ -308,15 +308,13 @@ void DynamicGui_C::ParseJsonData()
     for (const auto& window : _jsonData["Windows"])
     {
         GuiWindow_C newWindow(window["Title"], numWindows);
-        _windowList.push_back(newWindow);
-
         for (const auto& widget : window["WidgetList"])
         {
             /* Parse Widget Info */
             auto parsedWidgetInfo = _widgetFactory.ParseWidgetData(widget);
 
             /* Add Widget to Window */
-            auto newWidget = _windowList.at(parsedWidgetInfo->windowId).AddWidget(parsedWidgetInfo, _eventQueue);
+            auto newWidget = newWindow.AddWidget(parsedWidgetInfo, _eventQueue);
 
             /* Populate widget Descriptor List */
             widgetDescList.push_back(newWidget->GetDescriptor());
@@ -329,6 +327,7 @@ void DynamicGui_C::ParseJsonData()
                 }
             }
         }
+        _windowList.push_back(newWindow);
         numWindows++;
     }
 
