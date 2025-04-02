@@ -6,9 +6,10 @@
 struct AddWidgetInfo_T
 {
     uint16_t windowId;
+    uint16_t widgetId;
     uint8_t flags;
     WidgetTypes_E type;
-    GuiProtocol::WidgetDataTypes_E dataType;
+    WidgetDataTypes_E dataType;
     std::string widgetName;
     WidgetValueVariant_T defaultValue;
     virtual ~AddWidgetInfo_T() = default;

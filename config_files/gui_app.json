@@ -29,13 +29,17 @@
             "WidgetList":
             [
                 {
+                    "Name": "Test Menu",
+                    "Type": "menu",
+                    "Options": ["Option 1", "Option 2", "Option 3"]
+                },
+                {
                     "Name": "Generic button 1",
                     "Type": "button"
                 },
                 {
                     "Name": "Generic Checkbox",
-                    "Type": "checkbox",
-                    "Text": "Test Checkbox"
+                    "Type": "checkbox"
                 },
                 {
                     "Name": "Test Radio",
@@ -51,7 +55,6 @@
                 {
                     "Name": "Generic slider 1",
                     "Type": "slider",
-                    "Text": "Slider Demo",
                     "Value": 50.0,
                     "MaxValue": 100.0,
                     "MinValue": 0.0

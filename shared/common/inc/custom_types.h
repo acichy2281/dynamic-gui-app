@@ -23,8 +23,19 @@ enum class WidgetTypes_E
     Button,
     Checkbox,
     Radio,
+    Menu,
+    MenuItem,
 };
 
+enum class WidgetDataTypes_E
+{
+    None,
+    String, 
+    Int,
+    Float,
+    Bool,
+    Unknown,
+};
 
 enum WidgetFlags_E {
     Interactable = 1 << 3,   

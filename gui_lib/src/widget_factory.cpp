@@ -8,17 +8,15 @@ std::shared_ptr<WidgetInterface_I> WidgetFactory_C::CreateWidget(std::shared_ptr
     switch (info->type)
     {
         case WidgetTypes_E::Text:
-            std::cout << "Type of info: " << typeid(info).name() << std::endl;
-            widget = std::make_shared<WidgetText_C>(info->windowId);
+            widget = std::make_shared<WidgetText_C>();
             break;
         case WidgetTypes_E::Button:
-            widget = std::make_shared<WidgetButton_C>(eventQueue, info->windowId);
+            widget = std::make_shared<WidgetButton_C>(eventQueue);
             break;
         case WidgetTypes_E::Slider:
-            std::cout << "Type of info: " << typeid(info).name() << std::endl;
             if (const auto* sliderInfo = dynamic_cast<const AddSliderWidgetInfo_T*>(info.get())) 
             {
-                widget = std::make_shared<WidgetSlider_C>(eventQueue, info->windowId, sliderInfo->sliderMin, sliderInfo->sliderMax);
+                widget = std::make_shared<WidgetSlider_C>(eventQueue, sliderInfo->sliderMin, sliderInfo->sliderMax);
             }
             else
             {
@@ -26,22 +24,46 @@ std::shared_ptr<WidgetInterface_I> WidgetFactory_C::CreateWidget(std::shared_ptr
             }
             break;
         case WidgetTypes_E::Checkbox:
-            widget = std::make_shared<WidgetCheckbox_C>(eventQueue, info->windowId);
+            widget = std::make_shared<WidgetCheckbox_C>(eventQueue);
             break;
         case WidgetTypes_E::Radio:
-            std::cout << "Type of info: " << typeid(info).name() << std::endl;
             if (const auto* radioInfo = dynamic_cast<const AddRadioWidgetInfo_T*>(info.get())) 
             {
-                widget = std::make_shared<WidgetRadio_C>(eventQueue, info->windowId, radioInfo->radioWidgetOptionsList);
+                widget = std::make_shared<WidgetRadio_C>(eventQueue, radioInfo->radioWidgetOptionsList);
             }
             else
             {
                 throw std::invalid_argument("Radio widget info not provided");
             }
             break;
+        case WidgetTypes_E::Menu:
+            if (const auto* menuInfo = dynamic_cast<const AddMenuWidgetInfo_T*>(info.get())) 
+            {
+                std::vector<std::shared_ptr<WidgetInterface_I>> menuItems;
+                uint8_t widgetIdOffset = 1; // Each Menu Item widget ID after the menu widget is incremented by 1
+                for (const auto& menuItem : menuInfo->menuItems)
+                {   
+                    auto menuItemPtr = std::make_shared<AddWidgetInfo_T>(menuItem);
+                    menuItemPtr->windowId = menuInfo->windowId;
+                    menuItemPtr->widgetId = menuInfo->widgetId + widgetIdOffset;
+                    widgetIdOffset++;
+                    menuItems.push_back(CreateWidget(menuItemPtr, eventQueue));
+                }
+                widget = std::make_shared<WidgetMenu_C>(eventQueue, menuItems);
+            }
+            else
+            {
+                throw std::invalid_argument("Radio widget info not provided");
+            }
+            break;
+        case WidgetTypes_E::MenuItem:
+            widget = std::make_shared<WidgetMenuItem_C>(eventQueue);
+            break;
         default:
             throw std::invalid_argument("Unknown widget type");
     }
+    widget->SetWindowId(info->windowId);
+    widget->SetWidgetId(info->widgetId);
     widget->SetWidgetName(info->widgetName);
     widget->SetFlags(info->flags);
     widget->SetWidgetValue(info->defaultValue);
@@ -94,7 +116,7 @@ std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseWidgetData(const nlohmann
 std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseTextWidgetData(const nlohmann::json& widgetData)
 {
     auto retVal = std::make_unique<AddWidgetInfo_T>();
-    retVal->dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING;
+    retVal->dataType = WidgetDataTypes_E::String;
     retVal->flags |= WidgetFlags_E::Readable;
     retVal->flags |= WidgetFlags_E::Writeable;
     return retVal;
@@ -103,7 +125,7 @@ std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseTextWidgetData(const nloh
 std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseButtonWidgetData(const nlohmann::json& widgetData)
 {
     auto retVal = std::make_unique<AddWidgetInfo_T>();
-    retVal->dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL;
+    retVal->dataType = WidgetDataTypes_E::Bool;
     retVal->flags |= WidgetFlags_E::Readable;
     return retVal;
 }
@@ -132,11 +154,11 @@ std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseSliderWidgetData(const nl
     /* Verify both are float or int */
     if (std::holds_alternative<int>(retVal->sliderMin) && std::holds_alternative<int>(retVal->sliderMax))
     {
-        retVal->dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_INT;
+        retVal->dataType = WidgetDataTypes_E::Int;
     }
     else if (std::holds_alternative<float>(retVal->sliderMin) && std::holds_alternative<float>(retVal->sliderMax))
     {
-        retVal->dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_FLOAT;
+        retVal->dataType = WidgetDataTypes_E::Float;
     }
     else
     {
@@ -151,7 +173,7 @@ std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseSliderWidgetData(const nl
 std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseCheckboxWidgetData(const nlohmann::json& widgetData)
 {
     auto retVal = std::make_unique<AddWidgetInfo_T>();
-    retVal->dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL;
+    retVal->dataType = WidgetDataTypes_E::Bool;
     retVal->flags |= WidgetFlags_E::Readable;
     retVal->flags |= WidgetFlags_E::Writeable;
     retVal->flags |= WidgetFlags_E::Interactable;
@@ -166,9 +188,31 @@ std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseRadioWidgetData(const nlo
         throw std::invalid_argument("Radio Widget data missing required fields.");
     }
     retVal->radioWidgetOptionsList = widgetData["Options"].get<std::vector<std::string>>();
-    retVal->dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_INT;
+    retVal->dataType = WidgetDataTypes_E::Int;
     retVal->flags |= WidgetFlags_E::Readable;
     retVal->flags |= WidgetFlags_E::Writeable;
     retVal->flags |= WidgetFlags_E::Interactable;
+    return retVal;
+}
+
+std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseMenuWidgetData(const nlohmann::json& widgetData)
+{
+    auto retVal = std::make_unique<AddMenuWidgetInfo_T>();
+    if (widgetData.find("Options") == widgetData.end())
+    {
+        throw std::invalid_argument("Menu Widget data missing required fields.");
+    }
+    auto items = widgetData["Options"].get<std::vector<std::string>>();
+    for (const auto& item : items)
+    {
+        AddMenuItemWidgetInfo_T menuItem;
+        menuItem.widgetName = item;
+        menuItem.type = WidgetTypes_E::MenuItem;
+        menuItem.flags |= WidgetFlags_E::Readable;
+        menuItem.flags |= WidgetFlags_E::Writeable;
+        menuItem.dataType = WidgetDataTypes_E::None;
+        retVal->menuItems.push_back(menuItem);
+    }
+    retVal->dataType = WidgetDataTypes_E::None;
     return retVal;
 }

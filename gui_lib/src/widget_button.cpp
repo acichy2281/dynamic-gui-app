@@ -2,10 +2,7 @@
 #include "stdafx.h"
 #include "widget_button.h"
 
-WidgetButton_C::WidgetButton_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId) : _eventQueue(eventQueue)
-{
-    SetWindowId(windowId);
-}
+WidgetButton_C::WidgetButton_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue) : _eventQueue(eventQueue) {}
 
 WidgetButton_C::~WidgetButton_C()
 {
@@ -80,7 +77,7 @@ WidgetDescriptor_T WidgetButton_C::GetDescriptor()
                            GetWidgetId(), 
                            flags,
                            WidgetTypes_E::Button,
-                           GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL,
+                           WidgetDataTypes_E::Bool,
                            GetWidgetName());
 }
 

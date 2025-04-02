@@ -30,14 +30,6 @@ namespace GuiProtocol
         WIDGET_EVENT_NOTIFICATION,
         WIDGET_EVENT_NOTIFICATION_ACK,
     };
-    enum class WidgetDataTypes_E
-    {
-        WIDGET_DATA_TYPE_STRING, 
-        WIDGET_DATA_TYPE_INT,
-        WIDGET_DATA_TYPE_FLOAT,
-        WIDGET_DATA_TYPE_BOOL,
-        WIDGET_DATA_TYPE_UNKNOWN,
-    };
     enum class WidgetReplyStatus_E
     {
         SET_VAL_SUCCESS,

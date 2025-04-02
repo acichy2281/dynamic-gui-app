@@ -4,6 +4,7 @@
 /* Project Includes */
 #include "stdafx.h"
 #include "widget_interface.h"
+#include "widget_factory.h"
 
 class GuiWindow_C
 {
@@ -18,7 +19,7 @@ class GuiWindow_C
          * @return uint16_t 
          * @retval returns a key value to access this widget via GetWidgetAt()
          */
-        uint16_t AddWidget(const std::shared_ptr<WidgetInterface_I>& widget);
+        std::shared_ptr<WidgetInterface_I> AddWidget(std::shared_ptr<AddWidgetInfo_T> widgetInfo, ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue);
 
         /**
          * @brief Loop through all widgets in the widget list to call the widgets ShowWidget function  
@@ -43,8 +44,13 @@ class GuiWindow_C
 
     private:
         std::string                                             _windowName;
+        std::map<uint16_t, std::shared_ptr<WidgetInterface_I>>  _generalWidgetList;
+        uint16_t                                                _generalWidgetCount             = 0;
         std::map<uint16_t, std::shared_ptr<WidgetInterface_I>>  _widgetList;
-        uint16_t                                                _widgetKeyCount                 = 0;
+        uint16_t                                                _widgetCount                    = 0;
+        std::map<uint16_t, std::shared_ptr<WidgetInterface_I>>  _menuList;
+        uint16_t                                                _menuCount                      = 0;
         uint16_t                                                _windowId;
+        WidgetFactory_C                                         _widgetFactory;
 };
 #endif // GUI_WINDOW_H

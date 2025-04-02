@@ -3,10 +3,7 @@
 #include "widget_text.h"
 #include "custom_types.h"
 
-WidgetText_C::WidgetText_C(uint16_t windowId)
-{
-    SetWindowId(windowId);
-}
+WidgetText_C::WidgetText_C() {}
 
 WidgetText_C::~WidgetText_C()
 {
@@ -85,7 +82,7 @@ WidgetDescriptor_T WidgetText_C::GetDescriptor()
                            GetWidgetId(), 
                            flags,
                            WidgetTypes_E::Text,
-                           GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING,
+                           WidgetDataTypes_E::String,
                            GetWidgetName());
 }
 

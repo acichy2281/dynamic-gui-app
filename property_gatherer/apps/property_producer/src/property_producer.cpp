@@ -64,7 +64,7 @@ void PropertyProducerApp_C::RunProducerTest()
     testStringAddWidgetInfo->widgetName = "TestString";
     testStringAddWidgetInfo->flags = (Readable | Writeable);
     testStringAddWidgetInfo->type = WidgetTypes_E::Text;
-    testStringAddWidgetInfo->dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING;
+    testStringAddWidgetInfo->dataType = WidgetDataTypes_E::String;
     auto testStringDesc = _gui.AddWidgetToWindow(testStringAddWidgetInfo);
     _gui.SetWidgetValue(testStringDesc.widgetId, "TestString: 123");
 
@@ -76,7 +76,7 @@ void PropertyProducerApp_C::RunProducerTest()
     // testIntAddWidgetInfo.isInteractable = false;
     // testIntAddWidgetInfo.isStaticField = false;
     // testIntAddWidgetInfo.type = WidgetTypes_E::TEXT;
-    // testIntAddWidgetInfo.dataType = GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_STRING;
+    // testIntAddWidgetInfo.dataType = WidgetDataTypes_E::String;
     // auto testIntDesc = _gui.AddWidgetToWindow(testIntAddWidgetInfo);
     // _gui.SetWidgetValue(testIntDesc.widgetId, "TestInt: 255");
 

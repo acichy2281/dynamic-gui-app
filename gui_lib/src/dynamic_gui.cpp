@@ -50,24 +50,17 @@ bool DynamicGui_C::SetConfigFile(const std::string& configFilePath)
     bool retVal = false;
     _configFilePath = configFilePath;
     _configFile.open(_configFilePath);
-    nlohmann::json schema = nlohmann::json::parse(std::ifstream("schema.json"));
-    nlohmann::json data = nlohmann::json::parse(std::ifstream(_configFilePath));
-    nlohmann::json_schema::json_validator validator;
 
     if (true == _configFile.is_open())
     {
-
         try {
-            validator.set_root_schema(schema);
-            validator.validate(data);
-            std::cout << "Valid JSON!" << std::endl;
-            _jsonData = data;
+            _jsonData = nlohmann::json::parse(_configFile);
             ParseJsonData();
             _isConfigFileSet = true;
             retVal = true;
         }
         catch (const std::exception& e) {
-            std::cerr << "Validation Error: " << e.what() << std::endl;
+            std::cerr << "Parsing Error: " << e.what() << std::endl;
         }
     }
     return retVal;
@@ -315,9 +308,22 @@ void DynamicGui_C::ParseJsonData()
 
         for (const auto& widget : window["WidgetList"])
         {
+            /* Parse Widget Info */
             auto parsedWidgetInfo = _widgetFactory.ParseWidgetData(widget);
-            parsedWidgetInfo->windowId = numWindows;
-            widgetDescList.push_back(AddWidgetToWindow(parsedWidgetInfo));
+
+            /* Add Widget to Window */
+            auto newWidget = _windowList.at(parsedWidgetInfo->windowId).AddWidget(parsedWidgetInfo, _eventQueue);
+
+            /* Populate widget Descriptor List */
+            widgetDescList.push_back(newWidget->GetDescriptor());
+            if (WidgetTypes_E::Menu == newWidget->GetType())
+            {
+                /* Loop through menu items to retreive widget descriptors */
+                for (const auto& menuItem : std::dynamic_pointer_cast<WidgetMenu_C>(newWidget)->GetMenuItems())
+                {
+                    widgetDescList.push_back(menuItem->GetDescriptor());
+                }
+            }
         }
         numWindows++;
     }
@@ -327,8 +333,7 @@ void DynamicGui_C::ParseJsonData()
 
 WidgetDescriptor_T DynamicGui_C::AddWidgetToWindow(std::shared_ptr<AddWidgetInfo_T> addWidgetInfo)
 {
-    std::shared_ptr<WidgetInterface_I> newWidget = _widgetFactory.CreateWidget(addWidgetInfo, _eventQueue);
-    auto widgetId = _windowList.at(addWidgetInfo->windowId).AddWidget(newWidget);
+    auto newWidget = _windowList.at(addWidgetInfo->windowId).AddWidget(addWidgetInfo, _eventQueue);
     return newWidget->GetDescriptor();
 }
 

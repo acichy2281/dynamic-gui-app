@@ -2,10 +2,7 @@
 #include "stdafx.h"
 #include "widget_checkbox.h"
 
-WidgetCheckbox_C::WidgetCheckbox_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId) : _eventQueue(eventQueue)
-{
-    SetWindowId(windowId);
-}
+WidgetCheckbox_C::WidgetCheckbox_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue) : _eventQueue(eventQueue) {}
 
 WidgetCheckbox_C::~WidgetCheckbox_C()
 {
@@ -88,7 +85,7 @@ WidgetDescriptor_T WidgetCheckbox_C::GetDescriptor()
                            GetWidgetId(), 
                            flags,
                            WidgetTypes_E::Checkbox,
-                           GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL,
+                           WidgetDataTypes_E::Bool,
                            GetWidgetName());
 }
 

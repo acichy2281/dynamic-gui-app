@@ -16,7 +16,7 @@ struct AddButtonWidgetInfo_T
 class WidgetButton_C : public WidgetInterface_I
 {
     public:
-        WidgetButton_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId);
+        WidgetButton_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue);
         ~WidgetButton_C();
 
         void ShowWidget() override;

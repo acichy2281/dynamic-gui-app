@@ -4,18 +4,10 @@
 #include "stdafx.h"
 #include "widget_interface.h"
 
-struct AddTextWidgetInfo_T
-{
-    uint16_t windowId;
-    uint8_t flags;
-    std::string widgetName;
-    WidgetValueVariant_T defaultValue;
-};
-
 class WidgetText_C : public WidgetInterface_I
 {
     public:
-        WidgetText_C(uint16_t windowId);
+        WidgetText_C();
         ~WidgetText_C();
         void ShowWidget() override;
         

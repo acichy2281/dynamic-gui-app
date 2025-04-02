@@ -13,7 +13,7 @@ struct AddRadioWidgetInfo_T : public AddWidgetInfo_T {
 class WidgetRadio_C : public WidgetInterface_I
 {
     public:
-        WidgetRadio_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId, std::vector<std::string> optionsList);
+        WidgetRadio_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, std::vector<std::string> optionsList);
         ~WidgetRadio_C();
         void ShowWidget() override;
         

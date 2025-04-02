@@ -7,6 +7,8 @@ set(GUI_LIBRARY_COMMON_SRC
     "src/widget_button.cpp"
     "src/widget_checkbox.cpp"
     "src/widget_factory.cpp"
+    "src/widget_menu_item.cpp"
+    "src/widget_menu.cpp"
     "src/widget_radio.cpp"
     "src/widget_slider.cpp"
     "src/widget_text.cpp"

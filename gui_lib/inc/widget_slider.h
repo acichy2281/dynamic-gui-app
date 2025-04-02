@@ -14,7 +14,7 @@ struct AddSliderWidgetInfo_T : public AddWidgetInfo_T {
 class WidgetSlider_C : public WidgetInterface_I
 {
     public:
-        WidgetSlider_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, uint16_t windowId, SliderValueVariant_T min, SliderValueVariant_T max);
+        WidgetSlider_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, SliderValueVariant_T min, SliderValueVariant_T max);
         ~WidgetSlider_C();
 
         void ShowWidget() override;

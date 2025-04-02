@@ -52,6 +52,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(WidgetTypes_E, {
     {WidgetTypes_E::Button, "button"},
     {WidgetTypes_E::Checkbox, "checkbox"},
     {WidgetTypes_E::Radio, "radio"},
+    {WidgetTypes_E::Menu, "menu"},
+    {WidgetTypes_E::MenuItem, "menu_item"},
 })
 
 #endif // GUI_LIB_STDAFX_H

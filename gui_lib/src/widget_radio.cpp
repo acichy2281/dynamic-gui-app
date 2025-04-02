@@ -3,13 +3,10 @@
 #include "widget_radio.h"
 
 WidgetRadio_C::WidgetRadio_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, 
-                             uint16_t windowId, 
                              std::vector<std::string> optionList) : 
     _eventQueue(eventQueue), 
-    _optionsList(optionList)
-{
-    SetWindowId(windowId);
-}
+    _optionsList(optionList) {}
+    
 WidgetRadio_C::~WidgetRadio_C()
 {
 
@@ -97,7 +94,7 @@ WidgetDescriptor_T WidgetRadio_C::GetDescriptor()
                            GetWidgetId(), 
                            flags,
                            WidgetTypes_E::Radio,
-                           GuiProtocol::WidgetDataTypes_E::WIDGET_DATA_TYPE_INT,
+                           WidgetDataTypes_E::Int,
                            GetWidgetName());
 }
 

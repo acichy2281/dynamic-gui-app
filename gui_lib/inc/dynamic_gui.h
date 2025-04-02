@@ -3,7 +3,6 @@
 
 #include "stdafx.h"
 #include "gui_window.h"
-#include "widget_factory.h"
 
 struct GuiServerInitParams_T
 {
