@@ -48,11 +48,18 @@ FetchContent_Declare(
     GIT_TAG v1.91.7  
 )
 
+# Fetch json-schema-validator
+FetchContent_Declare(
+    json-schema-validator
+    GIT_REPOSITORY https://github.com/pboettch/json-schema-validator.git
+    GIT_TAG 2.3.0
+)
+
 # Set 3rd party library options
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 # Make both available
-FetchContent_MakeAvailable(nlohmann_json SDL imgui)
+FetchContent_MakeAvailable(nlohmann_json SDL imgui json-schema-validator)
 
 # Create library for imgui 
 add_library(imgui STATIC
