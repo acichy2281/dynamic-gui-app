@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dynamic GUI Application JSON Schema",
+  "description": "Defines the Dynamic GUI App JSON Configuration",
+  "type": "object",
+  "properties": {
+    "Title": { "type": "string" },
+    "Windows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Title": {
+            "type": "string"
+          },
+          "WidgetList": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "Name": { "type": "string" },
+                    "Type": { "const": "Text" },
+                    "Value": { "type": "string" }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "Name": { "type": "string" },
+                    "Type": { "const": "Button" },
+                    "Text": { "type": "string" }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "Name": { "type": "string" },
+                    "Type": { "const": "Slider" },
+                    "Text": { "type": "string" },
+                    "Value": { "type": "number" },
+                    "MaxValue": { "type": "number" },
+                    "MinValue": { "type": "number" }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "Name": { "type": "string" },
+                    "Type": { "const": "Checkbox" },
+                    "Text": { "type": "string" }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "Name": { "type": "string" },
+                    "Type": { "const": "Radio" },
+                    "Options": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "minItems": 2
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

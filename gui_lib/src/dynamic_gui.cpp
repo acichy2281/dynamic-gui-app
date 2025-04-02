@@ -50,13 +50,25 @@ bool DynamicGui_C::SetConfigFile(const std::string& configFilePath)
     bool retVal = false;
     _configFilePath = configFilePath;
     _configFile.open(_configFilePath);
+    nlohmann::json schema = nlohmann::json::parse(std::ifstream("schema.json"));
+    nlohmann::json data = nlohmann::json::parse(std::ifstream(_configFilePath));
+    nlohmann::json_schema::json_validator validator;
 
     if (true == _configFile.is_open())
     {
-        _jsonData = nlohmann::json::parse(_configFile);
-        ParseJsonData();
-        _isConfigFileSet = true;
-        retVal = true;
+
+        try {
+            validator.set_root_schema(schema);
+            validator.validate(data);
+            std::cout << "Valid JSON!" << std::endl;
+            _jsonData = data;
+            ParseJsonData();
+            _isConfigFileSet = true;
+            retVal = true;
+        }
+        catch (const std::exception& e) {
+            std::cerr << "Validation Error: " << e.what() << std::endl;
+        }
     }
     return retVal;
 }
@@ -230,7 +242,7 @@ bool DynamicGui_C::ShowGui()
 
             if (ImGui::Button("Choose File"))
             {
-                filePath = GetJSONFile(); 
+                filePath = GetJSONFile();
                 if (false == filePath.empty())
                 {
                     if (true == SetConfigFile(filePath))
