@@ -50,17 +50,21 @@ bool DynamicGui_C::SetConfigFile(const std::string& configFilePath)
     bool retVal = false;
     _configFilePath = configFilePath;
     _configFile.open(_configFilePath);
-
     if (true == _configFile.is_open())
     {
+        // nlohmann::json schema = nlohmann::json::parse(std::ifstream("schema.json"));
+        // nlohmann::json_schema::json_validator validator;
+        _jsonData = nlohmann::json::parse(_configFile);
         try {
-            _jsonData = nlohmann::json::parse(_configFile);
+            // validator.set_root_schema(schema);
+            // validator.validate(_jsonData);
+            std::cout << "Valid JSON!" << std::endl;
             ParseJsonData();
             _isConfigFileSet = true;
             retVal = true;
         }
         catch (const std::exception& e) {
-            std::cerr << "Parsing Error: " << e.what() << std::endl;
+            std::cerr << "Validation Error: " << e.what() << std::endl;
         }
     }
     return retVal;
