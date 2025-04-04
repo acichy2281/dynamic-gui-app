@@ -63,7 +63,7 @@ void PropertyProducerApp_C::RunProducerTest()
     testStringAddWidgetInfo->windowId = 0;
     testStringAddWidgetInfo->widgetName = "TestString";
     testStringAddWidgetInfo->flags = (Readable | Writeable);
-    testStringAddWidgetInfo->type = WidgetTypes_E::Text;
+    testStringAddWidgetInfo->widgetType = WidgetTypes_E::Text;
     testStringAddWidgetInfo->dataType = WidgetDataTypes_E::String;
     auto testStringDesc = _gui.AddWidgetToWindow(testStringAddWidgetInfo);
     _gui.SetWidgetValue(testStringDesc.widgetId, "TestString: 123");

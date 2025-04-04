@@ -2,7 +2,10 @@
 #include "stdafx.h"
 #include "widget_checkbox.h"
 
-WidgetCheckbox_C::WidgetCheckbox_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue) : _eventQueue(eventQueue) {}
+WidgetCheckbox_C::WidgetCheckbox_C(const std::shared_ptr<const AddWidgetInfo_T>& info) : WidgetInterface_I(info) 
+{
+    SetWidgetValue(info->defaultValue);
+}
 
 WidgetCheckbox_C::~WidgetCheckbox_C()
 {
@@ -12,11 +15,11 @@ WidgetCheckbox_C::~WidgetCheckbox_C()
 void WidgetCheckbox_C::ShowWidget()
 {
     // ShowWidget override
-    if (ImGui::Checkbox(GetWidgetName().c_str(), &_status)) 
+    if (ImGui::Checkbox(_widgetName.c_str(), &_status)) 
     {
-        std::cout << "Checkbox toggled! Window ID: " << GetWindowId() << " Widget ID: " << GetWidgetId() << "\n";
-        auto event = std::make_shared<EventCheckboxToggle_C>(GetWindowId(), GetWidgetId(), _status);
-        _eventQueue.Enqueue(std::move(event));
+        std::cout << "Checkbox toggled! Window ID: " << _windowId << " Widget ID: " << _widgetId << "\n";
+        auto event = std::make_shared<EventCheckboxToggle_C>(_windowId, _widgetId, _status);
+        EventQueue()->Enqueue(std::move(event));
     }
 }
 
@@ -38,58 +41,4 @@ bool WidgetCheckbox_C::SetWidgetValue(WidgetValueVariant_T val)
     }
     _status = std::get<bool>(val);
     return true;
-}
-
-void WidgetCheckbox_C::SetFlags(uint8_t flags)
-{
-    if (flags & WidgetFlags_E::Readable)
-    {
-        _isReadable = true;
-    }
-    if (flags & WidgetFlags_E::Writeable)
-    {
-        _isWritable = true;
-    }
-    if (flags & WidgetFlags_E::Interactable)
-    {
-        _isInteractable = true;
-    }
-    if (flags & WidgetFlags_E::Static)
-    {
-        _isStatic = true;
-    }
-}
-
-WidgetDescriptor_T WidgetCheckbox_C::GetDescriptor()
-{
-    uint8_t flags = 0;
-    if (_isReadable)
-    {
-        flags |= WidgetFlags_E::Readable;
-    }
-    if (_isWritable)
-    {
-        flags |= WidgetFlags_E::Writeable;
-    }
-    if (_isInteractable)
-    {
-        flags |= WidgetFlags_E::Interactable;
-    }
-    if (_isStatic)
-    {
-        flags |= WidgetFlags_E::Static;
-    }
-    
-    return GuiProtocol::GetWidgetDescriptor(
-                           GetWindowId(), 
-                           GetWidgetId(), 
-                           flags,
-                           WidgetTypes_E::Checkbox,
-                           WidgetDataTypes_E::Bool,
-                           GetWidgetName());
-}
-
-WidgetTypes_E WidgetCheckbox_C::GetType()
-{
-    return WidgetTypes_E::Checkbox;
 }

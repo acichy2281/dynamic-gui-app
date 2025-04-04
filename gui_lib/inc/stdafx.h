@@ -22,6 +22,8 @@
 #include <map>
 #include <inttypes.h>
 #include <variant>
+#include <optional>
+#include <functional>
 
 /* Project includes */
 #include "gui_server_api.h"

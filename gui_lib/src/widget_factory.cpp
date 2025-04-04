@@ -2,71 +2,76 @@
 #include "widget_factory.h"
 #include <nlohmann/json.hpp>
 
-std::shared_ptr<WidgetInterface_I> WidgetFactory_C::CreateWidget(std::shared_ptr<AddWidgetInfo_T> info, ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue)
+std::shared_ptr<WidgetInterface_I> WidgetFactory_C::CreateWidget(std::shared_ptr<AddWidgetInfo_T> info)
 {
     std::shared_ptr<WidgetInterface_I> widget;
-    switch (info->type)
+    switch (info->widgetType)
     {
         case WidgetTypes_E::Text:
-            widget = std::make_shared<WidgetText_C>();
+            widget = std::make_shared<WidgetText_C>(info);
             break;
         case WidgetTypes_E::Button:
-            widget = std::make_shared<WidgetButton_C>(eventQueue);
+            widget = std::make_shared<WidgetButton_C>(info);
             break;
         case WidgetTypes_E::Slider:
-            if (const auto* sliderInfo = dynamic_cast<const AddSliderWidgetInfo_T*>(info.get())) 
+        {
+            auto sliderInfo = std::dynamic_pointer_cast<const AddSliderWidgetInfo_T>(info);
+            if (sliderInfo) 
             {
-                widget = std::make_shared<WidgetSlider_C>(eventQueue, sliderInfo->sliderMin, sliderInfo->sliderMax);
+                widget = std::make_shared<WidgetSlider_C>(sliderInfo);
             }
             else
             {
                 throw std::invalid_argument("Slider widget info not provided");
             }
             break;
+        }
         case WidgetTypes_E::Checkbox:
-            widget = std::make_shared<WidgetCheckbox_C>(eventQueue);
+            widget = std::make_shared<WidgetCheckbox_C>(info);
             break;
         case WidgetTypes_E::Radio:
-            if (const auto* radioInfo = dynamic_cast<const AddRadioWidgetInfo_T*>(info.get())) 
+        {
+            auto radioInfo = std::dynamic_pointer_cast<const AddRadioWidgetInfo_T>(info);
+            if (radioInfo) 
             {
-                widget = std::make_shared<WidgetRadio_C>(eventQueue, radioInfo->radioWidgetOptionsList);
+                widget = std::make_shared<WidgetRadio_C>(radioInfo);
             }
             else
             {
                 throw std::invalid_argument("Radio widget info not provided");
             }
             break;
+        }
         case WidgetTypes_E::Menu:
-            if (const auto* menuInfo = dynamic_cast<const AddMenuWidgetInfo_T*>(info.get())) 
+        {
+            auto menuInfo = std::dynamic_pointer_cast<const AddMenuWidgetInfo_T>(info);
+            if (menuInfo) 
             {
-                std::vector<std::shared_ptr<WidgetInterface_I>> menuItems;
+                auto menuWidget = std::make_shared<WidgetMenu_C>(menuInfo);
                 uint8_t widgetIdOffset = 1; // Each Menu Item widget ID after the menu widget is incremented by 1
                 for (const auto& menuItem : menuInfo->menuItems)
                 {   
-                    auto menuItemPtr = std::make_shared<AddWidgetInfo_T>(menuItem);
+                    auto menuItemPtr = std::make_shared<AddMenuItemWidgetInfo_T>(menuItem);
                     menuItemPtr->windowId = menuInfo->windowId;
                     menuItemPtr->widgetId = menuInfo->widgetId + widgetIdOffset;
+                    menuItemPtr->eventQueue = menuInfo->eventQueue;
                     widgetIdOffset++;
-                    menuItems.push_back(CreateWidget(menuItemPtr, eventQueue));
+                    menuWidget->GetMenuItems().push_back(CreateWidget(menuItemPtr));
                 }
-                widget = std::make_shared<WidgetMenu_C>(eventQueue, menuItems);
+                widget = menuWidget;
             }
             else
             {
                 throw std::invalid_argument("Radio widget info not provided");
             }
             break;
+        }
         case WidgetTypes_E::MenuItem:
-            widget = std::make_shared<WidgetMenuItem_C>(eventQueue);
+            widget = std::make_shared<WidgetMenuItem_C>(info);
             break;
         default:
             throw std::invalid_argument("Unknown widget type");
     }
-    widget->SetWindowId(info->windowId);
-    widget->SetWidgetId(info->widgetId);
-    widget->SetWidgetName(info->widgetName);
-    widget->SetFlags(info->flags);
-    widget->SetWidgetValue(info->defaultValue);
 
     return widget;
 }
@@ -92,8 +97,8 @@ std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseWidgetData(const nlohmann
     }
 
     /* Parse Common Widget Fields */
-    retVal->type = widgetData["Type"].get<WidgetTypes_E>();
     retVal->widgetName = widgetData["Name"].get<std::string>();
+    retVal->widgetType = widgetData["Type"].get<WidgetTypes_E>();
     if (widgetData.find("Value") != widgetData.end())
     {
         if (widgetData["Value"].is_string())
@@ -207,7 +212,7 @@ std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseMenuWidgetData(const nloh
     {
         AddMenuItemWidgetInfo_T menuItem;
         menuItem.widgetName = item;
-        menuItem.type = WidgetTypes_E::MenuItem;
+        menuItem.widgetType = WidgetTypes_E::MenuItem;
         menuItem.flags |= WidgetFlags_E::Readable;
         menuItem.flags |= WidgetFlags_E::Writeable;
         menuItem.dataType = WidgetDataTypes_E::None;

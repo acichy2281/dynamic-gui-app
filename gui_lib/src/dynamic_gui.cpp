@@ -312,13 +312,14 @@ void DynamicGui_C::ParseJsonData()
         {
             /* Parse Widget Info */
             auto parsedWidgetInfo = _widgetFactory.ParseWidgetData(widget);
+            parsedWidgetInfo->eventQueue = _eventQueue;
 
             /* Add Widget to Window */
-            auto newWidget = newWindow.AddWidget(parsedWidgetInfo, _eventQueue);
+            auto newWidget = newWindow.AddWidget(parsedWidgetInfo);
 
             /* Populate widget Descriptor List */
             widgetDescList.push_back(newWidget->GetDescriptor());
-            if (WidgetTypes_E::Menu == newWidget->GetType())
+            if (WidgetTypes_E::Menu == newWidget->GetWidgetType())
             {
                 /* Loop through menu items to retreive widget descriptors */
                 for (const auto& menuItem : std::dynamic_pointer_cast<WidgetMenu_C>(newWidget)->GetMenuItems())
@@ -336,7 +337,7 @@ void DynamicGui_C::ParseJsonData()
 
 WidgetDescriptor_T DynamicGui_C::AddWidgetToWindow(std::shared_ptr<AddWidgetInfo_T> addWidgetInfo)
 {
-    auto newWidget = _windowList.at(addWidgetInfo->windowId).AddWidget(addWidgetInfo, _eventQueue);
+    auto newWidget = _windowList.at(addWidgetInfo->windowId).AddWidget(addWidgetInfo);
     return newWidget->GetDescriptor();
 }
 

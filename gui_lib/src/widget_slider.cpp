@@ -2,16 +2,30 @@
 #include "stdafx.h"
 #include "widget_slider.h"
 
-WidgetSlider_C::WidgetSlider_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, 
-                               SliderValueVariant_T min,
-                               SliderValueVariant_T max) : 
-    _eventQueue(eventQueue),
-    _sliderMin(min),
-    _sliderMax(max)
+WidgetSlider_C::WidgetSlider_C(const std::shared_ptr<const AddSliderWidgetInfo_T>& info) :
+    WidgetInterface_I(info),
+    _sliderMin(info->sliderMin),
+    _sliderMax(info->sliderMax)
 {
-    /* Initialize values to ensure variant type safety */
-    _sliderValue = min;
-    _previousValue = min;
+    /* Initialize values to ensure variant type safety - Setting value to min just incase no default is provided. */
+    if (std::holds_alternative<int>(_sliderMin) && std::holds_alternative<int>(_sliderMax))
+    {
+        _sliderValue = std::get<int>(_sliderMin);
+        _previousValue = std::get<int>(_sliderMin);
+        _sliderValueType = SliderValueType_E::Int;
+        SetWidgetValue(info->defaultValue);
+    }
+    else if (std::holds_alternative<float>(_sliderMin) && std::holds_alternative<float>(_sliderMax))
+    {
+        _sliderValue = std::get<float>(_sliderMin);
+        _previousValue = std::get<float>(_sliderMin);
+        _sliderValueType = SliderValueType_E::Float;
+        SetWidgetValue(info->defaultValue);
+    }
+    else
+    {
+        throw std::invalid_argument("Slider Widget data type mismatch.");
+    }
 }
 
 WidgetSlider_C::~WidgetSlider_C()
@@ -21,8 +35,8 @@ WidgetSlider_C::~WidgetSlider_C()
 
 void WidgetSlider_C::ShowWidget()
 {
-    ImGui::Text(GetWidgetName().c_str());
-    if (std::holds_alternative<int>(_sliderValue) && std::holds_alternative<int>(_sliderMin) && std::holds_alternative<int>(_sliderMax))
+    ImGui::Text(_widgetName.c_str());
+    if (SliderValueType_E::Int == _sliderValueType)
     {
         int currentValue = std::get<int>(_sliderValue);
         if (ImGui::SliderInt("##slider", &currentValue, std::get<int>(_sliderMin), std::get<int>(_sliderMax)))
@@ -30,7 +44,7 @@ void WidgetSlider_C::ShowWidget()
             _sliderValue = currentValue;
         }
     }
-    else if (std::holds_alternative<float>(_sliderValue) && std::holds_alternative<float>(_sliderMin) && std::holds_alternative<float>(_sliderMax))
+    else if (SliderValueType_E::Float == _sliderValueType)
     {
         float currentValue = std::get<float>(_sliderValue);
         if (ImGui::SliderFloat("##slider", &currentValue, std::get<float>(_sliderMin), std::get<float>(_sliderMax)))
@@ -55,8 +69,8 @@ void WidgetSlider_C::ShowWidget()
             std::cout << "Show Widget: Updated Slider value: ";
             std::visit([](auto&& arg) { std::cout << arg; }, _sliderValue);
             std::cout << std::endl;
-            auto event = std::make_shared<EventSliderSet_C>(GetWindowId(), GetWidgetId(), _sliderValue);
-            _eventQueue.Enqueue(std::move(event));
+            auto event = std::make_shared<EventSliderSet_C>(_windowId, _widgetId, _sliderValue);
+            EventQueue()->Enqueue(std::move(event));
             _previousValue = _sliderValue; // Update previous value
         }
     }
@@ -70,88 +84,44 @@ WidgetValueVariant_T WidgetSlider_C::GetWidgetValue()
 
 bool WidgetSlider_C::SetWidgetValue(WidgetValueVariant_T val)
 {
+    bool retVal = false;
     if (false == _isWritable) 
     {
-        return false;
+        retVal = false;
     }
-    // Check for invalid input for the slider values, abort if so
-    if (std::holds_alternative<int>(val) && (std::get<int>(val) < std::get<int>(_sliderMin) || std::get<int>(val) > std::get<int>(_sliderMax)))
+    else if (std::holds_alternative<int>(val) && SliderValueType_E::Int == _sliderValueType && 
+            (std::get<int>(val) >= std::get<int>(_sliderMin) && std::get<int>(val) <= std::get<int>(_sliderMax)))
     {
-        return false;
-    }
-    else if (std::holds_alternative<float>(val) && (std::get<float>(val) < std::get<float>(_sliderMin) || std::get<float>(val) > std::get<float>(_sliderMax)))
-    {
-        return false;
-    }
-    else if (false == std::holds_alternative<int>(val) && false == std::holds_alternative<float>(val))
-    {
-        return false;
-    }
-
-    if (std::holds_alternative<int>(val)) {
         _sliderValue = std::get<int>(val);
-    } else if (std::holds_alternative<float>(val)) {
+        _previousValue = std::get<int>(val);
+        retVal = true;
+    }
+    else if (std::holds_alternative<float>(val) && SliderValueType_E::Float == _sliderValueType && 
+            (std::get<float>(val) >= std::get<float>(_sliderMin) && std::get<float>(val) <= std::get<float>(_sliderMax)))
+    {
         _sliderValue = std::get<float>(val);
+        _previousValue = std::get<float>(val);
+        retVal = true;
     }
-
-    return true;
+    else
+    {
+        retVal = false;
+    }
+    return retVal;
 }
 
-void WidgetSlider_C::SetFlags(uint8_t flags)
-{
-    if (flags & WidgetFlags_E::Readable)
+WidgetDataTypes_E WidgetSlider_C::GetDataType()
+{ 
+    if (SliderValueType_E::Int == _sliderValueType)
     {
-        _isReadable = true;
+        return WidgetDataTypes_E::Int;
     }
-    if (flags & WidgetFlags_E::Writeable)
+    else if (SliderValueType_E::Float == _sliderValueType)
     {
-        _isWritable = true;
+        return WidgetDataTypes_E::Float;
     }
-    if (flags & WidgetFlags_E::Interactable)
+    else
     {
-        _isInteractable = true;
+        return WidgetDataTypes_E::Unknown;
     }
-    if (flags & WidgetFlags_E::Static)
-    {
-        _isStatic = true;
-    }
-}
-
-WidgetDescriptor_T WidgetSlider_C::GetDescriptor()
-{
-    uint8_t flags = 0;
-    if (_isReadable)
-    {
-        flags |= WidgetFlags_E::Readable;
-    }
-    if (_isWritable)
-    {
-        flags |= WidgetFlags_E::Writeable;
-    }
-    if (_isInteractable)
-    {
-        flags |= WidgetFlags_E::Interactable;
-    }
-    if (_isStatic)
-    {
-        flags |= WidgetFlags_E::Static;
-    }
-    
-    WidgetDataTypes_E dataType = WidgetDataTypes_E::Int;
-    if (std::holds_alternative<float>(_sliderValue))
-    {
-        dataType = WidgetDataTypes_E::Float;
-    }
-    return GuiProtocol::GetWidgetDescriptor(
-                           GetWindowId(), 
-                           GetWidgetId(), 
-                           flags,
-                           WidgetTypes_E::Slider,
-                           dataType,
-                           GetWidgetName());
-}
-
-WidgetTypes_E WidgetSlider_C::GetType()
-{
-    return WidgetTypes_E::Slider;
 }

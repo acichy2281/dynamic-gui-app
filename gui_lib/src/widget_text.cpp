@@ -3,7 +3,10 @@
 #include "widget_text.h"
 #include "custom_types.h"
 
-WidgetText_C::WidgetText_C() {}
+WidgetText_C::WidgetText_C(const std::shared_ptr<const AddWidgetInfo_T>& info) : WidgetInterface_I(info) 
+{
+    SetWidgetValue(info->defaultValue);
+}
 
 WidgetText_C::~WidgetText_C()
 {
@@ -13,7 +16,6 @@ WidgetText_C::~WidgetText_C()
 
 void WidgetText_C::ShowWidget()
 {
-    //std::cout << "Showing text widget with value: " << _widgetText << "\n";
     ImGui::Text("%s", _widgetText.c_str());
 }
 
@@ -35,58 +37,4 @@ bool WidgetText_C::SetWidgetValue(WidgetValueVariant_T val)
     }
     _widgetText = std::get<std::string>(val);
     return true;
-}
-
-void WidgetText_C::SetFlags(uint8_t flags)
-{
-    if (flags & WidgetFlags_E::Readable)
-    {
-        _isReadable = true;
-    }
-    if (flags & WidgetFlags_E::Writeable)
-    {
-        _isWritable = true;
-    }
-    if (flags & WidgetFlags_E::Interactable)
-    {
-        _isInteractable = true;
-    }
-    if (flags & WidgetFlags_E::Static)
-    {
-        _isStatic = true;
-    }
-}
-
-WidgetDescriptor_T WidgetText_C::GetDescriptor() 
-{
-    uint8_t flags = 0;
-    if (_isReadable)
-    {
-        flags |= WidgetFlags_E::Readable;
-    }
-    if (_isWritable)
-    {
-        flags |= WidgetFlags_E::Writeable;
-    }
-    if (_isInteractable)
-    {
-        flags |= WidgetFlags_E::Interactable;
-    }
-    if (_isStatic)
-    {
-        flags |= WidgetFlags_E::Static;
-    }
-    
-    return GuiProtocol::GetWidgetDescriptor(
-                           GetWindowId(), 
-                           GetWidgetId(), 
-                           flags,
-                           WidgetTypes_E::Text,
-                           WidgetDataTypes_E::String,
-                           GetWidgetName());
-}
-
-WidgetTypes_E WidgetText_C::GetType()
-{
-    return WidgetTypes_E::Text;
 }

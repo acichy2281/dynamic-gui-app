@@ -15,7 +15,7 @@ using ParseFunc = std::function<std::shared_ptr<AddWidgetInfo_T>(const nlohmann:
 class WidgetFactory_C
 {
     public:
-        std::shared_ptr<WidgetInterface_I> CreateWidget(std::shared_ptr<AddWidgetInfo_T> info, ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue);
+        std::shared_ptr<WidgetInterface_I> CreateWidget(std::shared_ptr<AddWidgetInfo_T> info);
         std::shared_ptr<AddWidgetInfo_T> ParseWidgetData(const nlohmann::json& widgetData);
 
     private:

@@ -13,21 +13,20 @@ struct AddRadioWidgetInfo_T : public AddWidgetInfo_T {
 class WidgetRadio_C : public WidgetInterface_I
 {
     public:
-        WidgetRadio_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, std::vector<std::string> optionsList);
+        WidgetRadio_C(const std::shared_ptr<const AddRadioWidgetInfo_T>& info);
         ~WidgetRadio_C();
-        void ShowWidget() override;
         
+        void ShowWidget() override;
         WidgetValueVariant_T GetWidgetValue() override;
         bool SetWidgetValue(WidgetValueVariant_T val) override;
-        void AddOption(std::string& newOption);
-        WidgetTypes_E GetType() override;
-        void SetFlags(uint8_t flags) override;
-        WidgetDescriptor_T GetDescriptor() override;
+        WidgetTypes_E GetWidgetType() override { return WidgetTypes_E::Radio; }
+        WidgetDataTypes_E GetDataType() override { return WidgetDataTypes_E::Int; } // Radio button returns an integer index of the selected option
 
+        void AddOption(std::string& newOption);
+        
     private:
         uint16_t _id;
         std::vector<std::string> _optionsList;
-        ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
         int _selectedOptionIndex = 0;
 };
 #endif // WIDGET_RADIO_H

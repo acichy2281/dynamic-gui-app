@@ -7,16 +7,14 @@
 class WidgetText_C : public WidgetInterface_I
 {
     public:
-        WidgetText_C();
+        WidgetText_C(const std::shared_ptr<const AddWidgetInfo_T>& info);
         ~WidgetText_C();
-        void ShowWidget() override;
         
+        void ShowWidget() override;
         WidgetValueVariant_T GetWidgetValue() override;
         bool SetWidgetValue(WidgetValueVariant_T val) override;
-        void SetFlags(uint8_t flags) override;
-        WidgetDescriptor_T GetDescriptor() override;
-
-        WidgetTypes_E GetType() override;
+        WidgetTypes_E GetWidgetType() override { return WidgetTypes_E::Text; }
+        WidgetDataTypes_E GetDataType() override { return WidgetDataTypes_E::String; } // Text widget returns a string value
     
     private:
         std::string _widgetText;

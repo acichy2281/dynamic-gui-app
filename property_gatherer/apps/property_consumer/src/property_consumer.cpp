@@ -29,7 +29,7 @@ PropertyConsumerApp_C::~PropertyConsumerApp_C()
 
 void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val)
 {
-    std::cout << "Widget event callback: Widget ID = " << widgetDesc.widgetId << ", Value = ";
+    std::cout << "Widget event callback: Widget ID = " << widgetDesc.widgetId << ", " << widgetDesc.widgetName << ", Value = ";
     std::visit([](auto&& arg) { std::cout << arg; }, val);
     if (widgetDesc.widgetName == "Get Property List")
     {

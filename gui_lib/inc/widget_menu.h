@@ -13,23 +13,20 @@ struct AddMenuWidgetInfo_T : public AddWidgetInfo_T {
 
 class WidgetMenu_C : public WidgetInterface_I
 {
-public:
-    WidgetMenu_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue, std::vector<std::shared_ptr<WidgetInterface_I>> menuItems);
-    ~WidgetMenu_C();
+    public:
+        WidgetMenu_C(const std::shared_ptr<const AddMenuWidgetInfo_T>& info);
+        ~WidgetMenu_C();
 
-    void ShowWidget() override;
-    WidgetValueVariant_T GetWidgetValue() override;
-    bool SetWidgetValue(WidgetValueVariant_T val) override;
-    std::vector<std::shared_ptr<WidgetInterface_I>>& GetMenuItems();
-    void SetFlags(uint8_t flags) override;
-    WidgetDescriptor_T GetDescriptor() override;
-    WidgetTypes_E GetType() override;
+        void ShowWidget() override;
+        WidgetValueVariant_T GetWidgetValue() override;
+        bool SetWidgetValue(WidgetValueVariant_T val) override;
+        WidgetTypes_E GetWidgetType() override { return WidgetTypes_E::Menu; }
+        WidgetDataTypes_E GetDataType() override { return WidgetDataTypes_E::None; } // Menu does not have a data type
 
-private:
-    uint16_t _id;
-    std::vector<std::shared_ptr<WidgetInterface_I>> _menuItems;
-    // std::map<uint16_t, std::shared_ptr<WidgetInterface_I>> _menuItemList;
-    ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
+        std::vector<std::shared_ptr<WidgetInterface_I>>& GetMenuItems();
+
+    private:
+        std::vector<std::shared_ptr<WidgetInterface_I>> _menuItems;
 };
 
 #endif // WIDGET_MENU_H

@@ -9,19 +9,16 @@
 class WidgetCheckbox_C : public WidgetInterface_I
 {
     public:
-        WidgetCheckbox_C(ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue);
+        WidgetCheckbox_C(const std::shared_ptr<const AddWidgetInfo_T>& info);
         ~WidgetCheckbox_C();
 
         void ShowWidget() override;
         WidgetValueVariant_T GetWidgetValue() override;
         bool SetWidgetValue(WidgetValueVariant_T val) override;
-        void SetFlags(uint8_t flags) override;
-        WidgetDescriptor_T GetDescriptor() override;
-
-        WidgetTypes_E GetType() override;
+        WidgetTypes_E GetWidgetType() override { return WidgetTypes_E::Checkbox; }
+        WidgetDataTypes_E GetDataType() override { return WidgetDataTypes_E::Bool; } 
     
     private:
-        ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& _eventQueue;
         bool _status;
 };
 #endif // WIDGET_CHECKBOX_H

@@ -12,15 +12,15 @@ GuiWindow_C::~GuiWindow_C()
 
 }
 
-std::shared_ptr<WidgetInterface_I> GuiWindow_C::AddWidget(std::shared_ptr<AddWidgetInfo_T> widgetInfo, ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue)
+std::shared_ptr<WidgetInterface_I> GuiWindow_C::AddWidget(std::shared_ptr<AddWidgetInfo_T> widgetInfo)
 {
     widgetInfo->windowId = _windowId;
     widgetInfo->widgetId = _generalWidgetCount;
-    auto widget = _widgetFactory.CreateWidget(widgetInfo, eventQueue);
+    auto widget = _widgetFactory.CreateWidget(widgetInfo);
 
     _generalWidgetList[_generalWidgetCount] = widget;
 
-    if (WidgetTypes_E::Menu == widget->GetType())
+    if (WidgetTypes_E::Menu == widget->GetWidgetType())
     {
         _menuList[_menuCount] = widget;
         _menuCount++;

@@ -19,7 +19,7 @@ class GuiWindow_C
          * @return uint16_t 
          * @retval returns a key value to access this widget via GetWidgetAt()
          */
-        std::shared_ptr<WidgetInterface_I> AddWidget(std::shared_ptr<AddWidgetInfo_T> widgetInfo, ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>& eventQueue);
+        std::shared_ptr<WidgetInterface_I> AddWidget(std::shared_ptr<AddWidgetInfo_T> widgetInfo);
 
         /**
          * @brief Loop through all widgets in the widget list to call the widgets ShowWidget function  
