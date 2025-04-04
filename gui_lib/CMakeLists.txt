@@ -21,7 +21,7 @@ endif()
 if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
     target_link_libraries(${PROJECT_NAME} PUBLIC imgui SDL3::SDL3 OpenGL::GL nlohmann_json::nlohmann_json gui_protocol_library nlohmann_json_schema_validator)
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-    target_link_libraries(${PROJECT_NAME} PUBLIC imgui SDL3::SDL3 OpenGL::GL nlohmann_json::nlohmann_json gui_protocol_library dl pthread)
+    target_link_libraries(${PROJECT_NAME} PUBLIC imgui SDL3::SDL3 OpenGL::GL nlohmann_json::nlohmann_json gui_protocol_library dl pthread nlohmann_json_schema_validator)
 endif()
 
 # Ensure static linking on Windows
