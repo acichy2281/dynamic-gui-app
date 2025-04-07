@@ -67,7 +67,9 @@ std::shared_ptr<WidgetInterface_I> WidgetFactory_C::CreateWidget(std::shared_ptr
             break;
         }
         case WidgetTypes_E::MenuItem:
-            widget = std::make_shared<WidgetMenuItem_C>(info);
+            widget = std::make_shared<WidgetMenuItem_C>(
+                        std::dynamic_pointer_cast<const AddMenuItemWidgetInfo_T>(info)
+                     );
             break;
         default:
             throw std::invalid_argument("Unknown widget type");
