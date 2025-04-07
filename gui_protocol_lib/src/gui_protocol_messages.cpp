@@ -71,14 +71,14 @@ namespace GuiProtocol
     WidgetListRequest_T GetWidgetListRequest()
     {
         WidgetListRequest_T retVal;
-        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::WIDGET_LIST_REQ);
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::WidgetListReq);
         return retVal;
     }
 
     WidgetListReply_T GetWidgetListReply(std::vector<WidgetDescriptor_T>& descList, WidgetReplyStatus_E status)
     {
         WidgetListReply_T retVal;
-        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::WIDGET_LIST_REPLY);
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::WidgetListReply);
         retVal.numWidgets = descList.size();
         retVal.widgetDescriptorList = descList;
         retVal.status = static_cast<uint16_t>(status);
@@ -88,7 +88,7 @@ namespace GuiProtocol
     WidgetSetValueRequest_T GetWidgetSetValueRequest(std::vector<WidgetValueStorage_T>& widgetSetVals)
     {
         WidgetSetValueRequest_T retVal;
-        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::WIDGET_SET_VALUE_REQ);
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::WidgetSetValueReq);
         retVal.numWidgetSetValues = static_cast<uint16_t>(widgetSetVals.size());
 
         for (auto& widgetSetVal : widgetSetVals)
@@ -104,7 +104,7 @@ namespace GuiProtocol
     WidgetSetValueReply_T GetWidgetSetValueReply(std::vector<WidgetSetValueResponseReturn_T>& widgetSetVals, WidgetReplyStatus_E status)
     {
         WidgetSetValueReply_T retVal;
-        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::WIDGET_SET_VALUE_REPLY);
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::WidgetSetValueReply);
         retVal.numWidgetSetValues = static_cast<uint16_t>(widgetSetVals.size());
 
         for (auto& widgetSetVal : widgetSetVals)
@@ -122,7 +122,7 @@ namespace GuiProtocol
     WidgetEventNotification_T GetWidgetEventNotification(uint16_t windowId, uint16_t widgetId, WidgetValueVariant_T updatedValue)
     {
         WidgetEventNotification_T retVal;
-        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::WIDGET_EVENT_NOTIFICATION);
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::WidgetEventNotification);
         retVal.widgetId = widgetId;
         retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
         retVal.updatedValue = updatedValue;
@@ -132,7 +132,7 @@ namespace GuiProtocol
     WidgetEventNotificationAck_T GetWidgetEventNotificationAck(uint32_t widgetId, uint16_t status)
     {
         WidgetEventNotificationAck_T retVal;
-        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::WIDGET_EVENT_NOTIFICATION_ACK);
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::WidgetEventNotificationAck);
         retVal.widgetId = widgetId;
         retVal.status = status;
         return retVal;
@@ -615,7 +615,7 @@ namespace GuiProtocol
             //     break;
             // }
 
-            case WIDGET_VARIANT_TYPE_STRING: { // std::string
+            case String: { // std::string
                 uint16_t startIdx = index;
                 while (index < inBuff.size() && inBuff[index] != '\0') 
                 {
@@ -626,19 +626,19 @@ namespace GuiProtocol
                 result = str;
                 break;
             }
-            case WIDGET_VARIANT_TYPE_INT: { // int32_t
+            case Signed32BitInt: { // int32_t
                 int32_t val;
                 std::memcpy(&val, &inBuff[index], sizeof(val));
                 index += sizeof(val);
                 result = val;
                 break;
             }
-            case WIDGET_VARIANT_TYPE_BOOL: { // bool
+            case Bool: { // bool
                 bool val = (inBuff[index++] != 0);
                 result = val;
                 break;
             }
-            case WIDGET_VARIANT_TYPE_FLOAT: { // float
+            case Float: { // float
                 float val;
                 std::memcpy(&val, &inBuff[index], sizeof(val));
                 index += sizeof(val);

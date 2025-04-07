@@ -18,18 +18,19 @@ namespace GuiProtocol
 {
     enum class GuiServerState_E
     {
-        INITIALIZED,
-        WIDGET_LIST_POPULATED,
-        READY,
-        WIDGET_EVENT_NOTIFICATION_SENT,
+        Initialized,
+        WidgetListPopulated,
+        Ready,
+        WidgetEventNotificationSent,
     };
 
     enum class GuiServerReqStatus_E
     {
-        SUCCESS,
-        FAILED_TO_SEND_MSG,
-        REQ_STATUS_ERROR,
+        Success,
+        FailedToSendMsg,
+        ReqStatusError,
     };
+
 
     class GuiServer_C
     {   
@@ -75,7 +76,7 @@ namespace GuiProtocol
             std::function<void(WidgetReplyStatus_E, uint16_t, uint16_t)> OnWidgetEventNotificationAckReceived;
 
             /* Member Variables */
-            GuiServerState_E _state = GuiServerState_E::INITIALIZED;
+            GuiServerState_E _state = GuiServerState_E::Initialized;
             ThreadSafeQueue_C<Message_T> _msgQueue;
             GuiProtocolMessageSerializer _msgSerializer;
             std::map<uint32_t, WidgetDescriptor_T> _widgetMap;

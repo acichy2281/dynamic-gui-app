@@ -21,22 +21,25 @@
 namespace GuiProtocol
 {
     /* Enum classes */
-    enum class MessageID_E
+    enum class MessageId_E
     {
-        WIDGET_LIST_REQ,
-        WIDGET_LIST_REPLY,
-        WIDGET_SET_VALUE_REQ,
-        WIDGET_SET_VALUE_REPLY,
-        WIDGET_EVENT_NOTIFICATION,
-        WIDGET_EVENT_NOTIFICATION_ACK,
+        WidgetListReq,
+        WidgetListReply,
+        WidgetSetValueReq,
+        WidgetSetValueReply,
+        WidgetEventNotification,
+        WidgetEventNotificationAck,
     };
     enum class WidgetReplyStatus_E
     {
-        SET_VAL_SUCCESS,
-        SET_VAL_PARTIAL_SUCCESS,
-        SET_VAL_FAILED_TO_SET,
-        SET_VAL_UNKNOWN_WIDGET,
-        SET_VAL_ERROR,
+        Success,
+        Error,
+        AccessError,
+        InvalidParameter,
+        InvalidWidgetId,
+        InvalidWidgetValue,
+        InvalidWidgetType,
+        PartialSuccess,
     };
 
     /* Type defs */

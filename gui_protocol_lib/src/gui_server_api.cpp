@@ -72,8 +72,8 @@ namespace GuiProtocol
     
     GuiServerReqStatus_E GuiServer_C::SendWidgetEventNotification(uint16_t windowId, uint16_t widgetId, WidgetValueVariant_T val)
     {
-        GuiServerReqStatus_E retVal = GuiServerReqStatus_E::REQ_STATUS_ERROR;
-        if (GuiServerState_E::READY == _state)
+        GuiServerReqStatus_E retVal = GuiServerReqStatus_E::ReqStatusError;
+        if (GuiServerState_E::Ready == _state)
         {
             std::vector<uint8_t> buffer;
             WidgetEventNotification_T widgetEventNotification = GetWidgetEventNotification(windowId, widgetId, val);
@@ -81,11 +81,11 @@ namespace GuiProtocol
             if (0 < SendMessage(buffer))
             {
                 _widgetEventNotificationSent = true;
-                retVal = GuiServerReqStatus_E::SUCCESS;
+                retVal = GuiServerReqStatus_E::Success;
             }
             else
             {
-                retVal = GuiServerReqStatus_E::FAILED_TO_SEND_MSG;
+                retVal = GuiServerReqStatus_E::FailedToSendMsg;
             }
         }
 
@@ -105,35 +105,35 @@ namespace GuiProtocol
     {
         switch (_state)
         {
-            case GuiServerState_E::INITIALIZED:
+            case GuiServerState_E::Initialized:
                 if (true == _widgetListPopulated)
                 {
-                    _state = GuiServerState_E::WIDGET_LIST_POPULATED;
+                    _state = GuiServerState_E::WidgetListPopulated;
                     std::cout << "Setting State to Widget List Populated\n";
                 }
                 break;
 
-            case GuiServerState_E::WIDGET_LIST_POPULATED:
+            case GuiServerState_E::WidgetListPopulated:
                 if (true == _widgetListReplySent)
                 {
-                    _state = GuiServerState_E::READY;
+                    _state = GuiServerState_E::Ready;
                     std::cout << "Setting State to Ready\n";
                 }
                 break;
 
-            case GuiServerState_E::READY:
+            case GuiServerState_E::Ready:
                 if (true == _widgetEventNotificationSent)
                 {
-                    _state = GuiServerState_E::WIDGET_EVENT_NOTIFICATION_SENT;
+                    _state = GuiServerState_E::WidgetEventNotificationSent;
                     std::cout << "Setting State to Event Notification Sent\n";
                     _widgetEventNotificationSent = false; // Reset for next event notification
                 }
                 break;
             
-            case GuiServerState_E::WIDGET_EVENT_NOTIFICATION_SENT:
+            case GuiServerState_E::WidgetEventNotificationSent:
                 if (true == _widgetEventNotificationAckReceived)
                 {
-                    _state = GuiServerState_E::READY;
+                    _state = GuiServerState_E::Ready;
                     std::cout << "Setting State back to Ready\n";
                     _widgetEventNotificationAckReceived = false; // Reset for next event notification
                 }
@@ -148,19 +148,19 @@ namespace GuiProtocol
     {
         auto msg = _msgQueue.Dequeue();
         uint16_t msgId = (static_cast<uint8_t>(msg.data[3]) << 8) | static_cast<uint8_t>(msg.data[2]);
-        switch (static_cast<MessageID_E>(msgId))
+        switch (static_cast<MessageId_E>(msgId))
         {
-            case MessageID_E::WIDGET_LIST_REQ:
+            case MessageId_E::WidgetListReq:
                 std::cout << "Received Widget List Request\n";
                 ProcessReceivedWidgetListRequest();
                 break;
 
-            case MessageID_E::WIDGET_SET_VALUE_REQ:
+            case MessageId_E::WidgetSetValueReq:
                 std::cout << "Received Set Value Request\n";
                 ProcessReceivedWidgetSetValueRequest(msg);
                 break;
 
-            case MessageID_E::WIDGET_EVENT_NOTIFICATION_ACK:
+            case MessageId_E::WidgetEventNotificationAck:
                 std::cout << "Received Widget Event Notification Ack\n";
                 ProcessReceivedWidgetEventNotificationAck(msg);
                 break;
@@ -173,7 +173,7 @@ namespace GuiProtocol
 
     void GuiServer_C::ProcessReceivedWidgetListRequest()
     {
-        if (GuiServerState_E::WIDGET_LIST_POPULATED == _state)
+        if (GuiServerState_E::WidgetListPopulated == _state)
         {
             std::vector<uint8_t> buffer;
             
@@ -185,7 +185,7 @@ namespace GuiProtocol
             }
 
             /* Generate a WidgetListReply serialized message */
-            auto status = WidgetReplyStatus_E::SET_VAL_SUCCESS;
+            auto status = WidgetReplyStatus_E::Success;
             auto widgetListReply = GetWidgetListReply(descList, status);
             _msgSerializer.Serialize(widgetListReply, buffer);
             if (0 < SendMessage(buffer))
@@ -193,7 +193,7 @@ namespace GuiProtocol
                 _widgetListReplySent = true;
             }
         }
-        else if (GuiServerState_E::INITIALIZED == _state)
+        else if (GuiServerState_E::Initialized == _state)
         {
             std::cout << "Error! Widget List not populated yet!\n";
         }
@@ -228,7 +228,7 @@ namespace GuiProtocol
                     widgetSetValueResponse.widgetType = it->second.widgetType;
                     widgetSetValueResponse.dataType = it->second.dataType;
                     widgetSetValueResponse.val = widgetToSet.value;
-                    widgetSetValueResponse.status = static_cast<uint16_t>(WidgetReplyStatus_E::SET_VAL_ERROR);
+                    widgetSetValueResponse.status = static_cast<uint16_t>(WidgetReplyStatus_E::Error);
                     widgetSetValueResponseList.push_back(widgetSetValueResponse);
                 }
             }
@@ -254,7 +254,7 @@ namespace GuiProtocol
         std::vector<uint8_t> msgBuf(msg.data.get(), msg.data.get() + msg.size);
         _msgSerializer.Deserialize(reply, msgBuf);
 
-        if (WidgetReplyStatus_E::SET_VAL_SUCCESS == static_cast<WidgetReplyStatus_E>(reply.status))
+        if (WidgetReplyStatus_E::Success == static_cast<WidgetReplyStatus_E>(reply.status))
         {
             _widgetEventNotificationAckReceived = true;
         }

@@ -422,7 +422,7 @@ bool DynamicGui_C::RunGuiServer(const GuiServerInitParams_T& initParams)
             std::cout << "Sending Widget Event Notification\n";
             auto event = _guiServerWidgetEventNotificationQueue.Dequeue();                   
             GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(event.windowId, event.widgetId, event.value);
-            if (GuiProtocol::GuiServerReqStatus_E::SUCCESS != status)
+            if (GuiProtocol::GuiServerReqStatus_E::Success != status)
             {
                 std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
             }
@@ -506,31 +506,31 @@ int32_t DynamicGui_C::GuiServer_SendMessage(const std::vector<uint8_t>& message)
 
 GuiProtocol::WidgetReplyStatus_E DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>& widgetSetValueList)
 {
-    auto retVal = GuiProtocol::WidgetReplyStatus_E::SET_VAL_ERROR;
+    auto retVal = GuiProtocol::WidgetReplyStatus_E::Error;
     uint16_t numSetValSuccess = 0;
     for (auto& widgetSetValue : widgetSetValueList)
     {
         std::shared_ptr<WidgetInterface_I> outWidget;
         if (false == _windowList.at(widgetSetValue.windowId).GetWidgetAt(widgetSetValue.widgetId, outWidget))
         {
-            widgetSetValue.status = static_cast<uint16_t>(GuiProtocol::WidgetReplyStatus_E::SET_VAL_UNKNOWN_WIDGET);
+            widgetSetValue.status = static_cast<uint16_t>(GuiProtocol::WidgetReplyStatus_E::InvalidWidgetId);
         }
         else if (true == outWidget->SetWidgetValue(widgetSetValue.val))
         {
             numSetValSuccess++;
             std::cout << "Successfuly set widget " << widgetSetValue.windowId << "." << widgetSetValue.widgetId << " value\n";
-            widgetSetValue.status = static_cast<uint16_t>(GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS);
+            widgetSetValue.status = static_cast<uint16_t>(GuiProtocol::WidgetReplyStatus_E::Success);
         }
     }
 
     if (widgetSetValueList.size() == numSetValSuccess)
     {
-        retVal = GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS;
+        retVal = GuiProtocol::WidgetReplyStatus_E::Success;
         std::cout << "All Set Value requests succeeded\n";
     }
     else if (0 < numSetValSuccess)
     {
-        retVal = GuiProtocol::WidgetReplyStatus_E::SET_VAL_PARTIAL_SUCCESS;
+        retVal = GuiProtocol::WidgetReplyStatus_E::PartialSuccess;
         std::cout << "Only " << numSetValSuccess << "out of " << widgetSetValueList.size() << " Set Value requests succeeded\n";
     }
     else
@@ -542,7 +542,7 @@ GuiProtocol::WidgetReplyStatus_E DynamicGui_C::GuiServer_OnWidgetSetValueRequest
 
 void DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived(GuiProtocol::WidgetReplyStatus_E status, uint16_t windowId, uint16_t widgetId)
 {
-    if (GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS == status)
+    if (GuiProtocol::WidgetReplyStatus_E::Success == status)
     {
         std::cout << "Widget Event Notification Ack Success\n";
     }
