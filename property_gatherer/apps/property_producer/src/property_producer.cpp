@@ -7,9 +7,6 @@ PropertyProducerApp_C::PropertyProducerApp_C(PropertyProducerInitParams_C initPa
     _transport = UdpTransportFactory::CreateTransport();
     _transport->InitializeSocket(initParams.myInfo.destIp, initParams.myInfo.destPort);
     _rxBufferSize = 2048;
-    _propertyProducer->SetCallbacks({ std::bind(&PropertyProducerApp_C::PropertyProducer_SendMessage, this, std::placeholders::_1),
-                                      std::bind(&PropertyProducerApp_C::PropertyProducer_OnPropertyListRequestReceived, this, std::placeholders::_1),
-                                      std::bind(&PropertyProducerApp_C::PropertyProducer_OnPropertyGetValueRequestRecieved, this, std::placeholders::_1) });
     if (false == initParams.configFile.empty()) _gui.SetConfigFile(initParams.configFile);
 }
 
@@ -47,18 +44,33 @@ void PropertyProducerApp_C::RunTest()
 
 void PropertyProducerApp_C::RunProducerTest()
 {
+    /* Generate Test Property List */
     auto propertyDescList = std::vector<PropertyGatherer::PropertyDescriptor_T>();
-    propertyDescList.push_back(PropertyGatherer::CreatePropertyDescriptor(0, false, true, true, true, PropertyGatherer::PropertyStorageVariantType_E::STRING, 30, "Name"));
-    propertyDescList.push_back(PropertyGatherer::CreatePropertyDescriptor(1, true, true, true, true, PropertyGatherer::PropertyStorageVariantType_E::STRING, 30, "TestString"));
-    propertyDescList.push_back(PropertyGatherer::CreatePropertyDescriptor(2, true, true, true, true, PropertyGatherer::PropertyStorageVariantType_E::UNSIGNED_8_BIT_INT, 30, "TestInt"));
-    _propertyProducer->SetPropertyList(propertyDescList);
-    std::vector<std::pair<uint16_t, PropertyGatherer::PropertyStorageVariant>> propertyValues;
-    propertyValues.push_back({0, "TestString"});
-    propertyValues.push_back({1, "123"});
-    propertyValues.push_back({2, static_cast<uint8_t>(255)});
+    propertyDescList.push_back(PropertyGatherer::CreatePropertyDescriptor(0, false, true, true, true, PropertyGatherer::PropertyStorageVariantType_E::String, 30, "Name"));
+    propertyDescList.push_back(PropertyGatherer::CreatePropertyDescriptor(1, true, true, true, true, PropertyGatherer::PropertyStorageVariantType_E::String, 30, "TestString"));
+    propertyDescList.push_back(PropertyGatherer::CreatePropertyDescriptor(2, true, true, true, true, PropertyGatherer::PropertyStorageVariantType_E::Unsigned8BitInt, 30, "TestInt"));
+    
+    /* Populate Callbacks for Property Gatherer */
+    auto callBacks = PropertyGatherer::PropertyProducerCallbacks_T();
+    callBacks.sendMessage = std::bind(&PropertyProducerApp_C::PropertyProducer_SendMessage, this, std::placeholders::_1);
+    callBacks.onPropertyListRequestReceived = std::bind(&PropertyProducerApp_C::PropertyProducer_OnPropertyListRequestReceived, this, std::placeholders::_1);
+    callBacks.onPropertyGetValueRequestRecieved = std::bind(&PropertyProducerApp_C::PropertyProducer_OnPropertyGetValueRequestRecieved, this, std::placeholders::_1);
+    callBacks.onPropertySetValueRequestRecieved = std::bind(&PropertyProducerApp_C::PropertyProducer_OnPropertySetValueRequestRecieved, this, std::placeholders::_1);
+
+    PropertyGatherer::PropertyProducerInitParams_T propertyProducerInitParams{propertyDescList, callBacks};
+    if (PropertyGatherer::PropertyProducerStatus_E::Success != _propertyProducer->PropertyProducer_Initialize(propertyProducerInitParams))
+    {
+        std::cerr << "Error: Failed to initialize Property Producer\n";
+        _gui.CloseGui();
+        return;
+    }
+
+    /* Populate Property Values */
+    _propertyValuesMap[0] = "Device Name";
+    _propertyValuesMap[1] = "TestString";
+    _propertyValuesMap[2] = static_cast<uint8_t>(255);
 
     _gui.SetWidgetValue(1, "Name: Device Name");
-
     std::shared_ptr<AddWidgetInfo_T> testStringAddWidgetInfo = std::make_shared<AddWidgetInfo_T>();
     testStringAddWidgetInfo->windowId = 0;
     testStringAddWidgetInfo->widgetName = "TestString";
@@ -80,7 +92,6 @@ void PropertyProducerApp_C::RunProducerTest()
     // auto testIntDesc = _gui.AddWidgetToWindow(testIntAddWidgetInfo);
     // _gui.SetWidgetValue(testIntDesc.widgetId, "TestInt: 255");
 
-    _propertyProducer->SetPropertyValue(propertyValues);
     while (false == _isQuit)
     {
         if (true == _transport->PollReceiveSocket())
@@ -108,14 +119,54 @@ int32_t PropertyProducerApp_C::PropertyProducer_SendMessage(const std::vector<ui
     return _transport->TransportSendMessage(_propertyConsumerInfo.destIp, _propertyConsumerInfo.destPort, message);
 }
 
-void PropertyProducerApp_C::PropertyProducer_OnPropertyListRequestReceived(std::vector<PropertyGatherer::PropertyDescriptor_T> &descList)
+void PropertyProducerApp_C::PropertyProducer_OnPropertyListRequestReceived(const std::vector<PropertyGatherer::PropertyDescriptor_T> &descList)
 {
-
+    // Do nothing as the Property Producer handles this internally
+    std::cout << "Property Producer Property List Request Received\n";
 }
 
-PropertyGatherer::PropertyReplyStatus_E PropertyProducerApp_C::PropertyProducer_OnPropertyGetValueRequestRecieved(std::vector<PropertyGatherer::PropertyStorageVariant> &values)
+PropertyGatherer::PropertyGathererReplyStatus_E PropertyProducerApp_C::PropertyProducer_OnPropertyGetValueRequestRecieved(std::vector<PropertyGatherer::PropertyValueContainer_T>& values)
 {
-    return PropertyGatherer::PropertyReplyStatus_E::SET_VAL_SUCCESS;
+    std::cout << "Property Producer Get Value Request Received\n";
+    auto retVal = PropertyGatherer::PropertyGathererReplyStatus_E::Success;
+    for (auto& value : values)
+    {
+        auto it = _propertyValuesMap.find(value.propertyId);
+        if (it != _propertyValuesMap.end())
+        {
+            value.value = it->second;
+            std::cout << "Property ID: " << value.propertyId << ", Value: ";
+            std::visit([](auto&& arg) { std::cout << arg; }, value.value);
+            std::cout << "\n";
+        }
+        else
+        {
+            std::cout << "Property ID: " << value.propertyId << " not found\n";
+            retVal = PropertyGatherer::PropertyGathererReplyStatus_E::InvalidPropertyId;
+        }
+    }
+    return retVal;
+}
+
+PropertyGatherer::PropertyGathererReplyStatus_E PropertyProducerApp_C::PropertyProducer_OnPropertySetValueRequestRecieved(PropertyGatherer::PropertyValueContainer_T& value)
+{
+    std::cout << "Property Producer Set Value Request Received\n";
+    auto retVal = PropertyGatherer::PropertyGathererReplyStatus_E::Success;
+
+    auto it = _propertyValuesMap.find(value.propertyId);
+    if (it != _propertyValuesMap.end())
+    {
+        it->second = value.value;
+        std::cout << "Property ID: " << value.propertyId << ", Value: ";
+        std::visit([](auto&& arg) { std::cout << arg; }, it->second);
+        std::cout << "\n";
+    }
+    else
+    {
+        std::cout << "Property ID: " << value.propertyId << " not found\n";
+        retVal = PropertyGatherer::PropertyGathererReplyStatus_E::InvalidPropertyId;
+    }
+    return retVal;
 }
 
 void PropertyProducerApp_C::HandleMessage()

@@ -40,8 +40,9 @@ class PropertyConsumerApp_C
         /* Property Consumer Fucntions */
         void RunPropertyConsumerTest();
         int32_t PropertyConsumer_SendMessage(const std::vector<uint8_t> &message);
-        void PropertyConsumer_OnPropertyListReplyReceived(PropertyGatherer::PropertyReplyStatus_E status, std::vector<PropertyGatherer::PropertyDescriptor_T> &descList);
-        void PropertyConsumer_OnPropertyGetValueReplyRecieved(PropertyGatherer::PropertyReplyStatus_E status, std::vector<PropertyGatherer::PropertyStorageVariant> &values);
+        void PropertyConsumer_OnPropertyListReplyReceived(PropertyGatherer::PropertyGathererReplyStatus_E status, std::vector<PropertyGatherer::PropertyDescriptor_T> &descList);
+        void PropertyConsumer_OnPropertyGetValueReplyRecieved(PropertyGatherer::PropertyGathererReplyStatus_E status, std::vector<PropertyGatherer::PropertyStorageVariant> &values);
+        void PropertyConsumer_OnPropertySetValueReplyRecieved(PropertyGatherer::PropertyGathererReplyStatus_E status, PropertyGatherer::PropertyStorageVariant &values);
 
         std::shared_ptr<TransportInterface> _transport;
         std::shared_ptr<GuiProtocol::GuiClient_C> _guiClient;

@@ -20,22 +20,29 @@ class PropertyProducerApp_C
         void RunTest();
 
     private:
-        int32_t PropertyProducer_SendMessage(const std::vector<uint8_t> &message);
-        void PropertyProducer_OnPropertyListRequestReceived(std::vector<PropertyGatherer::PropertyDescriptor_T> &descList);
-        PropertyGatherer::PropertyReplyStatus_E PropertyProducer_OnPropertyGetValueRequestRecieved(std::vector<PropertyGatherer::PropertyStorageVariant> &values);
+        /* App Functions & Variables */
         void HandleMessage();
-        void Gui_OnGuiWindowClosed();
-        void Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val);
-        void RunProducerTest();
         std::shared_ptr<TransportInterface> _transport;
+        bool _isQuit = false;
+        uint32_t _rxBufferSize;
+
+        /* Property Producer Test Functions & Variables */
+        void RunProducerTest();
+        int32_t PropertyProducer_SendMessage(const std::vector<uint8_t> &message);
+        void PropertyProducer_OnPropertyListRequestReceived(const std::vector<PropertyGatherer::PropertyDescriptor_T> &descList);
+        PropertyGatherer::PropertyGathererReplyStatus_E PropertyProducer_OnPropertyGetValueRequestRecieved(std::vector<PropertyGatherer::PropertyValueContainer_T>& values);
+        PropertyGatherer::PropertyGathererReplyStatus_E PropertyProducer_OnPropertySetValueRequestRecieved(PropertyGatherer::PropertyValueContainer_T& value);
         std::shared_ptr<PropertyGatherer::PropertyProducer_C> _propertyProducer;
         PortInfo_T _propertyConsumerInfo;
         std::string _propertyConsumerDevKey;
-        bool _isQuit = false;
-        bool _widgetListReceived = false;
-        uint32_t _rxBufferSize;
+        std::map<uint16_t, PropertyGatherer::PropertyStorageVariant> _propertyValuesMap;
         bool _runSetValTest = false;
+        
+        /* Gui Test Functions & Variables */
+        void Gui_OnGuiWindowClosed();
+        void Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val);
         DynamicGui_C _gui;
+        bool _widgetListReceived = false;
 };
 
 #endif // PROPERTY_PRODUCER_H

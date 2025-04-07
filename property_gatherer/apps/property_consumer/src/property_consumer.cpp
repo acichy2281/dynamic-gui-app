@@ -11,14 +11,23 @@ PropertyConsumerApp_C::PropertyConsumerApp_C(PropertyConsumerInitParams_C initPa
     )),
     _propertyConsumer(std::make_shared<PropertyGatherer::PropertyConsumer_C>())
 {
+    /* Initialize Transport */
     _transport = UdpTransportFactory::CreateTransport();
     _transport->InitializeSocket(initParams.myInfo.destIp, initParams.myInfo.destPort);
     _rxBufferSize = 2048;
     _guiAppDevKey = _guiAppInfo.destIp + ":" + std::to_string(_guiAppInfo.destPort);
     _producerAppDevKey = _producerInfo.destIp + ":" + std::to_string(_producerInfo.destPort);
-    _propertyConsumer->SetCallbacks({ std::bind(&PropertyConsumerApp_C::PropertyConsumer_SendMessage, this, std::placeholders::_1),
-                                      std::bind(&PropertyConsumerApp_C::PropertyConsumer_OnPropertyListReplyReceived, this, std::placeholders::_1, std::placeholders::_2),
-                                      std::bind(&PropertyConsumerApp_C::PropertyConsumer_OnPropertyGetValueReplyRecieved, this, std::placeholders::_1, std::placeholders::_2) });
+
+    /* Set Property Consumer Callbacks */
+    auto propertyConsumerCallBacks = PropertyGatherer::PropertyConsumerCallbacks_T();
+    propertyConsumerCallBacks.sendMessage = std::bind(&PropertyConsumerApp_C::PropertyConsumer_SendMessage, this, std::placeholders::_1);
+    propertyConsumerCallBacks.onPropertyListReplyReceived = std::bind(&PropertyConsumerApp_C::PropertyConsumer_OnPropertyListReplyReceived, this, std::placeholders::_1, std::placeholders::_2);
+    propertyConsumerCallBacks.onPropertyGetValueReplyRecieved = std::bind(&PropertyConsumerApp_C::PropertyConsumer_OnPropertyGetValueReplyRecieved, this, std::placeholders::_1, std::placeholders::_2);
+    propertyConsumerCallBacks.onPropertySetValueReplyRecieved = std::bind(&PropertyConsumerApp_C::PropertyConsumer_OnPropertySetValueReplyRecieved, this, std::placeholders::_1, std::placeholders::_2);
+    
+    PropertyGatherer::PropertyConsumerInitParams_T propertyConsumerInitParams{propertyConsumerCallBacks};
+    _propertyConsumer->PropertyConsumer_Initialize(propertyConsumerInitParams);
+
     if (false == initParams.configFile.empty()) _gui.SetConfigFile(initParams.configFile);
 }
 
@@ -35,7 +44,7 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
     {
         std::cout << "Requesting Property List\n";
         auto propListReqStatus = _propertyConsumer->SendPropertyListRequest();
-        if (PropertyGatherer::PropertyConsumerReqStatus_E::PROPERTY_CONSUMER_STATUS_SUCCESS != propListReqStatus)
+        if (PropertyGatherer::PropertyConsumerStatus_E::Success != propListReqStatus)
         {
             std::cout << "Failed to request property list, error: " << static_cast<uint8_t>(propListReqStatus) << "\n";
         }
@@ -44,7 +53,7 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
     {
         std::cout << "Requesting Property Value\n";
         auto propValReqStatus = _propertyConsumer->SendGetValueRequest(255, {0});
-        if (PropertyGatherer::PropertyConsumerReqStatus_E::PROPERTY_CONSUMER_STATUS_SUCCESS != propValReqStatus)
+        if (PropertyGatherer::PropertyConsumerStatus_E::Success != propValReqStatus)
         {
             std::cout << "Failed to request property value, error: " << static_cast<uint8_t>(propValReqStatus) << "\n";
         }
@@ -94,7 +103,7 @@ void PropertyConsumerApp_C::RunTest()
 void PropertyConsumerApp_C::RunGuiClientTest()
 {
     auto guiClientStatus = _guiClient->SendWidgetListRequest();
-    if (GuiProtocol::GuiClientReqStatus_E::SUCCESS != guiClientStatus)
+    if (GuiProtocol::GuiClientReqStatus_E::Success != guiClientStatus)
     {
         std::cout << "Failed to request widget list, error: " << static_cast<uint8_t>(guiClientStatus) << "\n";
     }
@@ -180,7 +189,7 @@ void PropertyConsumerApp_C::RunSetValueTest()
     }
 
     auto setValReturn = _guiClient->SendSetValueRequest(setWidgetList);
-    if (GuiProtocol::GuiClientReqStatus_E::SUCCESS != setValReturn)
+    if (GuiProtocol::GuiClientReqStatus_E::Success != setValReturn)
     {
         std::cout << "Set Value Request failed with " << static_cast<uint8_t>(setValReturn) << "\n";
     }
@@ -196,7 +205,7 @@ int32_t PropertyConsumerApp_C::GuiClient_SendMessage(const std::vector<uint8_t>&
 
 void PropertyConsumerApp_C::GuiClient_OnWidgetListReplyReceived(GuiProtocol::WidgetReplyStatus_E status)
 {
-    if (GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS == status)
+    if (GuiProtocol::WidgetReplyStatus_E::Success == status)
     {
         std::cout << "Widget List reply received with status success!\n";
         _widgetListReceived = true;
@@ -210,7 +219,7 @@ void PropertyConsumerApp_C::GuiClient_OnWidgetListReplyReceived(GuiProtocol::Wid
 
 void PropertyConsumerApp_C::GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::WidgetReplyStatus_E status, std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& setValuesList)
 {
-    if (GuiProtocol::WidgetReplyStatus_E::SET_VAL_SUCCESS == status)
+    if (GuiProtocol::WidgetReplyStatus_E::Success == status)
     {
         std::cout << "Widget Set Value reply received with status success!\n";
     }
@@ -250,7 +259,7 @@ int32_t PropertyConsumerApp_C::PropertyConsumer_SendMessage(const std::vector<ui
     return _transport->TransportSendMessage(_producerInfo.destIp, _producerInfo.destPort, message);
 }
 
-void PropertyConsumerApp_C::PropertyConsumer_OnPropertyListReplyReceived(PropertyGatherer::PropertyReplyStatus_E status, std::vector<PropertyGatherer::PropertyDescriptor_T>& descList)
+void PropertyConsumerApp_C::PropertyConsumer_OnPropertyListReplyReceived(PropertyGatherer::PropertyGathererReplyStatus_E status, std::vector<PropertyGatherer::PropertyDescriptor_T>& descList)
 {
     std::cout << "Property List Reply received\n";
 
@@ -260,7 +269,7 @@ void PropertyConsumerApp_C::PropertyConsumer_OnPropertyListReplyReceived(Propert
     }
 }
 
-void PropertyConsumerApp_C::PropertyConsumer_OnPropertyGetValueReplyRecieved(PropertyGatherer::PropertyReplyStatus_E status, std::vector<PropertyGatherer::PropertyStorageVariant>& values)
+void PropertyConsumerApp_C::PropertyConsumer_OnPropertyGetValueReplyRecieved(PropertyGatherer::PropertyGathererReplyStatus_E status, std::vector<PropertyGatherer::PropertyStorageVariant>& values)
 {
     std::cout << "Property Get Value Reply received\n";
 
@@ -271,4 +280,12 @@ void PropertyConsumerApp_C::PropertyConsumer_OnPropertyGetValueReplyRecieved(Pro
         std::cout << "\n";
     }
     // Handle the reply here
+}
+
+void PropertyConsumerApp_C::PropertyConsumer_OnPropertySetValueReplyRecieved(PropertyGatherer::PropertyGathererReplyStatus_E status, PropertyGatherer::PropertyStorageVariant& value)
+{
+    std::cout << "Property Set Value Reply received\n";
+    std::cout << "Property Value: ";
+    std::visit([](auto&& arg) { std::cout << arg; }, value);
+    std::cout << "\n";
 }

@@ -22,8 +22,8 @@ namespace PropertyGatherer
 {
     enum PropertyStorageVariantType_E 
     {
-        UNSIGNED_8_BIT_INT,
-        STRING,
+        Unsigned8BitInt,
+        String,
     };
 
     using PropertyStorageVariant = std::variant</*int8_t,
@@ -37,39 +37,37 @@ namespace PropertyGatherer
                                                 float,*/
                                                 std::string>;
 
-    enum class MessageID_E
+
+    /* Type defs */
+    typedef uint16_t PropertyId_T;
+
+    enum class MessageId_E
     {
-        PROTOCOL_VERSION_REQ,
-        PROTOCOL_VERSION_REPLY,
-        PROPERTY_LIST_REQ,
-        PROPERTY_LIST_REPLY,
-        GET_VALUE_REQUEST,
-        GET_VALUE_REPLY,
-        SET_VALUE_REQUEST,
-        SET_VALUE_REPLY,
+        ProtocolVersionReq,
+        ProtocolVersionReply,
+        PropertyListReq,
+        PropertyListReply,
+        GetValueRequest,
+        GetValueReply,
+        SetValueRequest,
+        SetValueReply,
     };
 
-    enum class PropertyConsumerStatus_E
+    enum class PropertyGathererReplyStatus_E
     {
-        PROPERTY_CONSUMER_STATUS_SUCCESS,
-        PROPERTY_CONSUMER_STATUS_FAILED_TO_SEND_MSG,
-        PROPERTY_CONSUMER_STATUS_ERROR,
-    };
-
-    enum class PropertyProducerStatus_E
-    {
-        PROPERTY_PRODUCER_STATUS_SUCCESS,
-        PROPERTY_PRODUCER_STATUS_FAILED_TO_SEND_MSG,
-        PROPERTY_PRODUCER_STATUS_ERROR,
-    };
-
-    enum class PropertyReplyStatus_E
-    {
-        SET_VAL_SUCCESS,
-        SET_VAL_PARTIAL_SUCCESS,
-        SET_VAL_FAILED_TO_SET,
-        SET_VAL_UNKNOWN_WIDGET,
-        SET_VAL_ERROR,
+        Success,
+        Busy,
+        UnknownRequest,
+        Error,
+        InvalidParameter,
+        InvalidPropertyId,
+        InvalidPropertyValue,
+        AccessError,
+        MaxSubscriptionsExceeded,
+        MaxResponseLenExceeded,
+        ResourceError,
+        Pending,
+        PartialSuccess,
     };
 
     /* Structs */
@@ -156,10 +154,32 @@ namespace PropertyGatherer
         uint16_t status;
     };
 
+    struct SetValueReq_T
+    {
+        struct Header_T header;
+        uint16_t propId;
+        PropertyStorageVariant value;
+    };
+
+    struct SetValueReply_T
+    {
+        struct Header_T header;
+        PropertyStorageVariant value;
+        uint16_t status;
+    };
+
+    struct PropertyValueContainer_T
+    {
+        PropertyId_T propertyId;
+        PropertyStorageVariant value;
+    };
+
     PropertyListRequest_T GetPropertyListRequest();
-    PropertyListReply_T GetPropertyListReply(std::vector<PropertyDescriptor_T>& descList, PropertyReplyStatus_E status);
+    PropertyListReply_T GetPropertyListReply(std::vector<PropertyDescriptor_T>& descList, PropertyGathererReplyStatus_E status);
     GetValueReq_T GetPropertyGetValueRequest(uint16_t maxResponseLength, std::vector<uint16_t> propertyIds);
-    GetValueReply_T GetPropertyGetValueReply(std::vector<PropertyStorageVariant> values, PropertyReplyStatus_E status);
+    GetValueReply_T GetPropertyGetValueReply(std::vector<PropertyStorageVariant> values, PropertyGathererReplyStatus_E status);
+    SetValueReq_T GetPropertySetValueRequest(uint16_t propertyId, PropertyStorageVariant& value);
+    SetValueReply_T GetPropertySetValueReply(PropertyStorageVariant& value, PropertyGathererReplyStatus_E status);
 
     class PropertyGathererMessageSerializer
     {
@@ -172,12 +192,16 @@ namespace PropertyGatherer
             uint16_t Serialize(PropertyListReply_T& pMessage, std::vector<uint8_t>& outBuff);
             uint16_t Serialize(GetValueReq_T& pMessage, std::vector<uint8_t>& outBuff);
             uint16_t Serialize(GetValueReply_T& pMessage, std::vector<uint8_t>& outBuff);
+            uint16_t Serialize(SetValueReq_T& pMessage, std::vector<uint8_t>& outBuff);
+            uint16_t Serialize(SetValueReply_T& pMessage, std::vector<uint8_t>& outBuff);
 
             /* Deserialization functions */
             bool Deserialize(PropertyListRequest_T& pMessage, std::vector<uint8_t>& msgBuff);
             bool Deserialize(PropertyListReply_T& pMessage, std::vector<uint8_t>& msgBuff);
             bool Deserialize(GetValueReq_T& pMessage, std::vector<uint8_t>& msgBuf);
             bool Deserialize(GetValueReply_T& pMessage, std::vector<uint8_t>& msgBuf);
+            bool Deserialize(SetValueReq_T& pMessage, std::vector<uint8_t>& msgBuf);
+            bool Deserialize(SetValueReply_T& pMessage, std::vector<uint8_t>& msgBuf);
 
         private:
             void SerializeHeader(Header_T& header, std::vector<uint8_t>& outBuff);

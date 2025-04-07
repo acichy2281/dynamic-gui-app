@@ -6,14 +6,14 @@ namespace PropertyGatherer
     PropertyListRequest_T GetPropertyListRequest()
     {
         PropertyListRequest_T retVal;
-        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::PROPERTY_LIST_REQ);
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::PropertyListReq);
         return retVal;
     }
 
-    PropertyListReply_T GetPropertyListReply(std::vector<PropertyDescriptor_T>& descList, PropertyReplyStatus_E status)
+    PropertyListReply_T GetPropertyListReply(std::vector<PropertyDescriptor_T>& descList, PropertyGathererReplyStatus_E status)
     {
         PropertyListReply_T retVal;
-        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::PROPERTY_LIST_REPLY);
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::PropertyListReply);
         retVal.numProperties = descList.size();
         retVal.propertyDescriptorList = descList;
         retVal.status = static_cast<uint16_t>(status);
@@ -23,18 +23,36 @@ namespace PropertyGatherer
     GetValueReq_T GetPropertyGetValueRequest(uint16_t maxResponseLength, std::vector<uint16_t> propertyIds)
     {
         GetValueReq_T retVal;
-        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::GET_VALUE_REQUEST);
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::GetValueRequest);
         retVal.maxRespLen = maxResponseLength;
         retVal.numReqProp = static_cast<uint16_t>(propertyIds.size());
         retVal.propIds = propertyIds;
         return retVal;
     }
 
-    GetValueReply_T GetPropertyGetValueReply(std::vector<PropertyStorageVariant> values, PropertyReplyStatus_E status)
+    GetValueReply_T GetPropertyGetValueReply(std::vector<PropertyStorageVariant> values, PropertyGathererReplyStatus_E status)
     {
         GetValueReply_T retVal;
-        retVal.header.messageId = static_cast<uint16_t>(MessageID_E::GET_VALUE_REPLY);
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::GetValueReply);
         retVal.propValues = values;
+        retVal.status = static_cast<uint16_t>(status);
+        return retVal;
+    }
+
+    SetValueReq_T GetPropertySetValueRequest(uint16_t propertyId, PropertyStorageVariant& value)
+    {
+        SetValueReq_T retVal;
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::SetValueRequest);
+        retVal.propId = propertyId;
+        retVal.value = value;
+        return retVal;
+    }
+
+    SetValueReply_T GetPropertySetValueReply(PropertyStorageVariant& value, PropertyGathererReplyStatus_E status)
+    {
+        SetValueReply_T retVal;
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::SetValueReply);
+        retVal.value = value;
         retVal.status = static_cast<uint16_t>(status);
         return retVal;
     }
@@ -198,6 +216,39 @@ namespace PropertyGatherer
         std::memcpy(outBuff.data() + bufSize, &pMessage.status, sizeof(pMessage.status));
         bufSize = outBuff.size(); 
         
+        return bufSize;
+    }
+
+    uint16_t PropertyGathererMessageSerializer::Serialize(SetValueReq_T& pMessage, std::vector<uint8_t>& outBuff)
+    {
+        SerializeHeader(pMessage.header, outBuff);
+        uint16_t bufSize = outBuff.size();
+
+        /* Serialize property id */
+        outBuff.resize(bufSize + sizeof(pMessage.propId));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.propId, sizeof(pMessage.propId));
+        bufSize = outBuff.size(); 
+
+        /* Serialize property value */
+        bufSize += SerializeVariant(pMessage.value, outBuff);
+
+        return bufSize;
+    }
+
+    uint16_t PropertyGathererMessageSerializer::Serialize(SetValueReply_T& pMessage, std::vector<uint8_t>& outBuff)
+    {
+        SerializeHeader(pMessage.header, outBuff);
+        uint16_t bufSize = outBuff.size();
+
+        /* Serialize property value */
+        bufSize += SerializeVariant(pMessage.value, outBuff);
+
+        /* Serialize status */
+        bufSize = outBuff.size();
+        outBuff.resize(bufSize + sizeof(pMessage.status));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.status, sizeof(pMessage.status));
+        bufSize = outBuff.size(); 
+
         return bufSize;
     }
 
@@ -381,6 +432,36 @@ namespace PropertyGatherer
         return true;
     }
 
+    bool PropertyGathererMessageSerializer::Deserialize(SetValueReq_T& pMessage, std::vector<uint8_t>& msgBuf)
+    {
+        DeserializeHeader(pMessage.header, msgBuf);
+        uint16_t bufIndex = sizeof(pMessage.header);
+
+        /* Deserialize property id */
+        std::memcpy(&pMessage.propId, msgBuf.data() + bufIndex, sizeof(pMessage.propId));
+        bufIndex += sizeof(pMessage.propId);
+
+        /* Deserialize property value */
+        pMessage.value = DeserializeVariant(msgBuf, bufIndex);
+
+        return true;
+    }
+
+    bool PropertyGathererMessageSerializer::Deserialize(SetValueReply_T& pMessage, std::vector<uint8_t>& msgBuf)
+    {
+        DeserializeHeader(pMessage.header, msgBuf);
+        uint16_t bufIndex = sizeof(pMessage.header);
+
+        /* Deserialize property value */
+        pMessage.value = DeserializeVariant(msgBuf, bufIndex);
+
+        /* Deserialize status */
+        std::memcpy(&pMessage.status, msgBuf.data() + bufIndex, sizeof(pMessage.status));
+        bufIndex += sizeof(pMessage.status);
+
+        return true;
+    }
+
     PropertyStorageVariant PropertyGathererMessageSerializer::DeserializeVariant(std::vector<uint8_t>& inBuff, uint16_t& index)
     {
         // Read the type index (which type was serialized)
@@ -414,7 +495,7 @@ namespace PropertyGatherer
             //     result = val;
             //     break;
             // }
-            case UNSIGNED_8_BIT_INT: { // uint8_t
+            case Unsigned8BitInt: { // uint8_t
                 uint8_t val = inBuff[index++];
                 result = val;
                 break;
@@ -445,7 +526,7 @@ namespace PropertyGatherer
             //     result = val;
             //     break;
             // }
-            case STRING: { // std::string
+            case String: { // std::string
                 uint16_t startIdx = index;
                 while (index < inBuff.size() && inBuff[index] != '\0') 
                 {

@@ -22,24 +22,33 @@ namespace PropertyGatherer
 {
     enum class PropertyConsumerState_E
     {
-        INITIALIZED,
-        PROPERTY_LIST_REQUESTED,
-        PROPERTY_LIST_RECEIVED,
-        READY,
-        PROPERTY_VALUE_REQUESTED,
-        PROPERTY_VALUE_RECEIVED,
+        Uninitialized,
+        Initialized,
+        PropertyListRequested,
+        Ready,
+        PropertyGetValReqSent,
+        PropertySetValReqSent,
+        Error,
     };
-    enum class PropertyConsumerReqStatus_E
+    enum class PropertyConsumerStatus_E
     {
-        PROPERTY_CONSUMER_STATUS_SUCCESS,
-        PROPERTY_CONSUMER_STATUS_FAILED_TO_SEND_MSG,
-        PROPERTY_CONSUMER_STATUS_ERROR,
+        Success,
+        NotInitialized,
+        PropertyListNotReceived,
+        FailedToSendMsg,
+        RequestInProgress,
+        Error,
     };
     struct PropertyConsumerCallbacks_T 
     {
         std::function<int32_t(const std::vector<uint8_t>&)> sendMessage;
-        std::function<void(PropertyReplyStatus_E, std::vector<PropertyDescriptor_T>&)> onPropertyListReplyReceived;
-        std::function<void(PropertyReplyStatus_E, std::vector<PropertyStorageVariant>&)> onPropertyGetValueReplyRecieved;
+        std::function<void(PropertyGathererReplyStatus_E, std::vector<PropertyDescriptor_T>&)> onPropertyListReplyReceived;
+        std::function<void(PropertyGathererReplyStatus_E, std::vector<PropertyStorageVariant>&)> onPropertyGetValueReplyRecieved;
+        std::function<void(PropertyGathererReplyStatus_E, PropertyStorageVariant&)> onPropertySetValueReplyRecieved;
+    };
+    struct PropertyConsumerInitParams_T
+    {
+        const PropertyConsumerCallbacks_T& callbacks;
     };
 
     class PropertyConsumer_C
@@ -48,32 +57,42 @@ namespace PropertyGatherer
             PropertyConsumer_C();
             ~PropertyConsumer_C();
 
-            void ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
+            PropertyConsumerStatus_E PropertyConsumer_Initialize(PropertyConsumerInitParams_T& initParams);
+            PropertyConsumerStatus_E ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
             void ProcessTimedActivities();
-            void SetCallbacks(const PropertyConsumerCallbacks_T& callbacks);
 
-            PropertyConsumerReqStatus_E SendPropertyListRequest();
-            PropertyConsumerReqStatus_E SendGetValueRequest(uint16_t maxResponseLength, std::vector<uint16_t> propertyIds);
+            PropertyConsumerStatus_E SendPropertyListRequest();
+            PropertyConsumerStatus_E SendGetValueRequest(uint16_t maxResponseLength, std::vector<uint16_t> propertyIds);
+            PropertyConsumerStatus_E SendSetValueRequest(uint16_t propertyId, PropertyStorageVariant& value);
 
         private:
+            bool SetCallbacks(const PropertyConsumerCallbacks_T& callbacks);
             uint64_t GetCurrentTimeMs();
             void ProcessStateMachine();
             void ProcessReceivedMessageQueue();
             void ProcessReceivedPropertyListReply(Message_T& msg);
             void ProcessReceivedPropertyGetValueReply(Message_T& msg);
+            void ProcessReceivedPropertySetValueReply(Message_T& msg);
 
             /* Callbacks */
             std::function<int32_t (const std::vector<uint8_t>&)> SendMessage;
-            std::function<void(PropertyReplyStatus_E, std::vector<PropertyDescriptor_T>&)> OnPropertyListReplyReceived;
-            std::function<void(PropertyReplyStatus_E, std::vector<PropertyStorageVariant>&)> OnPropertyGetValueReplyRecieved;
+            std::function<void(PropertyGathererReplyStatus_E, std::vector<PropertyDescriptor_T>&)> OnPropertyListReplyReceived;
+            std::function<void(PropertyGathererReplyStatus_E, std::vector<PropertyStorageVariant>&)> OnPropertyGetValueReplyRecieved;
+            std::function<void(PropertyGathererReplyStatus_E, PropertyStorageVariant&)> OnPropertySetValueReplyRecieved;
 
             /* Member Variables */
-            PropertyConsumerState_E _state = PropertyConsumerState_E::INITIALIZED;
+            PropertyConsumerState_E _state = PropertyConsumerState_E::Uninitialized;
             ThreadSafeQueue_C<Message_T> _msgQueue;
             PropertyGathererMessageSerializer _msgSerializer;
+            std::vector<PropertyDescriptor_T> _propertyDescriptorList;
+            bool _initialized = false;
             bool _propertyListRequested = false;
             bool _propertyListReceived = false;
-
+            bool _propertyGetValueReqSent = false;
+            bool _propertyGetValueReplyReceived = false;
+            bool _propertySetValueReqSent = false;
+            bool _propertySetValueReplyReceived = false;
+            bool _errorOccured = false;
     };
 }
 

@@ -23,60 +23,67 @@ namespace PropertyGatherer
 {
     enum class PropertyProducerState_E
     {
-        INITIALIZED,
-        PROPERTY_LIST_POPULATED,
-        PROPERTY_LIST_REPLY_SENT,
+        Uninitialized,
+        Initialized,
+        Ready,
+        Error,
     };
-    enum class PropertyProducerRepStatus_E
+    enum class PropertyProducerStatus_E
     {
-        PROPERTY_PRODUCER_STATUS_SUCCESS,
-        PROPERTY_PRODUCER_STATUS_FAILED_TO_SEND_MSG,
-        PROPERTY_PRODUCER_STATUS_ERROR,
+        Success,
+        FailedToSendMsg,
+        Error,
     };
     struct PropertyProducerCallbacks_T 
     {
         std::function<int32_t(const std::vector<uint8_t>&)> sendMessage;
-        std::function<void(std::vector<PropertyDescriptor_T>&)> onPropertyListRequestReceived;
-        std::function<PropertyReplyStatus_E(std::vector<PropertyStorageVariant>&)> onPropertyGetValueRequestRecieved;
+        std::function<void(const std::vector<PropertyDescriptor_T>&)> onPropertyListRequestReceived;
+        std::function<PropertyGathererReplyStatus_E(std::vector<PropertyValueContainer_T>&)> onPropertyGetValueRequestRecieved;
+        std::function<PropertyGathererReplyStatus_E(PropertyValueContainer_T&)> onPropertySetValueRequestRecieved;
+    };
+    struct PropertyProducerInitParams_T
+    {
+        const std::vector<PropertyDescriptor_T>& propertyList;
+        const PropertyProducerCallbacks_T& callbacks;
     };
 
     class PropertyProducer_C
     {
         public:
-
             PropertyProducer_C();
             ~PropertyProducer_C();
 
-            void PropertyProducer_ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
+            PropertyProducerStatus_E PropertyProducer_Initialize(PropertyProducerInitParams_T& initParams);
+            PropertyProducerStatus_E PropertyProducer_ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
             void PropertyProducer_ProcessTimedActivities();
 
-            bool SetPropertyList(std::vector<PropertyDescriptor_T>& descList);
-            void SetPropertyValue(std::vector<std::pair<uint16_t, PropertyStorageVariant>>&);
-            void SetCallbacks(const PropertyProducerCallbacks_T& callbacks);
-
         private:
+            bool SetCallbacks(const PropertyProducerCallbacks_T& callbacks);
+            bool SetPropertyList(const std::vector<PropertyDescriptor_T>& descList);
             uint64_t GetCurrentTimeMs();
             void ProcessStateMachine();
             void ProcessReceivedMessageQueue();
             void ProcessReceivedPropertyListRequest();
             void ProcessReceivedPropertyGetValueRequest(Message_T& msg);
+            void ProcessReceivedPropertySetValueRequest(Message_T& msg);
 
             /* Callbacks */
             std::function<int32_t(const std::vector<uint8_t>&)> SendMessage;
-            std::function<void(std::vector<PropertyDescriptor_T>&)> OnPropertyListRequestReceived;
-            std::function<PropertyReplyStatus_E(std::vector<PropertyStorageVariant>&)> OnPropertyGetValueRequestRecieved;
+            std::function<void(const std::vector<PropertyDescriptor_T>&)> OnPropertyListRequestReceived;
+            std::function<PropertyGathererReplyStatus_E(std::vector<PropertyValueContainer_T>&)> OnPropertyGetValueRequestRecieved;
+            std::function<PropertyGathererReplyStatus_E(PropertyValueContainer_T&)> OnPropertySetValueRequestRecieved;
 
 
             /* Member variables */
-            PropertyProducerState_E _state = PropertyProducerState_E::INITIALIZED;
+            PropertyProducerState_E _state = PropertyProducerState_E::Uninitialized;
             ThreadSafeQueue_C<Message_T> _msgQueue;
             PropertyGathererMessageSerializer _msgSerializer;
             std::map<uint16_t, PropertyDescriptor_T> _propertyMap;
-            std::map<uint16_t, PropertyStorageVariant> _propertyValues;
-            bool _propertListPopulated = false;
+            bool _initialized = false;
             bool _propertyListReplySent = false;
             bool _propertyGetValueReplySent = false;
-
+            bool _propertySetValueReplySent = false;
+            bool _errorOccured = false;
     };
 }
 
