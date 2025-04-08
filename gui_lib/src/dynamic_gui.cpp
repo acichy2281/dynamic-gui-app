@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include "dynamic_gui.h"
 
-DynamicGui_C::DynamicGui_C()
+DynamicGui_C::DynamicGui_C() : _guiServer(std::make_shared<GuiProtocol::GuiServer_C>())
 {
 
 }
@@ -78,7 +78,7 @@ void DynamicGui_C::SetWidgetList(std::vector<WidgetDescriptor_T>& descList)
             std::cout << "Cannot add duplicate widget " << desc.widgetId << ":" << desc.widgetName << "\n";
         }
     }
-    if (true == _isGuiServerRunning) _guiServer->SetWidgetList(_widgetMap);
+    _guiServer->SetWidgetList(_widgetMap);
 }
 
 void DynamicGui_C::SetCallbacks(const DynamicGuiCallbacks_T& callBacks)
@@ -487,12 +487,18 @@ bool DynamicGui_C::RunGuiServer(const GuiServerInitParams_T& initParams)
     }
     
     /* Populate callbacks */
-    _guiServer = std::make_shared<GuiProtocol::GuiServer_C>(
-        std::bind(&DynamicGui_C::GuiServer_SendMessage, this, std::placeholders::_1),
-        std::bind(&DynamicGui_C::GuiServer_OnWidgetListRequestReceived, this),
-        std::bind(&DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived, this, std::placeholders::_1),
-        std::bind(&DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    GuiProtocol::GuiServerInitParams_T initServerParams;
+    initServerParams.callbacks.sendMessage = std::bind(&DynamicGui_C::GuiServer_SendMessage, this, std::placeholders::_1);
+    initServerParams.callbacks.onWidgetListRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetListRequestReceived, this);
+    initServerParams.callbacks.onWidgetSetValueRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived, this, std::placeholders::_1);
+    initServerParams.callbacks.onWidgetEventNotificationAckReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    initServerParams.callbacks.onWidgetGetValueRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetGetValueRequestReceived, this, std::placeholders::_1, std::placeholders::_2);
 
+    if (GuiProtocol::GuiServerStatus_E::Success != _guiServer->Initialize(initServerParams))
+    {
+        std::cout << "Error! Failed to initialize GUI server\n";
+        return false;
+    }
     _guiServerTransport = UdpTransportFactory::CreateTransport();
     _guiServerTransport->InitializeSocket(_guiServerPortInfo.destIp, _guiServerPortInfo.destPort);
 
@@ -513,8 +519,8 @@ bool DynamicGui_C::RunGuiServer(const GuiServerInitParams_T& initParams)
         {
             std::cout << "Sending Widget Event Notification\n";
             auto event = _guiServerWidgetEventNotificationQueue.Dequeue();                   
-            GuiProtocol::GuiServerReqStatus_E status = _guiServer->SendWidgetEventNotification(event.windowId, event.widgetId, event.value);
-            if (GuiProtocol::GuiServerReqStatus_E::Success != status)
+            GuiProtocol::GuiServerStatus_E status = _guiServer->SendWidgetEventNotification(event.windowId, event.widgetId, event.value);
+            if (GuiProtocol::GuiServerStatus_E::Success != status)
             {
                 std::cout << "Error! Failed to send Widget Event Notification, status " << static_cast<int>(status) << "\n";
             }
@@ -628,6 +634,32 @@ GuiProtocol::WidgetReplyStatus_E DynamicGui_C::GuiServer_OnWidgetSetValueRequest
     else
     {
         std::cout << "All Set Value requests failed\n";
+    }
+    return retVal;
+}
+
+GuiProtocol::WidgetReplyStatus_E DynamicGui_C::GuiServer_OnWidgetGetValueRequestReceived(uint32_t widgetId, WidgetValueVariant_T& val)
+{
+    auto retVal = GuiProtocol::WidgetReplyStatus_E::Error;
+    uint16_t windowId16 = widgetId >> 16;
+    uint16_t widgetId16 = widgetId & 0xFFFF;
+
+    std::shared_ptr<WidgetInterface_I> outWidget;
+    if (false == _windowList.at(windowId16).GetWidgetAt(widgetId16, outWidget))
+    {
+        std::cout << "Unable to find widget " << widgetId << "\n";
+        retVal = GuiProtocol::WidgetReplyStatus_E::InvalidWidgetId;
+    }
+    else if (0 == (outWidget->GetDescriptor().flags & WidgetFlags_E::Readable))
+    {
+        std::cout << "Widget " << widgetId << " is not a readable widget\n";
+        retVal = GuiProtocol::WidgetReplyStatus_E::AccessError;
+    }
+    else
+    {
+        val = outWidget->GetWidgetValue();
+        std::cout << "Successfuly got widget " << widgetId << " value\n";
+        retVal = GuiProtocol::WidgetReplyStatus_E::Success;
     }
     return retVal;
 }

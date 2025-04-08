@@ -27,6 +27,8 @@ namespace GuiProtocol
         WidgetListReply,
         WidgetSetValueReq,
         WidgetSetValueReply,
+        WidgetGetValueReq,
+        WidgetGetValueReply,
         WidgetEventNotification,
         WidgetEventNotificationAck,
     };
@@ -134,6 +136,19 @@ namespace GuiProtocol
         uint16_t status;
     };
 
+    struct WidgetGetValueRequest_T
+    {
+        Header_T header;
+        uint32_t widgetId;
+    };
+    struct WidgetGetValueReply_T
+    {
+        Header_T header;
+        uint32_t widgetId;
+        WidgetValueVariant_T value;
+        uint16_t status;
+    };
+
     /**
      * @brief Structure for storing widget descriptor and its current value
      */
@@ -175,6 +190,8 @@ namespace GuiProtocol
     WidgetListReply_T GetWidgetListReply(std::vector<WidgetDescriptor_T>& descList, WidgetReplyStatus_E status);
     WidgetSetValueRequest_T GetWidgetSetValueRequest(std::vector<WidgetValueStorage_T>& widgetSetVals);
     WidgetSetValueReply_T GetWidgetSetValueReply(std::vector<WidgetSetValueResponseReturn_T>& widgetSetVals, WidgetReplyStatus_E status);
+    WidgetGetValueRequest_T GetWidgetGetValueRequest(uint32_t widgetId);
+    WidgetGetValueReply_T GetWidgetGetValueReply(uint32_t widgetId, WidgetValueVariant_T value, WidgetReplyStatus_E status);
     WidgetEventNotification_T GetWidgetEventNotification(uint16_t windowId, uint16_t widgetId, WidgetValueVariant_T updatedValue);
     WidgetEventNotificationAck_T GetWidgetEventNotificationAck(uint32_t widgetId, uint16_t status);
 
@@ -189,6 +206,8 @@ namespace GuiProtocol
             uint16_t Serialize(WidgetListReply_T& pMessage, std::vector<uint8_t>& outBuff);
             uint16_t Serialize(WidgetSetValueRequest_T& pMessage, std::vector<uint8_t>& outBuff);
             uint16_t Serialize(WidgetSetValueReply_T& pMessage, std::vector<uint8_t>& outBuff);
+            uint16_t Serialize(WidgetGetValueRequest_T& pMessage, std::vector<uint8_t>& outBuff);
+            uint16_t Serialize(WidgetGetValueReply_T& pMessage, std::vector<uint8_t>& outBuff);
             uint16_t Serialize(WidgetEventNotification_T& pMessage, std::vector<uint8_t>& outBuff);
             uint16_t Serialize(WidgetEventNotificationAck_T& pMessage, std::vector<uint8_t>& outBuff);
 
@@ -197,6 +216,8 @@ namespace GuiProtocol
             bool Deserialize(WidgetListReply_T& pMessage, std::vector<uint8_t>& msgBuf);
             bool Deserialize(WidgetSetValueRequest_T& pMessage, std::vector<uint8_t>& msgBuf);
             bool Deserialize(WidgetSetValueReply_T& pMessage, std::vector<uint8_t>& msgBuf);
+            bool Deserialize(WidgetGetValueRequest_T& pMessage, std::vector<uint8_t>& msgBuf);
+            bool Deserialize(WidgetGetValueReply_T& pMessage, std::vector<uint8_t>& msgBuf);
             bool Deserialize(WidgetEventNotification_T& pMessage, std::vector<uint8_t>& msgBuf);
             bool Deserialize(WidgetEventNotificationAck_T& pMessage, std::vector<uint8_t>& msgBuf);
 

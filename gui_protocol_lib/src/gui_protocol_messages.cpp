@@ -20,54 +20,6 @@ namespace GuiProtocol
         return retVal;
     }
 
-    // WidgetDescriptor_T GetButtonWidgetDescriptor(uint16_t windowId, uint16_t widgetId, std::string& widgetName)
-    // {
-    //     bool isInteractable = true;
-    //     bool isStatic = false;
-    //     bool isReadable = true;
-    //     bool isWritable = false;
-    //     uint8_t reserved = 0;
-    //     uint8_t widgetType = static_cast<uint8_t>(WidgetTypes_E::Button);
-    //     uint8_t dataType = static_cast<uint8_t>(WidgetDataTypes_E::WIDGET_DATA_TYPE_BOOL); // Assuming button state is boolean
-
-    //     WidgetDescriptor_T retVal;
-    //     retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
-    //     retVal.isInteractable = isInteractable;
-    //     retVal.isStatic = isStatic;
-    //     retVal.isReadable = isReadable;
-    //     retVal.isWritable = isWritable;
-    //     retVal.reserved = reserved;
-    //     retVal.widgetType = widgetType;
-    //     retVal.dataType = dataType;
-    //     retVal.widgetName = widgetName;
-
-    //     return retVal;
-    // }
-
-    // WidgetDescriptor_T GetSliderWidgetDescriptor(uint16_t windowId, uint16_t widgetId, std::string& widgetName)
-    // {
-    //     bool isInteractable = true;
-    //     bool isStatic = false;
-    //     bool isReadable = true;
-    //     bool isWritable = true; // Assuming slider can be written to
-    //     uint8_t reserved = 0;
-    //     uint8_t widgetType = static_cast<uint8_t>(WidgetTypes_E::Slider);
-    //     uint8_t dataType = static_cast<uint8_t>(WidgetDataTypes_E::WIDGET_DATA_TYPE_FLOAT); // Assuming slider value is float
-
-    //     WidgetDescriptor_T retVal;
-    //     retVal.widgetId = (static_cast<uint32_t>(windowId) << 16) | static_cast<uint32_t>(widgetId);
-    //     retVal.isInteractable = isInteractable;
-    //     retVal.isStatic = isStatic;
-    //     retVal.isReadable = isReadable;
-    //     retVal.isWritable = isWritable;
-    //     retVal.reserved = reserved;
-    //     retVal.widgetType = widgetType;
-    //     retVal.dataType = dataType;
-    //     retVal.widgetName = widgetName;
-
-    //     return retVal;
-    // }
-
     WidgetListRequest_T GetWidgetListRequest()
     {
         WidgetListRequest_T retVal;
@@ -115,6 +67,24 @@ namespace GuiProtocol
             setValCont.status = widgetSetVal.status;
             retVal.setValuesList.push_back(setValCont);
         }
+        retVal.status = static_cast<uint16_t>(status);
+        return retVal;
+    }
+
+    WidgetGetValueRequest_T GetWidgetGetValueRequest(uint32_t widgetId)
+    {
+        WidgetGetValueRequest_T retVal;
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::WidgetGetValueReq);
+        retVal.widgetId = widgetId;
+        return retVal;
+    }
+    
+    WidgetGetValueReply_T GetWidgetGetValueReply(uint32_t widgetId, WidgetValueVariant_T value, WidgetReplyStatus_E status)
+    {
+        WidgetGetValueReply_T retVal;
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::WidgetGetValueReply);
+        retVal.widgetId = widgetId;
+        retVal.value = value;
         retVal.status = static_cast<uint16_t>(status);
         return retVal;
     }
@@ -304,6 +274,40 @@ namespace GuiProtocol
         bufSize = outBuff.size();
         outBuff.resize(bufSize + sizeof(pCont.status));
         std::memcpy(outBuff.data() + bufSize, &pCont.status, sizeof(pCont.status));
+        bufSize = outBuff.size();
+
+        return bufSize;
+    }
+
+    uint16_t GuiProtocolMessageSerializer::Serialize(WidgetGetValueRequest_T& pMessage, std::vector<uint8_t>& outBuff)
+    {
+        SerializeHeader(pMessage.header, outBuff);
+        uint16_t bufSize = outBuff.size();
+
+        /* Serialize Widget Id */
+        outBuff.resize(bufSize + sizeof(pMessage.widgetId));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.widgetId, sizeof(pMessage.widgetId));
+        bufSize = outBuff.size();
+
+        return bufSize;
+    }
+
+    uint16_t GuiProtocolMessageSerializer::Serialize(WidgetGetValueReply_T& pMessage, std::vector<uint8_t>& outBuff)
+    {
+        SerializeHeader(pMessage.header, outBuff);
+        uint16_t bufSize = outBuff.size();
+
+        /* Serialize Widget Id */
+        outBuff.resize(bufSize + sizeof(pMessage.widgetId));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.widgetId, sizeof(pMessage.widgetId));
+        bufSize = outBuff.size();
+
+        SerializeVariant(pMessage.value, outBuff);
+
+        /* Serialize status */
+        bufSize = outBuff.size();
+        outBuff.resize(bufSize + sizeof(pMessage.status));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.status, sizeof(pMessage.status));
         bufSize = outBuff.size();
 
         return bufSize;
@@ -526,6 +530,36 @@ namespace GuiProtocol
         /* Deserialize status */
         std::memcpy(&pCont.status, msgBuf.data() + offset, sizeof(pCont.status));
         offset += sizeof(pCont.status);
+    }
+
+    bool GuiProtocolMessageSerializer::Deserialize(WidgetGetValueRequest_T& pMessage, std::vector<uint8_t>& msgBuf)
+    {
+        DeserializeHeader(pMessage.header, msgBuf);
+        uint16_t bufIndex = sizeof(pMessage.header);
+
+        /* Deserialize Widget ID */
+        std::memcpy(&pMessage.widgetId, msgBuf.data() + bufIndex, sizeof(pMessage.widgetId));
+        bufIndex += sizeof(pMessage.widgetId);
+
+        return true;
+    }
+
+    bool GuiProtocolMessageSerializer::Deserialize(WidgetGetValueReply_T& pMessage, std::vector<uint8_t>& msgBuf)
+    {
+        DeserializeHeader(pMessage.header, msgBuf);
+        uint16_t bufIndex = sizeof(pMessage.header);
+
+        /* Deserialize Widget ID */
+        std::memcpy(&pMessage.widgetId, msgBuf.data() + bufIndex, sizeof(pMessage.widgetId));
+        bufIndex += sizeof(pMessage.widgetId);
+
+        pMessage.value = DeserializeVariant(msgBuf, bufIndex);
+
+        /* Deserialize status */
+        std::memcpy(&pMessage.status, msgBuf.data() + bufIndex, sizeof(pMessage.status));
+        bufIndex += sizeof(pMessage.status);
+
+        return true;
     }
 
     bool GuiProtocolMessageSerializer::Deserialize(WidgetEventNotification_T& pMessage, std::vector<uint8_t>& msgBuf)

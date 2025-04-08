@@ -3,12 +3,7 @@
 
 PropertyConsumerApp_C::PropertyConsumerApp_C(PropertyConsumerInitParams_C initParams) : 
     _producerInfo(initParams.producerInfo), _guiAppInfo(initParams.guiAppInfo),     
-    _guiClient(std::make_shared<GuiProtocol::GuiClient_C>(
-        std::bind(&PropertyConsumerApp_C::GuiClient_SendMessage, this, std::placeholders::_1),
-        std::bind(&PropertyConsumerApp_C::GuiClient_OnWidgetListReplyReceived, this, std::placeholders::_1),
-        std::bind(&PropertyConsumerApp_C::GuiClient_OnWidgetSetValueReplyReceived, this, std::placeholders::_1, std::placeholders::_2),
-        std::bind(&PropertyConsumerApp_C::GuiClient_OnWidgetEventNotificationReceived, this, std::placeholders::_1, std::placeholders::_2)
-    )),
+    _guiClient(std::make_shared<GuiProtocol::GuiClient_C>()),
     _propertyConsumer(std::make_shared<PropertyGatherer::PropertyConsumer_C>())
 {
     /* Initialize Transport */
@@ -17,6 +12,17 @@ PropertyConsumerApp_C::PropertyConsumerApp_C(PropertyConsumerInitParams_C initPa
     _rxBufferSize = 2048;
     _guiAppDevKey = _guiAppInfo.destIp + ":" + std::to_string(_guiAppInfo.destPort);
     _producerAppDevKey = _producerInfo.destIp + ":" + std::to_string(_producerInfo.destPort);
+
+    /* Set Gui Client Callbacks */
+    auto guiClientCallBacks = GuiProtocol::GuiClientCallbacks_T();
+    guiClientCallBacks.sendMessage = std::bind(&PropertyConsumerApp_C::GuiClient_SendMessage, this, std::placeholders::_1);
+    guiClientCallBacks.onWidgetListReplyReceived = std::bind(&PropertyConsumerApp_C::GuiClient_OnWidgetListReplyReceived, this, std::placeholders::_1);
+    guiClientCallBacks.onWidgetSetValueReplyReceived = std::bind(&PropertyConsumerApp_C::GuiClient_OnWidgetSetValueReplyReceived, this, std::placeholders::_1, std::placeholders::_2);
+    guiClientCallBacks.onWidgetGetValueReplyReceived = std::bind(&PropertyConsumerApp_C::GuiClient_OnWidgetGetValueReplyReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    guiClientCallBacks.onWidgetEventNotificationReceived = std::bind(&PropertyConsumerApp_C::GuiClient_OnWidgetEventNotificationReceived, this, std::placeholders::_1, std::placeholders::_2);
+
+    GuiProtocol::GuiClientInitParams_T guiClientInitParams{guiClientCallBacks};
+    _guiClient->Initialize(guiClientInitParams);
 
     /* Set Property Consumer Callbacks */
     auto propertyConsumerCallBacks = PropertyGatherer::PropertyConsumerCallbacks_T();
@@ -40,6 +46,7 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
 {
     std::cout << "Widget event callback: Widget ID = " << widgetDesc.widgetId << ", " << widgetDesc.widgetName << ", Value = ";
     std::visit([](auto&& arg) { std::cout << arg; }, val);
+    std::cout << "\n";
 
     auto it = _widgetCallbacks.find(widgetDesc.widgetId);
     if (it != _widgetCallbacks.end()) 
@@ -63,6 +70,25 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
         if (PropertyGatherer::PropertyConsumerStatus_E::Success != propValReqStatus)
         {
             std::cout << "Failed to request property value, error: " << static_cast<uint8_t>(propValReqStatus) << "\n";
+        }
+    }
+    else if (widgetDesc.widgetName == "Get Widget Value")
+    {
+        std::cout << "Requesting Widget Value\n";
+        
+        auto widgetIt = _widgetNameToIdMap.find("Get Widget Value Options");
+        if (widgetIt == _widgetNameToIdMap.end())
+        {
+            std::cout << "Widget ID not found for Get Widget Value Options\n";
+            return;
+        }
+        auto optionWidgetId = widgetIt->second;
+        auto widgetValue = static_cast<uint16_t>(std::get<int>(_gui.GetWidgetValue(optionWidgetId)));
+
+        auto guiClientStatus = _guiClient->SendGetValueRequest(widgetValue);
+        if (GuiProtocol::GuiClientStatus_E::Success != guiClientStatus)
+        {
+            std::cout << "Failed to request widget value, error: " << static_cast<uint8_t>(guiClientStatus) << "\n";
         }
     }
     else if (widgetDesc.widgetName == "Set Widget Value")
@@ -89,6 +115,7 @@ void PropertyConsumerApp_C::Gui_OnConfigFileSet(bool status)
         {
             std::cout << "Widget ID: " << widgetId << ", Widget Name: " << widgetDesc.widgetName << "\n";
             
+            _widgetNameToIdMap[widgetDesc.widgetName] = widgetId;
             if (widgetDesc.widgetName == "Get Property List") 
             {
                 _widgetCallbacks[widgetId] = [this](WidgetValueVariant_T) {
@@ -103,7 +130,7 @@ void PropertyConsumerApp_C::Gui_OnConfigFileSet(bool status)
                 _widgetCallbacks[widgetId] = [this](WidgetValueVariant_T) {
                     std::cout << "Requesting Widget List\n";
                     auto guiClientStatus = _guiClient->SendWidgetListRequest();
-                    if (GuiProtocol::GuiClientReqStatus_E::Success != guiClientStatus)
+                    if (GuiProtocol::GuiClientStatus_E::Success != guiClientStatus)
                     {
                         std::cout << "Failed to request widget list, error: " << static_cast<uint8_t>(guiClientStatus) << "\n";
                     }
@@ -236,7 +263,7 @@ void PropertyConsumerApp_C::RunSetWidgetValueTest()
     }
 
     auto setValReturn = _guiClient->SendSetValueRequest(setWidgetList);
-    if (GuiProtocol::GuiClientReqStatus_E::Success != setValReturn)
+    if (GuiProtocol::GuiClientStatus_E::Success != setValReturn)
     {
         std::cout << "Set Value Request failed with " << static_cast<uint8_t>(setValReturn) << "\n";
     }
@@ -253,6 +280,21 @@ void PropertyConsumerApp_C::GuiClient_OnWidgetListReplyReceived(GuiProtocol::Wid
     if (GuiProtocol::WidgetReplyStatus_E::Success == status)
     {
         std::cout << "Widget List reply received with status success!\n";
+
+        auto widget = _gui.GetWidget("Get Widget Value Options");
+        if (widget && std::dynamic_pointer_cast<WidgetRadio_C>(widget))
+        {
+            auto radioWidget = std::dynamic_pointer_cast<WidgetRadio_C>(widget);
+            for (const auto& [widgetId, widgetStorage] : _guiClient->WidgetList())
+            {
+                radioWidget->AddOption(widgetStorage.desc.widgetName);
+                std::cout << "Added Option for widget ID: " << widgetStorage.desc.widgetId << ", Name: " << widgetStorage.desc.widgetName << "\n";
+            }
+        }
+        else
+        {
+            std::cout << "No Radio widget found for Property Value Options\n";
+        }
         _widgetListReceived = true;
     }
     else
@@ -270,6 +312,21 @@ void PropertyConsumerApp_C::GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol:
     else
     {
         std::cout << "Widget Set Value reply status was not success!\n";
+    }
+}
+
+void PropertyConsumerApp_C::GuiClient_OnWidgetGetValueReplyReceived(uint32_t widgetId, WidgetValueVariant_T updatedValue, GuiProtocol::WidgetReplyStatus_E status)
+{
+    if (GuiProtocol::WidgetReplyStatus_E::Success == status)
+    {
+        std::cout << "Widget Get Value reply received with status success!\n";
+        std::cout << "Updated value for widget ID: " << widgetId << ", Value: ";
+        std::visit([](auto&& arg) { std::cout << arg; }, updatedValue);
+        std::cout << "\n";
+    }
+    else
+    {
+        std::cout << "Widget Get Value reply status was not success!\n";
     }
 }
 
@@ -307,21 +364,19 @@ void PropertyConsumerApp_C::PropertyConsumer_OnPropertyListReplyReceived(Propert
 {
     std::cout << "Property List Reply received\n";
 
-    for (const auto& desc : descList)
+    auto widget = _gui.GetWidget("Get Property Value Options");
+    if (widget && std::dynamic_pointer_cast<WidgetRadio_C>(widget))
     {
-        std::cout << "Property ID: " << desc.propertyId << ", Name: " << desc.propertyName << "\n";
-        auto widget = _gui.GetWidget("Get Property Value Options");
-        if (widget && std::dynamic_pointer_cast<WidgetRadio_C>(widget))
+        auto radioWidget = std::dynamic_pointer_cast<WidgetRadio_C>(widget);
+        for (const auto& desc : descList)
         {
-            auto radioWidget = std::dynamic_pointer_cast<WidgetRadio_C>(widget);
             radioWidget->AddOption(desc.propertyName);
-            _widgetNameToIdMap[desc.propertyName] = desc.propertyId;
-            std::cout << "Added Option for property ID: " << desc.propertyId << "\n";
+            std::cout << "Added Option for property ID: " << desc.propertyId << ", Name: " << desc.propertyName << "\n";
         }
-        else
-        {
-            std::cout << "No widget found for property ID: " << desc.propertyId << "\n";
-        }
+    }
+    else
+    {
+        std::cout << "No Radio widget found for Property Value Options\n";
     }
 }
 

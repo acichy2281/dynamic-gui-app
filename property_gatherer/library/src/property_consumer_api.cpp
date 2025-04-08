@@ -305,28 +305,32 @@ namespace PropertyGatherer
 
     void PropertyConsumer_C::ProcessReceivedMessageQueue()
     {
-        auto msg = _msgQueue.Dequeue();
-        uint16_t msgId = (static_cast<uint8_t>(msg.data[3]) << 8) | static_cast<uint8_t>(msg.data[2]);
-        switch (static_cast<MessageId_E>(msgId))
+        if (PropertyConsumerState_E::Uninitialized != _state && 
+            PropertyConsumerState_E::Error != _state)
         {
-            case MessageId_E::PropertyListReply:
-                std::cout << "Received a Property List Reply\n";
-                ProcessReceivedPropertyListReply(msg);
-                break;
+            auto msg = _msgQueue.Dequeue();
+            uint16_t msgId = (static_cast<uint8_t>(msg.data[3]) << 8) | static_cast<uint8_t>(msg.data[2]);
+            switch (static_cast<MessageId_E>(msgId))
+            {
+                case MessageId_E::PropertyListReply:
+                    std::cout << "Received a Property List Reply\n";
+                    ProcessReceivedPropertyListReply(msg);
+                    break;
 
-            case MessageId_E::GetValueReply:
-                std::cout << "Received a Property Get Value Reply\n";
-                ProcessReceivedPropertyGetValueReply(msg);
-                break;
+                case MessageId_E::GetValueReply:
+                    std::cout << "Received a Property Get Value Reply\n";
+                    ProcessReceivedPropertyGetValueReply(msg);
+                    break;
 
-            case MessageId_E::SetValueReply:
-                std::cout << "Received a Property Set Value Reply\n";
-                ProcessReceivedPropertySetValueReply(msg);
-                break;
+                case MessageId_E::SetValueReply:
+                    std::cout << "Received a Property Set Value Reply\n";
+                    ProcessReceivedPropertySetValueReply(msg);
+                    break;
 
-            default:
-                std::cout << "Error! Unknown message received\n";
-                break;
+                default:
+                    std::cout << "Error! Unknown message received\n";
+                    break;
+            }
         }
     }
 

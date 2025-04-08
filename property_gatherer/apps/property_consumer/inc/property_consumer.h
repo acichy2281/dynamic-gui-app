@@ -30,6 +30,7 @@ class PropertyConsumerApp_C
         int32_t GuiClient_SendMessage(const std::vector<uint8_t> &message);
         void GuiClient_OnWidgetListReplyReceived(GuiProtocol::WidgetReplyStatus_E status);
         void GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::WidgetReplyStatus_E status, std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& setValuesList);
+        void GuiClient_OnWidgetGetValueReplyReceived(uint32_t widgetId, WidgetValueVariant_T updatedValue, GuiProtocol::WidgetReplyStatus_E status);
         void GuiClient_OnWidgetEventNotificationReceived(uint32_t widgetId, WidgetValueVariant_T updatedValue);
 
         /* GUI Functions */
