@@ -40,6 +40,16 @@ class GuiWindow_C
          */
         bool GetWidgetAt(uint16_t key, std::shared_ptr<WidgetInterface_I>& outWidget);
 
+        /**
+         * @brief Get the Widget List object
+         * 
+         * @return const std::map<uint16_t, std::shared_ptr<WidgetInterface_I>>& 
+         */
+        const std::map<uint16_t, std::shared_ptr<WidgetInterface_I>>& GetWidgetList() const
+        {
+            return _generalWidgetList;
+        }
+
         const uint16_t GetWindowId() { return _windowId; }
 
     private:

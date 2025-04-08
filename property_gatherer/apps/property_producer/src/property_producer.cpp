@@ -28,18 +28,32 @@ void PropertyProducerApp_C::Gui_OnGuiWindowClosed()
     _isQuit = true;
 }
 
+void PropertyProducerApp_C::Gui_OnConfigFileSet(bool status)
+{
+    if (true == status)
+    {
+        std::cout << "Config file set successfully\n";
+    }
+}
+
 void PropertyProducerApp_C::RunTest()
 {
     std::cout << "Property Producer Test\n";
-    if (false == _gui.InitializeGui())
+    
+    DynamicGuiInitParams_T initParams;
+    initParams.callbacks.onWidgetEventOccured = std::bind(&PropertyProducerApp_C::Gui_OnWidgetEvent, this, std::placeholders::_1, std::placeholders::_2);
+    initParams.callbacks.onWindowClose = std::bind(&PropertyProducerApp_C::Gui_OnGuiWindowClosed, this);
+    initParams.callbacks.onConfigFileSet = std::bind(&PropertyProducerApp_C::Gui_OnConfigFileSet, this, std::placeholders::_1);
+    if (false == _gui.InitializeGui(initParams))
     {
         std::cerr << "Error: Failed to initialize GUI app\n";
     }
-    _gui.SetCallbacks({ std::bind(&PropertyProducerApp_C::Gui_OnWidgetEvent, this, std::placeholders::_1, std::placeholders::_2), 
-                        std::bind(&PropertyProducerApp_C::Gui_OnGuiWindowClosed, this) });
-    std::thread producerThread(&PropertyProducerApp_C::RunProducerTest, this);  
-    _gui.RunGui();
-    producerThread.join();
+    else
+    {
+        std::thread producerThread(&PropertyProducerApp_C::RunProducerTest, this);  
+        _gui.RunGui();
+        producerThread.join();
+    }
 }
 
 void PropertyProducerApp_C::RunProducerTest()

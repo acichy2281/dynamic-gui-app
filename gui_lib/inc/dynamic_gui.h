@@ -20,10 +20,17 @@ struct WidgetEventNotificationInfo_T
 };
 
 
-struct GuiLibraryCallbacks_T
+struct DynamicGuiCallbacks_T
 {
     std::function<void(WidgetDescriptor_T&, WidgetValueVariant_T)> onWidgetEventOccured = [](WidgetDescriptor_T&, WidgetValueVariant_T) {};
     std::function<void()> onWindowClose = []() {};
+    std::function<void(bool)> onConfigFileSet = [](bool) {};
+};
+
+struct DynamicGuiInitParams_T
+{
+    DynamicGuiCallbacks_T callbacks;
+    std::string jsonSchemaPath;
 };
 
 class DynamicGui_C
@@ -36,7 +43,7 @@ class DynamicGui_C
          * @brief Initializes SDL backend for GUI app
          * 
          */
-        bool InitializeGui();
+        bool InitializeGui(DynamicGuiInitParams_T initParams);
 
         /**
          * @brief Initializes and runs the GUI app blocking function that exits upon window close. 
@@ -57,13 +64,6 @@ class DynamicGui_C
         bool SetConfigFile(const std::string& configFilePath);
 
         /**
-         * @brief Set the Callbacks object
-         * 
-         * @param callBacks Callback struct that contains function pointers for GUI events
-         */
-        void SetCallbacks(const GuiLibraryCallbacks_T& callBacks);
-
-        /**
          * @brief Run a GUI Server blocking function that initializes and polls a UDP socket to interface with a GUI
          * 
          * @param initParam initialization parameters for the GUI server (server and client port info, rx buffer size)
@@ -73,15 +73,27 @@ class DynamicGui_C
          */
         bool RunGuiServer(const GuiServerInitParams_T& initParams);
         
-        /**
-         * @brief Get the Widget Descriptor object
-         */
-        WidgetDescriptor_T& GetWidgetDescriptor(uint32_t widgetId);
+        // /**
+        //  * @brief Get the Widget Descriptor object
+        //  */
+        // WidgetDescriptor_T& GetWidgetDescriptor(uint32_t widgetId);
         
         /**
          * @brief Get the Widget List object
          */
         const std::map<uint32_t, WidgetDescriptor_T>& GetWidgetList() const;
+        
+
+        /** 
+         * @brief Get the Widget Value object
+         */
+        const WidgetValueVariant_T GetWidgetValue(uint32_t widgetId);
+
+        /** 
+         * @brief Get the Widget object
+         */
+        const std::shared_ptr<WidgetInterface_I> GetWidget(uint32_t widgetId);
+        const std::shared_ptr<WidgetInterface_I> GetWidget(std::string widgetName);
 
         /**
          * @brief Set the Widget Value object
@@ -107,6 +119,15 @@ class DynamicGui_C
 
     private: 
         /* Functions */
+
+        void SetWidgetList(std::vector<WidgetDescriptor_T>& descList);
+
+        /**
+         * @brief Set the Callbacks object
+         * 
+         * @param callBacks Callback struct that contains function pointers for GUI events
+         */
+        void SetCallbacks(const DynamicGuiCallbacks_T& callBacks);
 
         /**
          * @brief Displays the GUI window
@@ -134,14 +155,6 @@ class DynamicGui_C
          */
         void DeInitialize();
 
-        /**
-         * @brief Empty Callback function for widget events. Called when no callback is set by the user
-         * 
-         * @param widgetDesc 
-         * @param val 
-         */
-        void DefaultOnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val);
-
         /* Gui Server functions  */
         bool GuiServer_ValidateInitParams(const GuiServerInitParams_T& initParams);
         void GuiServer_OnWidgetListRequestReceived();
@@ -160,8 +173,10 @@ class DynamicGui_C
         
         // Config member variables
         std::ifstream                                                       _configFile;
-        std::string                                                         _configFilePath;
+        std::ifstream                                                       _schemaFile;
         nlohmann::json                                                      _jsonData;
+        nlohmann::json_schema::json_validator                               _jsonDataSchemaValidator;
+        bool                                                                _jsonSchemaValidationEnabled    = false;
 
         // Window member variables
         std::string                                                         _mainWindowName;
@@ -170,11 +185,13 @@ class DynamicGui_C
         SDL_GLContext                                                       _glContext;
         SDL_Window*                                                         _window;
         WidgetFactory_C                                                     _widgetFactory;
+        std::shared_ptr<std::map<uint32_t, WidgetDescriptor_T>>             _widgetMap;
         
         // Event member variables
         ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>                _eventQueue;
         std::function<void(WidgetDescriptor_T&, WidgetValueVariant_T)>      _onWidgetEventOccured;
         std::function<void()>                                               _onWindowClose;
+        std::function<void(bool)>                                           _onConfigFileSet;
 
         // GuiServer member variables
         std::shared_ptr<GuiProtocol::GuiServer_C>                           _guiServer;

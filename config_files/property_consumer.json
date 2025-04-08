@@ -11,7 +11,16 @@
                     "Type": "button"
                 },
                 {
-                    "Name": "Get Value",
+                    "Name": "Get Property Value Options",
+                    "Type": "radio",
+                    "Options": []
+                },
+                {
+                    "Name": "Get Property Value",
+                    "Type": "button"
+                },
+                {
+                    "Name": "Set Property Value",
                     "Type": "button"
                 }
             ]
@@ -21,7 +30,15 @@
             "WidgetList":
             [
                 {
-                    "Name": "Set Value",
+                    "Name": "Get Widget List",
+                    "Type": "button"
+                },
+                {
+                    "Name": "Get Widget Value",
+                    "Type": "button"
+                },
+                {
+                    "Name": "Set Widget Value",
                     "Type": "button"
                 }
             ]

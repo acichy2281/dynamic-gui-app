@@ -20,7 +20,6 @@ class PropertyConsumerApp_C
         PropertyConsumerApp_C(PropertyConsumerInitParams_C initParams);
         ~PropertyConsumerApp_C();
         void RunTest();
-        void RunSetValueTest();
 
     private:
         void HandleMessage();
@@ -36,6 +35,11 @@ class PropertyConsumerApp_C
         /* GUI Functions */
         void Gui_OnGuiWindowClosed();
         void Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val);
+        void Gui_OnConfigFileSet(bool status);
+        void RunSetWidgetValueTest();
+        std::unordered_map<uint32_t, std::function<void(WidgetValueVariant_T)>> _widgetCallbacks;
+        std::unordered_map<std::string, uint32_t> _widgetNameToIdMap;
+        std::string _configFile;
 
         /* Property Consumer Fucntions */
         void RunPropertyConsumerTest();

@@ -46,29 +46,6 @@ namespace GuiProtocol
         }
         ProcessStateMachine();
     }
-
-    bool GuiServer_C::SetWidgetList(std::vector<WidgetDescriptor_T>& descList)
-    {
-        bool retVal = false;
-
-        if (false == _widgetListPopulated)
-        {
-            for (auto& desc : descList)
-            {
-                auto it = _widgetMap.find(desc.widgetId);
-                if (it == _widgetMap.end())
-                {
-                    _widgetMap[desc.widgetId] = desc;
-                }
-                else
-                {
-                    std::cout << "Cannot add duplicate widget " << desc.widgetId << ":" << desc.widgetName << "\n";
-                }
-            }
-            _widgetListPopulated = true;
-        }
-        return true;
-    }
     
     GuiServerReqStatus_E GuiServer_C::SendWidgetEventNotification(uint16_t windowId, uint16_t widgetId, WidgetValueVariant_T val)
     {
@@ -179,7 +156,7 @@ namespace GuiProtocol
             
             /* Construct a list of widget descriptors */
             std::vector<WidgetDescriptor_T> descList;
-            for (auto& [widgetId, widgetDesc] : _widgetMap)
+            for (auto& [widgetId, widgetDesc] : *_widgetMap)
             {
                 descList.push_back(widgetDesc);
             }
@@ -218,8 +195,8 @@ namespace GuiProtocol
             std::vector<GuiProtocol::WidgetSetValueResponseReturn_T> widgetSetValueResponseList;
             for (auto& widgetToSet : reqMsg.setValuesList)
             {
-                auto it = _widgetMap.find(widgetToSet.widgetId);
-                if (it != _widgetMap.end())
+                auto it = (*_widgetMap).find(widgetToSet.widgetId);
+                if (it != (*_widgetMap).end())
                 {
                     /* Populate a struct to pass too the GUI app for it to use to Set value */
                     WidgetSetValueResponseReturn_T widgetSetValueResponse;

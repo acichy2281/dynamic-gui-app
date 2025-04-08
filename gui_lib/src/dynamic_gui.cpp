@@ -2,12 +2,7 @@
 #include "stdafx.h"
 #include "dynamic_gui.h"
 
-DynamicGui_C::DynamicGui_C() : _guiServer(std::make_shared<GuiProtocol::GuiServer_C>(
-    std::bind(&DynamicGui_C::GuiServer_SendMessage, this, std::placeholders::_1),
-    std::bind(&DynamicGui_C::GuiServer_OnWidgetListRequestReceived, this),
-    std::bind(&DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived, this, std::placeholders::_1),
-    std::bind(&DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3))),
-    _onWidgetEventOccured(std::bind(&DynamicGui_C::DefaultOnWidgetEvent, this, std::placeholders::_1, std::placeholders::_2))
+DynamicGui_C::DynamicGui_C()
 {
 
 }
@@ -48,29 +43,45 @@ bool DynamicGui_C::RunGui()
 bool DynamicGui_C::SetConfigFile(const std::string& configFilePath)
 {
     bool retVal = false;
-    _configFilePath = configFilePath;
-    _configFile.open(_configFilePath);
+    _configFile.open(configFilePath);
     if (true == _configFile.is_open())
     {
-        // nlohmann::json schema = nlohmann::json::parse(std::ifstream("schema.json"));
-        // nlohmann::json_schema::json_validator validator;
         _jsonData = nlohmann::json::parse(_configFile);
         try {
-            // validator.set_root_schema(schema);
-            // validator.validate(_jsonData);
-            std::cout << "Valid JSON!" << std::endl;
+            if (true == _jsonSchemaValidationEnabled) { _jsonDataSchemaValidator.validate(_jsonData); }
             ParseJsonData();
+            std::cout << "Valid JSON!" << std::endl;
             _isConfigFileSet = true;
             retVal = true;
         }
         catch (const std::exception& e) {
             std::cerr << "Validation Error: " << e.what() << std::endl;
         }
+
+        if (nullptr != _onConfigFileSet) _onConfigFileSet(retVal);
     }
     return retVal;
 }
 
-void DynamicGui_C::SetCallbacks(const GuiLibraryCallbacks_T& callBacks)
+void DynamicGui_C::SetWidgetList(std::vector<WidgetDescriptor_T>& descList)
+{
+    _widgetMap = std::make_shared<std::map<uint32_t, WidgetDescriptor_T>>();
+    for (auto& desc : descList)
+    {
+        auto it = (*_widgetMap).find(desc.widgetId);
+        if (it == (*_widgetMap).end())
+        {
+            (*_widgetMap)[desc.widgetId] = desc;
+        }
+        else
+        {
+            std::cout << "Cannot add duplicate widget " << desc.widgetId << ":" << desc.widgetName << "\n";
+        }
+    }
+    if (true == _isGuiServerRunning) _guiServer->SetWidgetList(_widgetMap);
+}
+
+void DynamicGui_C::SetCallbacks(const DynamicGuiCallbacks_T& callBacks)
 {
     if (callBacks.onWidgetEventOccured != nullptr)
     {
@@ -80,9 +91,13 @@ void DynamicGui_C::SetCallbacks(const GuiLibraryCallbacks_T& callBacks)
     {
         _onWindowClose = callBacks.onWindowClose;
     }
+    if (callBacks.onConfigFileSet != nullptr)
+    {
+        _onConfigFileSet = callBacks.onConfigFileSet;
+    }
 }
 
-bool DynamicGui_C::InitializeGui()
+bool DynamicGui_C::InitializeGui(DynamicGuiInitParams_T initParams)
 {
     bool retVal = false;
     // Setup SDL
@@ -96,6 +111,23 @@ bool DynamicGui_C::InitializeGui()
     }
     else
     {
+        SetCallbacks(initParams.callbacks);
+
+        if (false == initParams.jsonSchemaPath.empty())
+        {
+            _schemaFile.open(initParams.jsonSchemaPath);
+            if (true == _configFile.is_open())
+            {
+                _jsonDataSchemaValidator = nlohmann::json_schema::json_validator();
+                _jsonDataSchemaValidator.set_root_schema(nlohmann::json::parse(_schemaFile));
+                _jsonSchemaValidationEnabled = true;
+            }
+            else
+            {
+                std::cerr << "Error: Failed to open schema file\n";
+            }
+        }
+        
         // Decide GL+GLSL versions
         #if defined(IMGUI_IMPL_OPENGL_ES2)
         // GL ES 2.0 + GLSL 100 (WebGL 1.0)
@@ -290,14 +322,17 @@ void DynamicGui_C::ProcessEventQueue()
         {
             _guiServerWidgetEventNotificationQueue.Enqueue({ event->GetWindowId(), event->GetWidgetId(), event->GetValue() });
         }
-        auto desc = _guiServer->GetWidgetDescriptor((static_cast<uint32_t>(event->GetWindowId()) << 16) | static_cast<uint32_t>(event->GetWidgetId()));
-        _onWidgetEventOccured(desc, event->GetValue());
+        std::shared_ptr<WidgetInterface_I> widget;
+        if (true == _windowList.at(event->GetWindowId()).GetWidgetAt(event->GetWidgetId(), widget))
+        {
+            auto desc = widget->GetDescriptor();
+            if (nullptr != _onWidgetEventOccured) _onWidgetEventOccured(desc, event->GetValue());
+        }
+        else 
+        {
+            std::throw_with_nested(std::runtime_error("Invalid Widget Event occured"));
+        }
     }
-}
-
-void DynamicGui_C::DefaultOnWidgetEvent(WidgetDescriptor_T& widgetId, WidgetValueVariant_T val)
-{
-    // Default callback for widget events
 }
 
 void DynamicGui_C::ParseJsonData()
@@ -331,13 +366,13 @@ void DynamicGui_C::ParseJsonData()
         _windowList.push_back(newWindow);
         numWindows++;
     }
-
-    _guiServer->SetWidgetList(widgetDescList);
+    SetWidgetList(widgetDescList);
 }
 
 WidgetDescriptor_T DynamicGui_C::AddWidgetToWindow(std::shared_ptr<AddWidgetInfo_T> addWidgetInfo)
 {
     auto newWidget = _windowList.at(addWidgetInfo->windowId).AddWidget(addWidgetInfo);
+    _widgetMap->insert({ newWidget->GetDescriptor().widgetId, newWidget->GetDescriptor() });
     return newWidget->GetDescriptor();
 }
 
@@ -360,14 +395,63 @@ void DynamicGui_C::DeInitialize()
     _initialized = false;
 }
 
-WidgetDescriptor_T& DynamicGui_C::GetWidgetDescriptor(uint32_t widgetId)
-{
-    return _guiServer->GetWidgetDescriptor(widgetId);
-}
+// WidgetDescriptor_T& DynamicGui_C::GetWidgetDescriptor(uint32_t widgetId)
+// {
+//     return _guiServer->GetWidgetDescriptor(widgetId);
+// }
 
 const std::map<uint32_t, WidgetDescriptor_T>& DynamicGui_C::GetWidgetList() const
 {
-    return _guiServer->GetWidgetList();
+    return *_widgetMap;
+}
+
+const WidgetValueVariant_T DynamicGui_C::GetWidgetValue(uint32_t widgetId)
+{
+    WidgetValueVariant_T retVal;
+    uint16_t windowId16 = widgetId >> 16;
+    uint16_t widgetId16 = widgetId & 0xFFFF;
+
+    std::shared_ptr<WidgetInterface_I> outWidget;
+    if (false == _windowList.at(windowId16).GetWidgetAt(widgetId16, outWidget))
+    {
+        std::cout << "Unable to find widget " << widgetId << "\n";
+    }
+    else
+    {
+        retVal = outWidget->GetWidgetValue();
+        std::cout << "Successfuly got widget " << widgetId << " value\n";
+    }
+    return retVal;
+}
+
+const std::shared_ptr<WidgetInterface_I> DynamicGui_C::GetWidget(uint32_t widgetId)
+{
+    std::shared_ptr<WidgetInterface_I> outWidget;
+    uint16_t windowId16 = widgetId >> 16;
+    uint16_t widgetId16 = widgetId & 0xFFFF;
+
+    if (false == _windowList.at(windowId16).GetWidgetAt(widgetId16, outWidget))
+    {
+        std::cout << "Unable to find widget " << widgetId << "\n";
+    }
+    return outWidget;
+}
+
+const std::shared_ptr<WidgetInterface_I> DynamicGui_C::GetWidget(std::string widgetName)
+{
+    std::shared_ptr<WidgetInterface_I> outWidget;
+    for (auto& window : _windowList)
+    {
+        for (auto& widget : window.GetWidgetList())
+        {
+            if (widgetName == widget.second->GetDescriptor().widgetName)
+            {
+                outWidget = widget.second;
+                break;
+            }
+        }
+    }
+    return outWidget;
 }
 
 bool DynamicGui_C::SetWidgetValue(uint32_t widgetId, WidgetValueVariant_T val)
@@ -401,6 +485,14 @@ bool DynamicGui_C::RunGuiServer(const GuiServerInitParams_T& initParams)
     {
         return false;
     }
+    
+    /* Populate callbacks */
+    _guiServer = std::make_shared<GuiProtocol::GuiServer_C>(
+        std::bind(&DynamicGui_C::GuiServer_SendMessage, this, std::placeholders::_1),
+        std::bind(&DynamicGui_C::GuiServer_OnWidgetListRequestReceived, this),
+        std::bind(&DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived, this, std::placeholders::_1),
+        std::bind(&DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
     _guiServerTransport = UdpTransportFactory::CreateTransport();
     _guiServerTransport->InitializeSocket(_guiServerPortInfo.destIp, _guiServerPortInfo.destPort);
 

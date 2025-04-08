@@ -49,7 +49,7 @@ bool WidgetRadio_C::SetWidgetValue(WidgetValueVariant_T val)
     return true;
 }
 
-void WidgetRadio_C::AddOption(std::string& newOption)
+void WidgetRadio_C::AddOption(const std::string& newOption)
 {
     _optionsList.push_back(newOption);
 }

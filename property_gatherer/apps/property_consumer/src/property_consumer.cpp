@@ -28,7 +28,7 @@ PropertyConsumerApp_C::PropertyConsumerApp_C(PropertyConsumerInitParams_C initPa
     PropertyGatherer::PropertyConsumerInitParams_T propertyConsumerInitParams{propertyConsumerCallBacks};
     _propertyConsumer->PropertyConsumer_Initialize(propertyConsumerInitParams);
 
-    if (false == initParams.configFile.empty()) _gui.SetConfigFile(initParams.configFile);
+    if (false == initParams.configFile.empty()) _configFile = initParams.configFile;;
 }
 
 PropertyConsumerApp_C::~PropertyConsumerApp_C()
@@ -40,39 +40,34 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
 {
     std::cout << "Widget event callback: Widget ID = " << widgetDesc.widgetId << ", " << widgetDesc.widgetName << ", Value = ";
     std::visit([](auto&& arg) { std::cout << arg; }, val);
-    if (widgetDesc.widgetName == "Get Property List")
+
+    auto it = _widgetCallbacks.find(widgetDesc.widgetId);
+    if (it != _widgetCallbacks.end()) 
     {
-        std::cout << "Requesting Property List\n";
-        auto propListReqStatus = _propertyConsumer->SendPropertyListRequest();
-        if (PropertyGatherer::PropertyConsumerStatus_E::Success != propListReqStatus)
-        {
-            std::cout << "Failed to request property list, error: " << static_cast<uint8_t>(propListReqStatus) << "\n";
-        }
+        it->second(val);
     }
-    else if (widgetDesc.widgetName == "Get Value")
+    else if (widgetDesc.widgetName == "Get Property Value")
     {
         std::cout << "Requesting Property Value\n";
-        auto propValReqStatus = _propertyConsumer->SendGetValueRequest(255, {0});
+        
+        auto widgetIt = _widgetNameToIdMap.find("Get Property Value Options");
+        if (widgetIt == _widgetNameToIdMap.end())
+        {
+            std::cout << "Widget ID not found for Get Property Value Options\n";
+            return;
+        }
+        auto optionWidgetId = widgetIt->second;
+        auto widgetValue = static_cast<uint16_t>(std::get<int>(_gui.GetWidgetValue(optionWidgetId)));
+
+        auto propValReqStatus = _propertyConsumer->SendGetValueRequest(255, {widgetValue});
         if (PropertyGatherer::PropertyConsumerStatus_E::Success != propValReqStatus)
         {
             std::cout << "Failed to request property value, error: " << static_cast<uint8_t>(propValReqStatus) << "\n";
         }
     }
-    else if (widgetDesc.widgetName == "Set Value")
+    else if (widgetDesc.widgetName == "Set Widget Value")
     {
-        RunSetValueTest();
-    }
-    else if (widgetDesc.widgetName == "Start Gui Client Thread")
-    {
-        std::cout << "Starting Gui Client Thread\n";
-        std::thread guiClientThread(&PropertyConsumerApp_C::RunGuiClientTest, this);  
-        guiClientThread.detach();
-    }
-    else if (widgetDesc.widgetName == "Start Property Consumer Thread")
-    {
-        std::cout << "Starting Property Consumer Thread\n";
-        std::thread propertyConsumerThread(&PropertyConsumerApp_C::RunPropertyConsumerTest, this);  
-        propertyConsumerThread.detach();
+        RunSetWidgetValueTest();
     }
     std::cout << "\n";
 }
@@ -83,30 +78,82 @@ void PropertyConsumerApp_C::Gui_OnGuiWindowClosed()
     _isQuit = true;
 }
 
+void PropertyConsumerApp_C::Gui_OnConfigFileSet(bool status)
+{
+    if (true == status)
+    {
+        std::cout << "Config file set successfully\n";
+        // Create an unordered_map to store widget callback functions
+        
+        for (const auto& [widgetId, widgetDesc] : _gui.GetWidgetList())
+        {
+            std::cout << "Widget ID: " << widgetId << ", Widget Name: " << widgetDesc.widgetName << "\n";
+            
+            if (widgetDesc.widgetName == "Get Property List") 
+            {
+                _widgetCallbacks[widgetId] = [this](WidgetValueVariant_T) {
+                    auto propListReqStatus = _propertyConsumer->SendPropertyListRequest();
+                    if (PropertyGatherer::PropertyConsumerStatus_E::Success != propListReqStatus) {
+                    std::cout << "Failed to request property list\n";
+                    }
+                };
+            }
+            else if (widgetDesc.widgetName == "Get Widget List")
+            {
+                _widgetCallbacks[widgetId] = [this](WidgetValueVariant_T) {
+                    std::cout << "Requesting Widget List\n";
+                    auto guiClientStatus = _guiClient->SendWidgetListRequest();
+                    if (GuiProtocol::GuiClientReqStatus_E::Success != guiClientStatus)
+                    {
+                        std::cout << "Failed to request widget list, error: " << static_cast<uint8_t>(guiClientStatus) << "\n";
+                    }
+                };
+            }
+            else if (widgetDesc.widgetName == "Start Gui Client Thread")
+            {
+                _widgetCallbacks[widgetId] = [this](WidgetValueVariant_T) {
+                    std::cout << "Starting Gui Client Thread\n";
+                    std::thread guiClientThread(&PropertyConsumerApp_C::RunGuiClientTest, this);  
+                    guiClientThread.detach();
+                };
+            }
+            else if (widgetDesc.widgetName == "Start Property Consumer Thread")
+            {
+                _widgetCallbacks[widgetId] = [this](WidgetValueVariant_T) {
+                    std::cout << "Starting Property Consumer Thread\n";
+                    std::thread propertyConsumerThread(&PropertyConsumerApp_C::RunPropertyConsumerTest, this);  
+                    propertyConsumerThread.detach();
+                };
+            }
+        }
+    }
+    else
+    {
+        std::cout << "Failed to set config file\n";
+    }
+}
+
 void PropertyConsumerApp_C::RunTest()
 {
-    if (false == _gui.InitializeGui())
+    DynamicGuiInitParams_T initParams;
+    initParams.callbacks.onWidgetEventOccured = std::bind(&PropertyConsumerApp_C::Gui_OnWidgetEvent, this, std::placeholders::_1, std::placeholders::_2);
+    initParams.callbacks.onWindowClose = std::bind(&PropertyConsumerApp_C::Gui_OnGuiWindowClosed, this);
+    initParams.callbacks.onConfigFileSet = std::bind(&PropertyConsumerApp_C::Gui_OnConfigFileSet, this, std::placeholders::_1);
+    if (false == _gui.InitializeGui(initParams))
     {
         std::cerr << "Error: Failed to initialize GUI app\n";
     }
-    _gui.SetCallbacks({ std::bind(&PropertyConsumerApp_C::Gui_OnWidgetEvent, this, std::placeholders::_1, std::placeholders::_2), 
-                        std::bind(&PropertyConsumerApp_C::Gui_OnGuiWindowClosed, this) });
-    // std::thread guiClientThread(&PropertyConsumerApp_C::RunGuiClientTest, this);  
-    // std::thread propertyConsumerThread(&PropertyConsumerApp_C::RunPropertyConsumerTest, this);
-    std::thread messageHandlerThread(&PropertyConsumerApp_C::MessageHandlerThread, this);  
-    _gui.RunGui();
-    messageHandlerThread.join();
-    // guiClientThread.join();
-    // propertyConsumerThread.join();
+    else 
+    {
+        std::thread messageHandlerThread(&PropertyConsumerApp_C::MessageHandlerThread, this);  
+        if (false == _configFile.empty()) _gui.SetConfigFile(_configFile);
+        _gui.RunGui();
+        messageHandlerThread.join();
+    }
 }
 
 void PropertyConsumerApp_C::RunGuiClientTest()
 {
-    auto guiClientStatus = _guiClient->SendWidgetListRequest();
-    if (GuiProtocol::GuiClientReqStatus_E::Success != guiClientStatus)
-    {
-        std::cout << "Failed to request widget list, error: " << static_cast<uint8_t>(guiClientStatus) << "\n";
-    }
     while (false == _isQuit)
     {
         _guiClient->ProcessTimedActivities();
@@ -170,7 +217,7 @@ void PropertyConsumerApp_C::HandleMessage()
     }
 }
 
-void PropertyConsumerApp_C::RunSetValueTest()
+void PropertyConsumerApp_C::RunSetWidgetValueTest()
 {
     std::cout << "Running Set Value test\n";
     std::vector<std::pair<uint32_t, WidgetValueVariant_T>> setWidgetList;
@@ -193,8 +240,6 @@ void PropertyConsumerApp_C::RunSetValueTest()
     {
         std::cout << "Set Value Request failed with " << static_cast<uint8_t>(setValReturn) << "\n";
     }
-
-    _runSetValTest = false;
 }
 
 /* GUI Client callback implementations */
@@ -209,7 +254,6 @@ void PropertyConsumerApp_C::GuiClient_OnWidgetListReplyReceived(GuiProtocol::Wid
     {
         std::cout << "Widget List reply received with status success!\n";
         _widgetListReceived = true;
-        _runSetValTest = true;
     }
     else
     {
@@ -266,6 +310,18 @@ void PropertyConsumerApp_C::PropertyConsumer_OnPropertyListReplyReceived(Propert
     for (const auto& desc : descList)
     {
         std::cout << "Property ID: " << desc.propertyId << ", Name: " << desc.propertyName << "\n";
+        auto widget = _gui.GetWidget("Get Property Value Options");
+        if (widget && std::dynamic_pointer_cast<WidgetRadio_C>(widget))
+        {
+            auto radioWidget = std::dynamic_pointer_cast<WidgetRadio_C>(widget);
+            radioWidget->AddOption(desc.propertyName);
+            _widgetNameToIdMap[desc.propertyName] = desc.propertyId;
+            std::cout << "Added Option for property ID: " << desc.propertyId << "\n";
+        }
+        else
+        {
+            std::cout << "No widget found for property ID: " << desc.propertyId << "\n";
+        }
     }
 }
 

@@ -15,12 +15,15 @@ int main(int argc, char** argv)
     CommandLineParser_C commandLineParser(argc, argv);
     DynamicGui_C app;
 
-    if (false == app.InitializeGui())
+    DynamicGuiInitParams_T initParams;
+    initParams.callbacks.onWidgetEventOccured = WidgetEventCb;
+    initParams.callbacks.onWindowClose = []() { std::cout << "Window closed\n"; };
+    if (false == app.InitializeGui(initParams))
     {
         std::cerr << "Error: Failed to initialize GUI app\n";
         return -1;
     }
-    app.SetCallbacks({ WidgetEventCb });
+    
     GuiServerInitParams_T guiServerInitParams;
     guiServerInitParams.serverInfo.destIp = "127.0.0.1";
     guiServerInitParams.serverInfo.destPort = 8001;

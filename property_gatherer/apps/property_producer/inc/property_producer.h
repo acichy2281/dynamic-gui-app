@@ -41,6 +41,7 @@ class PropertyProducerApp_C
         /* Gui Test Functions & Variables */
         void Gui_OnGuiWindowClosed();
         void Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val);
+        void Gui_OnConfigFileSet(bool status);
         DynamicGui_C _gui;
         bool _widgetListReceived = false;
 };

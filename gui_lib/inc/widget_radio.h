@@ -15,14 +15,14 @@ class WidgetRadio_C : public WidgetInterface_I
     public:
         WidgetRadio_C(const std::shared_ptr<const AddRadioWidgetInfo_T>& info);
         ~WidgetRadio_C();
-        
+
         void ShowWidget() override;
         WidgetValueVariant_T GetWidgetValue() override;
         bool SetWidgetValue(WidgetValueVariant_T val) override;
         WidgetTypes_E GetWidgetType() override { return WidgetTypes_E::Radio; }
         WidgetDataTypes_E GetDataType() override { return WidgetDataTypes_E::Int; } // Radio button returns an integer index of the selected option
 
-        void AddOption(std::string& newOption);
+        void AddOption(const std::string& newOption);
         
     private:
         uint16_t _id;

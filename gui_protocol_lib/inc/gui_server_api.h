@@ -44,15 +44,20 @@ namespace GuiProtocol
             ~GuiServer_C();
             void ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
             void ProcessTimedActivities();
-            bool SetWidgetList(std::vector<WidgetDescriptor_T>& descList);
             GuiServerReqStatus_E SendWidgetEventNotification(uint16_t windowId, uint16_t widgetId, WidgetValueVariant_T val);
             WidgetDescriptor_T& GetWidgetDescriptor(uint32_t widgetId)
             {
-                return _widgetMap[widgetId];
+                return (*_widgetMap)[widgetId];
             }
             const std::map<uint32_t, WidgetDescriptor_T>& GetWidgetList() const
             {
-                return _widgetMap;
+                return *_widgetMap;
+            }
+            bool SetWidgetList(std::shared_ptr<std::map<uint32_t, WidgetDescriptor_T>>& descList)
+            {
+                _widgetMap = descList;
+                _widgetListPopulated = true;
+                return true;
             }
 
             /* Callbacks */
@@ -79,7 +84,7 @@ namespace GuiProtocol
             GuiServerState_E _state = GuiServerState_E::Initialized;
             ThreadSafeQueue_C<Message_T> _msgQueue;
             GuiProtocolMessageSerializer _msgSerializer;
-            std::map<uint32_t, WidgetDescriptor_T> _widgetMap;
+            std::shared_ptr<std::map<uint32_t, WidgetDescriptor_T>> _widgetMap;
             bool _widgetListPopulated = false;
             bool _widgetListReplySent = false;
             bool _widgetSetValueReplySent = false;
