@@ -37,7 +37,7 @@ namespace GuiProtocol
         return retVal;
     }
 
-    WidgetSetValueRequest_T GetWidgetSetValueRequest(std::vector<WidgetValueStorage_T>& widgetSetVals)
+    WidgetSetValueRequest_T GetWidgetSetValueRequest(WidgetSetValueIdentifier_T& widgetSetVals)
     {
         WidgetSetValueRequest_T retVal;
         retVal.header.messageId = static_cast<uint16_t>(MessageId_E::WidgetSetValueReq);
@@ -46,8 +46,8 @@ namespace GuiProtocol
         for (auto& widgetSetVal : widgetSetVals)
         {
             WidgetSetValueRequestContainer_T setValCont;
-            setValCont.widgetId = widgetSetVal.desc.widgetId;
-            setValCont.value = widgetSetVal.val;
+            setValCont.widgetId = widgetSetVal.first;
+            setValCont.value = widgetSetVal.second;
             retVal.setValuesList.push_back(setValCont);
         }
         return retVal;
@@ -599,56 +599,65 @@ namespace GuiProtocol
         WidgetValueVariant_T result;
 
         // Based on the type index, read the appropriate data from the buffer
-        switch (static_cast<WidgetValueVariantType_E>(typeIndex)) {
-            // case 0: { // int8_t
-            //     int8_t val = static_cast<int8_t>(inBuff[index++]);
-            //     result = val;
-            //     break;
-            // }
-            // case 1: { // int16_t
-            //     int16_t val = static_cast<int16_t>(inBuff[index++] | (inBuff[index++] << 8));
-            //     result = val;
-            //     break;
-            // }
-            // case 2: { // int32_t
-            //     int32_t val = static_cast<int32_t>(inBuff[index++] | (inBuff[index++] << 8) |
-            //                                     (inBuff[index++] << 16) | (inBuff[index++] << 24));
-            //     result = val;
-            //     break;
-            // }
-            // case 3: { // int64_t
-            //     int64_t val = static_cast<int64_t>(inBuff[index++] | (inBuff[index++] << 8) |
-            //                                     (inBuff[index++] << 16) | (inBuff[index++] << 24) |
-            //                                     (inBuff[index++] << 32) | (inBuff[index++] << 40) |
-            //                                     (inBuff[index++] << 48) | (inBuff[index++] << 56));
-            //     result = val;
-            //     break;
-            // }
-            // case UNSIGNED_8_BIT_INT: { // uint8_t
-            //     uint8_t val = inBuff[index++];
-            //     result = val;
-            //     break;
-            // }
-            // case 5: { // uint16_t
-            //     uint16_t val = static_cast<uint16_t>(inBuff[index++] | (inBuff[index++] << 8));
-            //     result = val;
-            //     break;
-            // }
-            // case 6: { // uint32_t
-            //     uint32_t val = static_cast<uint32_t>(inBuff[index++] | (inBuff[index++] << 8) |
-            //                                         (inBuff[index++] << 16) | (inBuff[index++] << 24));
-            //     result = val;
-            //     break;
-            // }
-            // case 7: { // uint64_t
-            //     uint64_t val = static_cast<uint64_t>(inBuff[index++] | (inBuff[index++] << 8) |
-            //                                         (inBuff[index++] << 16) | (inBuff[index++] << 24) |
-            //                                         (inBuff[index++] << 32) | (inBuff[index++] << 40) |
-            //                                         (inBuff[index++] << 48) | (inBuff[index++] << 56));
-            //     result = val;
-            //     break;
-            // }
-
+        switch (typeIndex) {
+            case Signed8BitInt: { // int8_t            
+                int8_t value = static_cast<int8_t>(inBuff[index]);
+                index += sizeof(int8_t);
+                return value;
+            }
+            case Signed16BitInt: { // int16_t
+                int16_t value;
+                std::memcpy(&value, &inBuff[index], sizeof(int16_t));
+                index += sizeof(int16_t);
+                return value;
+            }
+            case Signed32BitInt: { // int32_t
+                int32_t value;
+                std::memcpy(&value, &inBuff[index], sizeof(int32_t));
+                index += sizeof(int32_t);
+                return value;
+            }
+            case Signed64BitInt: { // int64_t
+                int64_t value;
+                std::memcpy(&value, &inBuff[index], sizeof(int64_t));
+                index += sizeof(int64_t);
+                return value;
+            }
+            case Unsigned8BitInt: { // uint8_t
+                uint8_t value = inBuff[index];
+                index += sizeof(uint8_t);
+                return value;
+            }
+            case Unsigned16BitInt: { // uint16_t
+                uint16_t value;
+                std::memcpy(&value, &inBuff[index], sizeof(uint16_t));
+                index += sizeof(uint16_t);
+                return value;
+            }
+            case Unsigned32BitInt: { // uint32_t
+                uint32_t value;
+                std::memcpy(&value, &inBuff[index], sizeof(uint32_t));
+                index += sizeof(uint32_t);
+                return value;
+            }
+            case Unsigned64BitInt: { // uint64_t
+                uint64_t value;
+                std::memcpy(&value, &inBuff[index], sizeof(uint64_t));
+                index += sizeof(uint64_t);
+                return value;
+            }
+            case Float: { // float
+                float value;
+                std::memcpy(&value, &inBuff[index], sizeof(value));
+                index += sizeof(value);
+                return value;
+            }
+            case Double: { // double
+                double value;
+                std::memcpy(&value, &inBuff[index], sizeof(value));
+                index += sizeof(value);
+                return value;
+            }
             case String: { // std::string
                 uint16_t startIdx = index;
                 while (index < inBuff.size() && inBuff[index] != '\0') 
@@ -660,27 +669,12 @@ namespace GuiProtocol
                 result = str;
                 break;
             }
-            case Signed32BitInt: { // int32_t
-                int32_t val;
-                std::memcpy(&val, &inBuff[index], sizeof(val));
-                index += sizeof(val);
-                result = val;
-                break;
-            }
-            case Bool: { // bool
-                bool val = (inBuff[index++] != 0);
-                result = val;
-                break;
-            }
-            case Float: { // float
-                float val;
-                std::memcpy(&val, &inBuff[index], sizeof(val));
-                index += sizeof(val);
-                result = val;
-                break;
+            case Boolean: { // bool
+                bool value = inBuff[index] != 0;
+                index += sizeof(bool);
+                return value;
             }
             default:
-                std::cout << "Unknown type index during deserialization.\n";
                 throw std::runtime_error("Unknown type index during deserialization.");
         }
 

@@ -10,11 +10,6 @@
                     "Name" : "PropertyList",
                     "Type" : "text",
                     "Value" : "Property List:"
-                },
-                {
-                    "Name" : "DeviceName",
-                    "Type" : "text",
-                    "Value" : "[empty]"
                 }
             ]
         }

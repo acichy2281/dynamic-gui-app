@@ -262,6 +262,7 @@ namespace GuiProtocol
             for (auto& [widgetId, widgetDesc] : *_widgetMap)
             {
                 descList.push_back(widgetDesc);
+                std::cout << "Added Widget ID: " << widgetDesc.widgetId << ", Name: " << widgetDesc.widgetName << " to the Widget List Request\n";
             }
 
             /* Generate a WidgetListReply serialized message */

@@ -4,7 +4,7 @@
 /* System Includes */
 #include <memory>
 #include <inttypes.h>
-#include <unordered_map>
+#include <map>
 #include <functional>
 
 /* Shared includes */
@@ -65,7 +65,7 @@ namespace GuiProtocol
             GuiClientStatus_E SendSetValueRequest(WidgetSetValueIdentifier_T& widgetKeyValPairs);
             GuiClientStatus_E SendGetValueRequest(uint32_t widgetId);
 
-            const std::unordered_map<uint32_t, WidgetValueStorage_T>& WidgetList() const
+            const std::map<uint32_t, WidgetDescriptor_T>& WidgetList() const
             {
                 return _widgetList;
             }
@@ -79,7 +79,7 @@ namespace GuiProtocol
             void ProcessReceivedWidgetSetValueReply(Message_T& msg);
             void ProcessReceivedWidgetGetValueReply(Message_T& msg);
             void ProcessReceivedWidgetEventNotification(Message_T& msg);   
-            std::vector<WidgetValueStorage_T> GenerateWidgetValueList(WidgetSetValueIdentifier_T& widgetKeyValPairs);
+            // std::vector<WidgetValueStorage_T> GenerateWidgetValueList(WidgetSetValueIdentifier_T& widgetKeyValPairs);
 
             /* Callbacks */
             std::function<int32_t(const std::vector<uint8_t>&)> SendMessage;
@@ -100,7 +100,7 @@ namespace GuiProtocol
             bool _widgetSetValueReplyReceived = false;
             bool _widgetGetValueReqSent = false;
             bool _widgetGetValueReplyReceived = false;
-            std::unordered_map<uint32_t, WidgetValueStorage_T> _widgetList;
+            std::map<uint32_t, WidgetDescriptor_T> _widgetList;
             std::vector<std::string> _updatedWidgets;
     };
 }

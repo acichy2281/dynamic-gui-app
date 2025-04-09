@@ -72,6 +72,7 @@ void DynamicGui_C::SetWidgetList(std::vector<WidgetDescriptor_T>& descList)
         if (it == (*_widgetMap).end())
         {
             (*_widgetMap)[desc.widgetId] = desc;
+            std::cout << "Added widget " << desc.widgetId << ":" << desc.widgetName << " to the Widget Map\n";
         }
         else
         {
@@ -354,12 +355,15 @@ void DynamicGui_C::ParseJsonData()
 
             /* Populate widget Descriptor List */
             widgetDescList.push_back(newWidget->GetDescriptor());
+
+            std::cout << "Added Widget ID: " << newWidget->GetDescriptor().widgetId << ", Name: " << newWidget->GetDescriptor().widgetName << "\n";
             if (WidgetTypes_E::Menu == newWidget->GetWidgetType())
             {
                 /* Loop through menu items to retreive widget descriptors */
                 for (const auto& menuItem : std::dynamic_pointer_cast<WidgetMenu_C>(newWidget)->GetMenuItems())
                 {
                     widgetDescList.push_back(menuItem->GetDescriptor());
+                    std::cout << "Added Widget ID: " << menuItem->GetDescriptor().widgetId << ", Name: " << menuItem->GetDescriptor().widgetName << "\n";
                 }
             }
         }

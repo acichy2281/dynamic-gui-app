@@ -11,7 +11,7 @@
                     "Type": "button"
                 },
                 {
-                    "Name": "Get Property Value Options",
+                    "Name": "Property Value Options",
                     "Type": "radio",
                     "Options": []
                 },
@@ -34,7 +34,7 @@
                     "Type": "button"
                 },
                 {
-                    "Name": "Get Widget Value Options",
+                    "Name": "Widget Value Options",
                     "Type": "radio",
                     "Options": []
                 },

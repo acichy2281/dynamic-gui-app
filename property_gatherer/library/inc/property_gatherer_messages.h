@@ -22,20 +22,32 @@ namespace PropertyGatherer
 {
     enum PropertyStorageVariantType_E 
     {
+        Signed8BitInt,
+        Signed16BitInt,
+        Signed32BitInt,
+        Signed64BitInt,
         Unsigned8BitInt,
+        Unsigned16BitInt,
+        Unsigned32BitInt,
+        Unsigned64BitInt,
+        Float,
+        Double,
         String,
+        Boolean,
     };
 
-    using PropertyStorageVariant = std::variant</*int8_t,
+    using PropertyStorageVariant = std::variant<int8_t,
                                                 int16_t,
                                                 int32_t,
-                                                int64_t,*/
+                                                int64_t,
                                                 uint8_t,
-                                                /*uint16_t,
+                                                uint16_t,
                                                 uint32_t,
                                                 uint64_t,
-                                                float,*/
-                                                std::string>;
+                                                float,
+                                                double,
+                                                std::string,
+                                                bool>;
 
 
     /* Type defs */

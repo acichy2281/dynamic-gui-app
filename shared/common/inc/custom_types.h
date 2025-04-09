@@ -62,13 +62,32 @@ enum class EventTypes_E
 
 enum WidgetValueVariantType_E 
 {
-    String,
+    Signed8BitInt,
+    Signed16BitInt,
     Signed32BitInt,
+    Signed64BitInt,
+    Unsigned8BitInt,
+    Unsigned16BitInt,
+    Unsigned32BitInt,
+    Unsigned64BitInt,
     Float,
-    Bool,
+    Double,
+    String,
+    Boolean,
 };
 
-using WidgetValueVariant_T = std::variant<std::string, int, float, bool>;
+using WidgetValueVariant_T = std::variant<int8_t,
+                                          int16_t,
+                                          int32_t,
+                                          int64_t,
+                                          uint8_t,
+                                          uint16_t,
+                                          uint32_t,
+                                          uint64_t,
+                                          float,
+                                          double,
+                                          std::string,
+                                          bool>;
 
 /**
  * @brief Used to store widget info

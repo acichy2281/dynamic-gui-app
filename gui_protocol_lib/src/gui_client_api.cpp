@@ -157,31 +157,21 @@ namespace GuiProtocol
         GuiClientStatus_E retVal = GuiClientStatus_E::Error;
         if (GuiClientState_E::Ready == _state)
         {
-            auto widgetValList = GenerateWidgetValueList(widgetKeyValPairs);
-
-            if (widgetValList.size() != widgetKeyValPairs.size())
+            std::cout << "Sending Widget Set Value request\n";
+            std::vector<uint8_t> buffer;
+            auto widgetSetValReq = GetWidgetSetValueRequest(widgetKeyValPairs);
+            _msgSerializer.Serialize(widgetSetValReq, buffer);
+            if (0 < SendMessage(buffer))
             {
-                std::cout << "Error! Widget value list size mismatch\n";
-                retVal = GuiClientStatus_E::FailedToCreateRequest;
+                retVal = GuiClientStatus_E::Success;
+                _widgetSetValueReqSent = true;
+                _widgetSetValueReplyReceived = false;
+                std::cout << "Sent Widget Set Value request\n";
             }
             else
             {
-                std::cout << "Sending Widget Set Value request\n";
-                std::vector<uint8_t> buffer;
-                auto widgetSetValReq = GetWidgetSetValueRequest(widgetValList);
-                _msgSerializer.Serialize(widgetSetValReq, buffer);
-                if (0 < SendMessage(buffer))
-                {
-                    retVal = GuiClientStatus_E::Success;
-                    _widgetSetValueReqSent = true;
-                    _widgetSetValueReplyReceived = false;
-                    std::cout << "Sent Widget Set Value request\n";
-                }
-                else
-                {
-                    retVal = GuiClientStatus_E::FailedToSendMsg;
-                    std::cout << "Failed to send Widget Set Value request\n";
-                }
+                retVal = GuiClientStatus_E::FailedToSendMsg;
+                std::cout << "Failed to send Widget Set Value request\n";
             }
         }
         else if (GuiClientState_E::Initialized == _state)
@@ -201,7 +191,8 @@ namespace GuiProtocol
         }
         else
         {
-            std::cout << "Error! Widget list has not been received yet\n";
+            retVal = GuiClientStatus_E::RequestInProgress;
+            std::cout << "Error! Request in progress\n";
         }
         return retVal;
     }
@@ -245,7 +236,8 @@ namespace GuiProtocol
         }
         else
         {
-            std::cout << "Error! Widget list has not been received yet\n";
+            retVal = GuiClientStatus_E::RequestInProgress;
+            std::cout << "Error! Request in progress\n";
         }
         return retVal;
     }
@@ -382,9 +374,9 @@ namespace GuiProtocol
                 /* Populate widget list from provided descriptors */
                 for (auto& desc : reply.widgetDescriptorList)
                 {
-                    WidgetValueStorage_T widget;
-                    widget.desc = desc;
-                    _widgetList[desc.widgetId] = widget;
+                    _widgetList[desc.widgetId] = desc;
+
+                    std::cout << "Added Widget ID: " << desc.widgetId << ", Name: " << desc.widgetName << " to the Widget List\n";
                 }
 
                 ProcessStateMachine();
@@ -409,10 +401,10 @@ namespace GuiProtocol
 
             if (WidgetReplyStatus_E::Success == static_cast<WidgetReplyStatus_E>(reply.status))
             {
-                // Do something
             }
             /* Call user callback */
             OnWidgetSetValueReplyReceived(static_cast<WidgetReplyStatus_E>(reply.status), reply.setValuesList);
+            _widgetSetValueReplyReceived = true;
         }
     }
 
@@ -431,10 +423,10 @@ namespace GuiProtocol
 
             if (WidgetReplyStatus_E::Success == static_cast<WidgetReplyStatus_E>(reply.status))
             {
-                // Do something
             }
             /* Call user callback */
             OnWidgetGetValueReplyReceived(reply.widgetId, reply.value, static_cast<WidgetReplyStatus_E>(reply.status));
+            _widgetGetValueReplyReceived = true;
         }
     }
 
@@ -470,29 +462,29 @@ namespace GuiProtocol
         }
     }
 
-    std::vector<WidgetValueStorage_T> GuiClient_C::GenerateWidgetValueList(WidgetSetValueIdentifier_T& widgetKeyValPairs)
-    {
-        std::vector<WidgetValueStorage_T> retVal;
-        for (auto& [key, value] : widgetKeyValPairs)
-        {
-            auto it = _widgetList.find(key);
-            if (it != _widgetList.end())
-            {
-                it->second.val = value;
-                if (it->second.desc.flags & WidgetFlags_E::Writeable)
-                {
-                    retVal.push_back(it->second);
-                }
-                else
-                {
-                    std::cout << "Widget " << it->first << " is not writeable\n";
-                }
-            }
-            else
-            {
-                std::cout << "Failed to find " << key << " in the widget list\n";
-            }
-        }
-        return retVal;
-    }
+    // std::vector<WidgetValueStorage_T> GuiClient_C::GenerateWidgetValueList(WidgetSetValueIdentifier_T& widgetKeyValPairs)
+    // {
+    //     std::vector<WidgetValueStorage_T> retVal;
+    //     for (auto& [key, value] : widgetKeyValPairs)
+    //     {
+    //         auto it = _widgetList.find(key);
+    //         if (it != _widgetList.end())
+    //         {
+    //             it->second.val = value;
+    //             if (it->second.desc.flags & WidgetFlags_E::Writeable)
+    //             {
+    //                 retVal.push_back(it->second);
+    //             }
+    //             else
+    //             {
+    //                 std::cout << "Widget " << it->first << " is not writeable\n";
+    //             }
+    //         }
+    //         else
+    //         {
+    //             std::cout << "Failed to find " << key << " in the widget list\n";
+    //         }
+    //     }
+    //     return retVal;
+    // }
 }

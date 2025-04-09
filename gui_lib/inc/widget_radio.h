@@ -27,6 +27,6 @@ class WidgetRadio_C : public WidgetInterface_I
     private:
         uint16_t _id;
         std::vector<std::string> _optionsList;
-        int _selectedOptionIndex = 0;
+        int32_t _selectedOptionIndex = 0;
 };
 #endif // WIDGET_RADIO_H

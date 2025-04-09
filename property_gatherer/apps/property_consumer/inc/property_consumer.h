@@ -6,6 +6,9 @@
 #include "gui_client_api.h"
 #include "dynamic_gui.h"
 
+#define PROPERTY_VALUE_OPTIONS_WIDGET_NAME "Property Value Options"
+#define WIDGET_VALUE_OPTIONS_WIDGET_NAME "Widget Value Options"
+
 struct PropertyConsumerInitParams_C
 {
     PortInfo_T producerInfo;
@@ -54,6 +57,7 @@ class PropertyConsumerApp_C
         std::shared_ptr<PropertyGatherer::PropertyConsumer_C> _propertyConsumer;
         PortInfo_T _producerInfo;
         PortInfo_T _guiAppInfo;
+        std::map<uint16_t, PropertyGatherer::PropertyDescriptor_T> _propertyList;
         bool _isQuit = false;
         bool _widgetListReceived = false;
         uint32_t _rxBufferSize;

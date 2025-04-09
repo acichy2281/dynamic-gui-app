@@ -37,15 +37,15 @@ bool WidgetRadio_C::SetWidgetValue(WidgetValueVariant_T val)
     {
         return false;
     }
-    else if (false == std::holds_alternative<int>(val))
+    else if (false == std::holds_alternative<int32_t>(val))
     {
         return false;
     }
-    else if (std::get<int>(val) < 0 || std::get<int>(val) >= _optionsList.size())
+    else if (std::get<int32_t>(val) < 0 || std::get<int32_t>(val) >= _optionsList.size())
     {
         return false;
     }
-    _selectedOptionIndex = std::get<int>(val);
+    _selectedOptionIndex = std::get<int32_t>(val);
     return true;
 }
 

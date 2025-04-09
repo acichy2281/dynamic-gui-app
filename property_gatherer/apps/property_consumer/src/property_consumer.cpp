@@ -45,7 +45,7 @@ PropertyConsumerApp_C::~PropertyConsumerApp_C()
 void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val)
 {
     std::cout << "Widget event callback: Widget ID = " << widgetDesc.widgetId << ", " << widgetDesc.widgetName << ", Value = ";
-    std::visit([](auto&& arg) { std::cout << arg; }, val);
+    PrintVariant(val);
     std::cout << "\n";
 
     auto it = _widgetCallbacks.find(widgetDesc.widgetId);
@@ -55,9 +55,9 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
     }
     else if (widgetDesc.widgetName == "Get Property Value")
     {
-        std::cout << "Requesting Property Value\n";
+        std::cout << "Requesting Property Get Value\n";
         
-        auto widgetIt = _widgetNameToIdMap.find("Get Property Value Options");
+        auto widgetIt = _widgetNameToIdMap.find(PROPERTY_VALUE_OPTIONS_WIDGET_NAME);
         if (widgetIt == _widgetNameToIdMap.end())
         {
             std::cout << "Widget ID not found for Get Property Value Options\n";
@@ -72,20 +72,117 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
             std::cout << "Failed to request property value, error: " << static_cast<uint8_t>(propValReqStatus) << "\n";
         }
     }
+    else if (widgetDesc.widgetName == "Set Property Value")
+    {
+        std::cout << "Requesting Property Set Value\n";
+        
+        auto widgetIt = _widgetNameToIdMap.find(PROPERTY_VALUE_OPTIONS_WIDGET_NAME);
+        if (widgetIt == _widgetNameToIdMap.end())
+        {
+            std::cout << "Widget ID not found for Set Property Value Options\n";
+            return;
+        }
+        auto optionWidgetId = widgetIt->second;
+        auto propId = static_cast<uint16_t>(std::get<int>(_gui.GetWidgetValue(optionWidgetId)));
+
+        auto propIt = _propertyList.find(propId);
+        if (propIt == _propertyList.end())
+        {
+            std::cout << "Property ID not found for Set Property Value Options\n";
+            return;
+        }
+        auto propertyDesc = propIt->second;
+        PropertyGatherer::PropertyStorageVariant val;
+        switch (propertyDesc.propertyType)
+        {
+            case PropertyGatherer::PropertyStorageVariantType_E::String:
+            {
+                val = "UpdatedString";
+                break;
+            }
+            case PropertyGatherer::PropertyStorageVariantType_E::Unsigned8BitInt:
+            {
+                val = static_cast<uint8_t>(UINT8_MAX / 2);
+                break;
+            }
+            case PropertyGatherer::PropertyStorageVariantType_E::Unsigned16BitInt:
+            {
+                val = static_cast<uint16_t>(UINT16_MAX / 2);
+                break;
+            }
+            case PropertyGatherer::PropertyStorageVariantType_E::Unsigned32BitInt:
+            {
+                val = static_cast<uint32_t>(UINT32_MAX / 2);
+                break;
+            }
+            case PropertyGatherer::PropertyStorageVariantType_E::Unsigned64BitInt:
+            {
+                val = static_cast<uint64_t>(UINT64_MAX / 2);
+                break;
+            }
+            case PropertyGatherer::PropertyStorageVariantType_E::Signed8BitInt:
+            {
+                val = static_cast<int8_t>(INT8_MAX / 2);
+                break;
+            }
+            case PropertyGatherer::PropertyStorageVariantType_E::Signed16BitInt:
+            {
+                val = static_cast<int16_t>(INT16_MAX / 2);
+                break;
+            }
+            case PropertyGatherer::PropertyStorageVariantType_E::Signed32BitInt:
+            {
+                val = static_cast<int32_t>(INT32_MAX / 2);
+                break;
+            }
+            case PropertyGatherer::PropertyStorageVariantType_E::Signed64BitInt:
+            {
+                val = static_cast<int64_t>(INT64_MAX / 2);
+                break;
+            }
+            case PropertyGatherer::PropertyStorageVariantType_E::Float:
+            {
+                val = 3.3f;
+                break;
+            }
+            case PropertyGatherer::PropertyStorageVariantType_E::Double:
+            {
+                val = 4.4;
+                break;
+            }
+            case PropertyGatherer::PropertyStorageVariantType_E::Boolean:
+            {
+                val = true;
+                break;
+            }
+            default:
+                std::cout << "Unknown property type\n";
+                break;
+        }
+
+        std::cout << "Requesting Set Value for Property " << propertyDesc.propertyId << ":" << propertyDesc.propertyName << " with value: ";
+        PrintVariant(val);
+        std::cout << "\n";
+        auto propValReqStatus = _propertyConsumer->SendSetValueRequest((propId), val);
+        if (PropertyGatherer::PropertyConsumerStatus_E::Success != propValReqStatus)
+        {
+            std::cout << "Failed to request property set value, error: " << static_cast<uint8_t>(propValReqStatus) << "\n";
+        }
+    }
     else if (widgetDesc.widgetName == "Get Widget Value")
     {
         std::cout << "Requesting Widget Value\n";
         
-        auto widgetIt = _widgetNameToIdMap.find("Get Widget Value Options");
+        auto widgetIt = _widgetNameToIdMap.find(WIDGET_VALUE_OPTIONS_WIDGET_NAME);
         if (widgetIt == _widgetNameToIdMap.end())
         {
             std::cout << "Widget ID not found for Get Widget Value Options\n";
             return;
         }
         auto optionWidgetId = widgetIt->second;
-        auto widgetValue = static_cast<uint16_t>(std::get<int>(_gui.GetWidgetValue(optionWidgetId)));
+        auto widgetId = static_cast<uint16_t>(std::get<int>(_gui.GetWidgetValue(optionWidgetId)));
 
-        auto guiClientStatus = _guiClient->SendGetValueRequest(widgetValue);
+        auto guiClientStatus = _guiClient->SendGetValueRequest(widgetId);
         if (GuiProtocol::GuiClientStatus_E::Success != guiClientStatus)
         {
             std::cout << "Failed to request widget value, error: " << static_cast<uint8_t>(guiClientStatus) << "\n";
@@ -95,7 +192,6 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
     {
         RunSetWidgetValueTest();
     }
-    std::cout << "\n";
 }
 
 void PropertyConsumerApp_C::Gui_OnGuiWindowClosed()
@@ -248,15 +344,15 @@ void PropertyConsumerApp_C::RunSetWidgetValueTest()
 {
     std::cout << "Running Set Value test\n";
     std::vector<std::pair<uint32_t, WidgetValueVariant_T>> setWidgetList;
-    for (const auto& [widgetId, widgetStorage] : _guiClient->WidgetList())
+    for (const auto& [widgetId, widgetDesc] : _guiClient->WidgetList())
     {
-        if (0 == (widgetStorage.desc.flags & Writeable))
+        if (0 == (widgetDesc.flags & Writeable))
         {
             std::cout << "Widget " << widgetId << " is not writable, skipping...\n";
         }
-        else if (widgetStorage.desc.widgetType == static_cast<uint8_t>(WidgetTypes_E::Text))
+        else if (widgetDesc.widgetType == static_cast<uint8_t>(WidgetTypes_E::Text))
         {
-            std::string newWidgetValue = "Consumer Set Widget " + widgetStorage.desc.widgetName;
+            std::string newWidgetValue = "Consumer Set Widget " + widgetDesc.widgetName;
             setWidgetList.push_back({widgetId, newWidgetValue});
             std::cout << newWidgetValue << "\n";
         }
@@ -281,19 +377,19 @@ void PropertyConsumerApp_C::GuiClient_OnWidgetListReplyReceived(GuiProtocol::Wid
     {
         std::cout << "Widget List reply received with status success!\n";
 
-        auto widget = _gui.GetWidget("Get Widget Value Options");
+        auto widget = _gui.GetWidget(WIDGET_VALUE_OPTIONS_WIDGET_NAME);
         if (widget && std::dynamic_pointer_cast<WidgetRadio_C>(widget))
         {
             auto radioWidget = std::dynamic_pointer_cast<WidgetRadio_C>(widget);
-            for (const auto& [widgetId, widgetStorage] : _guiClient->WidgetList())
+            for (const auto& [widgetId, widgetDesc] : _guiClient->WidgetList())
             {
-                radioWidget->AddOption(widgetStorage.desc.widgetName);
-                std::cout << "Added Option for widget ID: " << widgetStorage.desc.widgetId << ", Name: " << widgetStorage.desc.widgetName << "\n";
+                radioWidget->AddOption(widgetDesc.widgetName);
+                std::cout << "Added Option for widget ID: " << widgetDesc.widgetId << ", Name: " << widgetDesc.widgetName << "\n";
             }
         }
         else
         {
-            std::cout << "No Radio widget found for Property Value Options\n";
+            std::cout << "No Radio widget found for Widget Value Options\n";
         }
         _widgetListReceived = true;
     }
@@ -321,7 +417,7 @@ void PropertyConsumerApp_C::GuiClient_OnWidgetGetValueReplyReceived(uint32_t wid
     {
         std::cout << "Widget Get Value reply received with status success!\n";
         std::cout << "Updated value for widget ID: " << widgetId << ", Value: ";
-        std::visit([](auto&& arg) { std::cout << arg; }, updatedValue);
+        PrintVariant(updatedValue);
         std::cout << "\n";
     }
     else
@@ -333,26 +429,9 @@ void PropertyConsumerApp_C::GuiClient_OnWidgetGetValueReplyReceived(uint32_t wid
 void PropertyConsumerApp_C::GuiClient_OnWidgetEventNotificationReceived(uint32_t widgetId, WidgetValueVariant_T updatedValue)
 {
     std::cout << "Widget Event Notification received for widgetId: " << widgetId << "\n";
-    if (std::holds_alternative<std::string>(updatedValue))
-    {
-        std::cout << "Updated value: " << std::get<std::string>(updatedValue) << "\n";
-    }
-    else if (std::holds_alternative<int>(updatedValue))
-    {
-        std::cout << "Updated value: " << std::get<int>(updatedValue) << "\n";
-    }
-    else if (std::holds_alternative<float>(updatedValue))
-    {
-        std::cout << "Updated value: " << std::get<float>(updatedValue) << "\n";
-    }
-    else if (std::holds_alternative<bool>(updatedValue))
-    {
-        std::cout << "Updated value: " << (std::get<bool>(updatedValue) ? "true" : "false") << "\n";
-    }
-    else
-    {
-        std::cout << "Unknown updated value type!\n";
-    }
+    std::cout << "Updated value: ";
+    PrintVariant(updatedValue);
+    std::cout << "\n";
 }
 
 int32_t PropertyConsumerApp_C::PropertyConsumer_SendMessage(const std::vector<uint8_t>& message)
@@ -364,7 +443,7 @@ void PropertyConsumerApp_C::PropertyConsumer_OnPropertyListReplyReceived(Propert
 {
     std::cout << "Property List Reply received\n";
 
-    auto widget = _gui.GetWidget("Get Property Value Options");
+    auto widget = _gui.GetWidget(PROPERTY_VALUE_OPTIONS_WIDGET_NAME);
     if (widget && std::dynamic_pointer_cast<WidgetRadio_C>(widget))
     {
         auto radioWidget = std::dynamic_pointer_cast<WidgetRadio_C>(widget);
@@ -372,6 +451,7 @@ void PropertyConsumerApp_C::PropertyConsumer_OnPropertyListReplyReceived(Propert
         {
             radioWidget->AddOption(desc.propertyName);
             std::cout << "Added Option for property ID: " << desc.propertyId << ", Name: " << desc.propertyName << "\n";
+            _propertyList[desc.propertyId] = desc;
         }
     }
     else
@@ -387,7 +467,7 @@ void PropertyConsumerApp_C::PropertyConsumer_OnPropertyGetValueReplyRecieved(Pro
     for (const auto& value : values)
     {
         std::cout << "Property Value: ";
-        std::visit([](auto&& arg) { std::cout << arg; }, value);
+        PrintVariant(value);
         std::cout << "\n";
     }
     // Handle the reply here
@@ -397,6 +477,6 @@ void PropertyConsumerApp_C::PropertyConsumer_OnPropertySetValueReplyRecieved(Pro
 {
     std::cout << "Property Set Value Reply received\n";
     std::cout << "Property Value: ";
-    std::visit([](auto&& arg) { std::cout << arg; }, value);
+    PrintVariant(value);
     std::cout << "\n";
 }
