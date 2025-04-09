@@ -19,6 +19,10 @@ if( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
 	set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
+if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
 set(FETCHCONTENT_BASE_DIR "3rd_party")  # Set base directory for fetched content
 include(FetchContent)
 
