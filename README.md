@@ -41,6 +41,8 @@ IMGUI - v1.91.7
 
 nlohmann json - v3.11.1
 
+json-schema-validator - v2.3.0
+
 ### Windows
 C/C++ Build tools
 
