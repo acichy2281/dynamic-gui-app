@@ -33,7 +33,9 @@ Application uses OpenGL & SDL for the backend. OpenGL is built in with Graphic D
 CMake 3.29 and C++17 are required
 
 ### 3rd Party Repositories (Included under 3rd_party folder) 
-SDL - v3.2.0
+SDL - v3.2.6
+
+SDL_Image - v3.2.4
 
 IMGUI - v1.91.7
 

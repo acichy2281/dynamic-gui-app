@@ -9,6 +9,8 @@
 #include "widget_text.h"
 #include "widget_menu.h"
 #include "widget_menu_item.h"
+#include "widget_image.h"
+#include "widget_input_text.h"
 
 using ParseFunc = std::function<std::shared_ptr<AddWidgetInfo_T>(const nlohmann::json&)>;
 
@@ -25,6 +27,8 @@ class WidgetFactory_C
         std::shared_ptr<AddWidgetInfo_T> ParseCheckboxWidgetData(const nlohmann::json& widgetData);
         std::shared_ptr<AddWidgetInfo_T> ParseRadioWidgetData(const nlohmann::json& widgetData);
         std::shared_ptr<AddWidgetInfo_T> ParseMenuWidgetData(const nlohmann::json& widgetData);
+        std::shared_ptr<AddWidgetInfo_T> ParseImageWidgetData(const nlohmann::json& widgetData);
+        std::shared_ptr<AddWidgetInfo_T> ParseInputTextWidgetData(const nlohmann::json& widgetData);
 
         const std::unordered_map<WidgetTypes_E, ParseFunc> _factoryMap {
             {WidgetTypes_E::Text, std::bind(&WidgetFactory_C::ParseTextWidgetData, this, std::placeholders::_1)},
@@ -32,7 +36,9 @@ class WidgetFactory_C
             {WidgetTypes_E::Slider, std::bind(&WidgetFactory_C::ParseSliderWidgetData, this, std::placeholders::_1)},
             {WidgetTypes_E::Checkbox, std::bind(&WidgetFactory_C::ParseCheckboxWidgetData, this, std::placeholders::_1)},
             {WidgetTypes_E::Radio, std::bind(&WidgetFactory_C::ParseRadioWidgetData, this, std::placeholders::_1)},
-            {WidgetTypes_E::Menu, std::bind(&WidgetFactory_C::ParseMenuWidgetData, this, std::placeholders::_1)}
+            {WidgetTypes_E::Menu, std::bind(&WidgetFactory_C::ParseMenuWidgetData, this, std::placeholders::_1)},
+            {WidgetTypes_E::Image, std::bind(&WidgetFactory_C::ParseImageWidgetData, this, std::placeholders::_1)},
+            {WidgetTypes_E::InputText, std::bind(&WidgetFactory_C::ParseInputTextWidgetData, this, std::placeholders::_1)}
         };
 };
 

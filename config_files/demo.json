@@ -1,0 +1,82 @@
+{
+    "Title" : "Device Discovery GUI App",
+    "Windows" :
+    [
+        {
+            "Title" : "Device List",
+            "WidgetList":
+            [
+                {
+                    
+                    "Name" : "Demo Image",
+                    "Type" : "image",
+                    "ImagePath" : "C:\\Users\\acichy\\WMU\\CS-4910\\dynamic-gui-app\\config_files\\stryker.jpg"
+                },
+                {
+                    "Name" : "Maestro Device",
+                    "Type" : "text",
+                    "Value" : "Maestro Device"
+                },
+                {
+                    "Name" : "EMG Device",
+                    "Type" : "text",
+                    "Value" : "EMG Device"
+                }
+            ]
+        },
+        {
+            "Title" : "Maestro Device",
+            "WidgetList":
+            [
+                {
+                    "Name" : "Service List",
+                    "Type" : "text",
+                    "Value" : "Service List"
+                },
+                {
+                    "Name" : "File Transfer Service",
+                    "Type" : "text",
+                    "Value" : "File Transfer Service"
+                },
+                {
+                    "Name": "Test Menu",
+                    "Type": "radio",
+                    "Options": ["File 1", "File 2", "File 3"]
+                },
+                {
+                    "Name" : "Transfer File",
+                    "Type" : "button"
+                },
+                {
+                    "Name" : "Video Streaming Service",
+                    "Type" : "text",
+                    "Value" : "Video Streaming Service"
+                },
+                {
+                    "Name" : "Start Video",
+                    "Type" : "button"
+                }
+            ]
+        },
+        {
+            "Title" : "EMG Device",
+            "WidgetList":
+            [
+                {
+                    "Name" : "Service List",
+                    "Type" : "text",
+                    "Value" : "Service List"
+                },
+                {
+                    "Name" : "TAFT File Transfer Service",
+                    "Type" : "text",
+                    "Value" : "TAFT File Transfer Service"
+                },
+                {
+                    "Name" : "Transfer File",
+                    "Type" : "button"
+                }
+            ]
+        }
+    ]
+}

@@ -4,7 +4,10 @@
 
 WidgetMenuItem_C::WidgetMenuItem_C(const std::shared_ptr<const AddMenuItemWidgetInfo_T>& info) : WidgetInterface_I(info) 
 {
-
+    _isWritable = false;
+    _isReadable = false;
+    _isInteractable = true;
+    _isStatic = false;
 }
 
 WidgetMenuItem_C::~WidgetMenuItem_C()

@@ -3,29 +3,6 @@
     "Windows" :
     [
         {
-            "Title" : "Property Conusmer Test Window",
-            "WidgetList":
-            [
-                {
-                    "Name": "Get Property List",
-                    "Type": "button"
-                },
-                {
-                    "Name": "Property Value Options",
-                    "Type": "radio",
-                    "Options": []
-                },
-                {
-                    "Name": "Get Property Value",
-                    "Type": "button"
-                },
-                {
-                    "Name": "Set Property Value",
-                    "Type": "button"
-                }
-            ]
-        },
-        {
             "Title" : "Gui Client Test Window",
             "WidgetList":
             [
@@ -41,6 +18,10 @@
                 {
                     "Name": "Get Widget Value",
                     "Type": "button"
+                },
+                {
+                    "Name": "Set Widget Input",
+                    "Type": "input_text"
                 },
                 {
                     "Name": "Set Widget Value",

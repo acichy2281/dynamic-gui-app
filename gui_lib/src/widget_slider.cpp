@@ -7,6 +7,11 @@ WidgetSlider_C::WidgetSlider_C(const std::shared_ptr<const AddSliderWidgetInfo_T
     _sliderMin(info->sliderMin),
     _sliderMax(info->sliderMax)
 {
+    _isWritable = true;
+    _isReadable = true;
+    _isInteractable = true;
+    _isStatic = false;
+    
     /* Initialize values to ensure variant type safety - Setting value to min just incase no default is provided. */
     if (std::holds_alternative<int>(_sliderMin) && std::holds_alternative<int>(_sliderMax))
     {

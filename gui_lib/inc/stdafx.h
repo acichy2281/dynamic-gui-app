@@ -41,6 +41,7 @@
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_opengl3.h"
 #include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <SDL3/SDL_opengles2.h>
 #else
@@ -56,6 +57,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(WidgetTypes_E, {
     {WidgetTypes_E::Radio, "radio"},
     {WidgetTypes_E::Menu, "menu"},
     {WidgetTypes_E::MenuItem, "menu_item"},
+    {WidgetTypes_E::Image, "image"},
+    {WidgetTypes_E::InputText, "input_text"},
 })
 
 #endif // GUI_LIB_STDAFX_H

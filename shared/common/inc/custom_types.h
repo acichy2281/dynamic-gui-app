@@ -25,6 +25,8 @@ enum class WidgetTypes_E
     Radio,
     Menu,
     MenuItem,
+    Image,
+    InputText,
 };
 
 enum class WidgetDataTypes_E
@@ -51,13 +53,14 @@ enum WidgetFlags_E {
 enum class EventTypes_E
 {
     None,
-    widgetClose,
-    widgetOpen,
-    widgetResize,
-    buttonPress,
-    sliderSet,
-    checkBoxToggle,
-    radioSelected,
+    WidgetClose,
+    WidgetOpen,
+    WidgetResize,
+    ButtonPress,
+    SliderSet,
+    CheckBoxToggle,
+    RadioSelected,
+    InputTextChanged,
 };
 
 enum WidgetValueVariantType_E 

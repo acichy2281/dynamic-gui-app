@@ -5,6 +5,11 @@
 
 WidgetText_C::WidgetText_C(const std::shared_ptr<const AddWidgetInfo_T>& info) : WidgetInterface_I(info) 
 {
+    _isWritable = true;
+    _isReadable = true;
+    _isInteractable = false;
+    _isStatic = false;
+
     SetWidgetValue(info->defaultValue);
 }
 

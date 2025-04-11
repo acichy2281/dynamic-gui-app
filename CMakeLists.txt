@@ -13,7 +13,12 @@ endif()
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(BUILD_SHARED_LIBS ON)
+
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Force shared libraries" FORCE)
+set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
+set(SDL_TESTS OFF CACHE BOOL "" FORCE)
+set(SDL_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 if( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
 	set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -26,23 +31,11 @@ endif()
 set(FETCHCONTENT_BASE_DIR "3rd_party")  # Set base directory for fetched content
 include(FetchContent)
 
-set(SDL_TESTS OFF)
-set(SDL_EXAMPLES OFF)
-set(SDL_SHARED OFF)
-set(SDL_STATIC ON)
-
 # Fetch nlohmann_json
 FetchContent_Declare(
     nlohmann_json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
     GIT_TAG v3.11.1
-)
-
-# Fetch SDL
-FetchContent_Declare(
-    SDL
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG release-3.2.0 
 )
 
 # Fetch imgui
@@ -59,11 +52,26 @@ FetchContent_Declare(
     GIT_TAG 2.3.0
 )
 
+# Fetch SDL3
+FetchContent_Declare(
+    SDL
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG release-3.2.6
+)
+
+# Fetch SDL3_Image
+FetchContent_Declare(
+    SDL_Image
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL_Image.git
+    GIT_TAG release-3.2.4 
+)
+
 # Set 3rd party library options
 set(JSON_BuildTests OFF CACHE INTERNAL "")
+set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE) # Requires Perl and Nasm for libaom (AVIF image format)
 
 # Make both available
-FetchContent_MakeAvailable(nlohmann_json SDL imgui json-schema-validator)
+FetchContent_MakeAvailable(nlohmann_json SDL SDL_Image imgui json-schema-validator)
 
 # Create library for imgui 
 add_library(imgui STATIC

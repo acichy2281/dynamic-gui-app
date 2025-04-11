@@ -31,6 +31,7 @@ struct DynamicGuiInitParams_T
 {
     DynamicGuiCallbacks_T callbacks;
     std::string jsonSchemaPath;
+    bool requireConfigFile = true;
 };
 
 class DynamicGui_C
@@ -107,6 +108,14 @@ class DynamicGui_C
         bool SetWidgetValue(uint32_t widgetId, WidgetValueVariant_T val);
 
         /**
+         * @brief Create a Gui Window object
+         * 
+         * @param windowName 
+         * @return uint16_t 
+         */
+        uint16_t CreateGuiWindow(const std::string& windowName);
+
+        /**
          * @brief Add a widget to the GUI window
          * 
          */
@@ -136,6 +145,12 @@ class DynamicGui_C
          * @return false 
          */
         bool ShowGui();
+
+        /**
+         * @brief Displays the JSON Config file window selector
+         * 
+         */
+        void ShowJsonFileSelectorWindow();
 
         /**
          * @brief Parses json data from the member variable _jsonData
@@ -171,6 +186,7 @@ class DynamicGui_C
         bool                                                                _initialized                    = false;
         bool                                                                _isConfigFileSet                = false;
         bool                                                                _guiServerSpinSleep             = false;
+        bool                                                                _requireConfigFile              = true;   
         
         // Config member variables
         std::ifstream                                                       _configFile;

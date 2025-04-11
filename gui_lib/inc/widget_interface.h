@@ -8,9 +8,7 @@ struct AddWidgetInfo_T
 {
     uint16_t windowId;
     uint16_t widgetId;
-    uint8_t flags;
     WidgetTypes_E widgetType;
-    WidgetDataTypes_E dataType;
     std::string widgetName;
     WidgetValueVariant_T defaultValue;
     std::optional<std::reference_wrapper<ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>>> eventQueue;
@@ -29,10 +27,7 @@ class WidgetInterface_I
         _widgetId(info->widgetId),
         _windowId(info->windowId)
         {
-            _isReadable = (info->flags & WidgetFlags_E::Readable) != 0;
-            _isWritable = (info->flags & WidgetFlags_E::Writeable) != 0;
-            _isStatic = (info->flags & WidgetFlags_E::Static) != 0;
-            _isInteractable = (info->flags & WidgetFlags_E::Interactable) != 0;
+            
         }
         virtual ~WidgetInterface_I() {}
         

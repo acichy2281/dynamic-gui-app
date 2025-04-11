@@ -7,7 +7,9 @@
 #include "dynamic_gui.h"
 
 #define PROPERTY_VALUE_OPTIONS_WIDGET_NAME "Property Value Options"
+#define PROPERTY_SET_VALUE_INPUT_WIDGET_NAME "Set Property Input"
 #define WIDGET_VALUE_OPTIONS_WIDGET_NAME "Widget Value Options"
+#define WIDGET_SET_VALUE_INPUT_WIDGET_NAME "Set Widget Input"
 
 struct PropertyConsumerInitParams_C
 {

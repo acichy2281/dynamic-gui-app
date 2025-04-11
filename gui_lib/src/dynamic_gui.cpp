@@ -128,6 +128,8 @@ bool DynamicGui_C::InitializeGui(DynamicGuiInitParams_T initParams)
                 std::cerr << "Error: Failed to open schema file\n";
             }
         }
+
+        _requireConfigFile = initParams.requireConfigFile;
         
         // Decide GL+GLSL versions
         #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -266,26 +268,9 @@ bool DynamicGui_C::ShowGui()
         ProcessEventQueue();
 
         // Show JSON file selector window to load JSON config file 
-        if (false == _isConfigFileSet)
+        if (false == _isConfigFileSet && true == _requireConfigFile)
         {
-            ImGui::Begin("JSON File Selector"); 
-
-            if (ImGui::Button("Choose File"))
-            {
-                filePath = GetJSONFile();
-                if (false == filePath.empty())
-                {
-                    if (true == SetConfigFile(filePath))
-                    {
-                        SDL_SetWindowTitle(_window, _mainWindowName.c_str());
-                        _isConfigFileSet = true;
-                        std::cout << "JSON file set to: " << filePath << "\n";
-                    }
-                }
-            }
-
-            ImGui::Text("Select a JSON file to generate a GUI from.");               
-            ImGui::End();
+            ShowJsonFileSelectorWindow();
         }
 
         // Rendering
@@ -304,6 +289,27 @@ bool DynamicGui_C::ShowGui()
     EMSCRIPTEN_MAINLOOP_END;
 #endif
     return true;
+}
+
+void DynamicGui_C::ShowJsonFileSelectorWindow()
+{
+    ImGui::Begin("JSON File Selector"); 
+    if (ImGui::Button("Choose File"))
+    {
+        auto filePath = GetJSONFile();
+        if (false == filePath.empty())
+        {
+            if (true == SetConfigFile(filePath))
+            {
+                SDL_SetWindowTitle(_window, _mainWindowName.c_str());
+                _isConfigFileSet = true;
+                std::cout << "JSON file set to: " << filePath << "\n";
+            }
+        }
+    }
+
+    ImGui::Text("Select a JSON file to generate a GUI from.");               
+    ImGui::End();
 }
 
 void DynamicGui_C::CloseGui()
@@ -375,6 +381,7 @@ void DynamicGui_C::ParseJsonData()
 
 WidgetDescriptor_T DynamicGui_C::AddWidgetToWindow(std::shared_ptr<AddWidgetInfo_T> addWidgetInfo)
 {
+    addWidgetInfo->eventQueue = _eventQueue;
     auto newWidget = _windowList.at(addWidgetInfo->windowId).AddWidget(addWidgetInfo);
     _widgetMap->insert({ newWidget->GetDescriptor().widgetId, newWidget->GetDescriptor() });
     return newWidget->GetDescriptor();
@@ -479,6 +486,14 @@ bool DynamicGui_C::SetWidgetValue(uint32_t widgetId, WidgetValueVariant_T val)
         retVal = true;
     }
     return retVal;
+}
+
+uint16_t DynamicGui_C::CreateGuiWindow(const std::string& windowName)
+{
+    uint16_t windowId = _windowList.size();
+    GuiWindow_C newWindow(windowName, windowId);
+    _windowList.push_back(newWindow);
+    return windowId;
 }
 
 bool DynamicGui_C::RunGuiServer(const GuiServerInitParams_T& initParams)

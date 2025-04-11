@@ -53,6 +53,24 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
     {
         it->second(val);
     }
+    if (widgetDesc.widgetName == "Get Property List")
+    {
+        std::cout << "Requesting Property List\n";
+        auto propListReqStatus = _propertyConsumer->SendPropertyListRequest();
+        if (PropertyGatherer::PropertyConsumerStatus_E::Success != propListReqStatus)
+        {
+            std::cout << "Failed to request property list, error: " << static_cast<uint8_t>(propListReqStatus) << "\n";
+        }
+    }
+    else if (widgetDesc.widgetName == "Get Widget List")
+    {
+        std::cout << "Requesting Widget List\n";
+        auto widgetListReqStatus = _guiClient->SendWidgetListRequest();
+        if (GuiProtocol::GuiClientStatus_E ::Success != widgetListReqStatus)
+        {
+            std::cout << "Failed to request widget list, error: " << static_cast<uint8_t>(widgetListReqStatus) << "\n";
+        }
+    }
     else if (widgetDesc.widgetName == "Get Property Value")
     {
         std::cout << "Requesting Property Get Value\n";
@@ -76,6 +94,7 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
     {
         std::cout << "Requesting Property Set Value\n";
         
+        // Get the property ID from the widget value
         auto widgetIt = _widgetNameToIdMap.find(PROPERTY_VALUE_OPTIONS_WIDGET_NAME);
         if (widgetIt == _widgetNameToIdMap.end())
         {
@@ -84,7 +103,6 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
         }
         auto optionWidgetId = widgetIt->second;
         auto propId = static_cast<uint16_t>(std::get<int>(_gui.GetWidgetValue(optionWidgetId)));
-
         auto propIt = _propertyList.find(propId);
         if (propIt == _propertyList.end())
         {
@@ -92,67 +110,86 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
             return;
         }
         auto propertyDesc = propIt->second;
+
+        // Get the value from the Input Text Widget
+        auto inputIt = _widgetNameToIdMap.find(PROPERTY_SET_VALUE_INPUT_WIDGET_NAME);
+        if (inputIt == _widgetNameToIdMap.end())
+        {
+            std::cout << "Widget ID not found for Set Property Input\n";
+            return;
+        }
+        std::string widgetValString = std::get<std::string>(_gui.GetWidgetValue(inputIt->second));
         PropertyGatherer::PropertyStorageVariant val;
         switch (propertyDesc.propertyType)
         {
             case PropertyGatherer::PropertyStorageVariantType_E::String:
             {
-                val = "UpdatedString";
+                val = widgetValString;
                 break;
             }
             case PropertyGatherer::PropertyStorageVariantType_E::Unsigned8BitInt:
             {
-                val = static_cast<uint8_t>(UINT8_MAX / 2);
+                unsigned long parsed = std::stoul(widgetValString);
+                if (parsed > UINT8_MAX) throw std::out_of_range("Value exceeds uint8_t range");
+                val = static_cast<uint8_t>(parsed);
                 break;
             }
             case PropertyGatherer::PropertyStorageVariantType_E::Unsigned16BitInt:
             {
-                val = static_cast<uint16_t>(UINT16_MAX / 2);
+                unsigned long parsed = std::stoul(widgetValString);
+                if (parsed > UINT16_MAX) throw std::out_of_range("Value exceeds uint16_t range");
+                val = static_cast<uint16_t>(parsed);
                 break;
             }
             case PropertyGatherer::PropertyStorageVariantType_E::Unsigned32BitInt:
             {
-                val = static_cast<uint32_t>(UINT32_MAX / 2);
+                val = static_cast<uint32_t>(std::stoul(widgetValString));
                 break;
             }
             case PropertyGatherer::PropertyStorageVariantType_E::Unsigned64BitInt:
             {
-                val = static_cast<uint64_t>(UINT64_MAX / 2);
+                val = std::stoull(widgetValString);
                 break;
             }
             case PropertyGatherer::PropertyStorageVariantType_E::Signed8BitInt:
             {
-                val = static_cast<int8_t>(INT8_MAX / 2);
+                long parsed = std::stol(widgetValString);
+                if (parsed < INT8_MIN || parsed > INT8_MAX) throw std::out_of_range("Value exceeds int8_t range");
+                val = static_cast<int8_t>(parsed);
                 break;
             }
             case PropertyGatherer::PropertyStorageVariantType_E::Signed16BitInt:
             {
-                val = static_cast<int16_t>(INT16_MAX / 2);
+                long parsed = std::stol(widgetValString);
+                if (parsed < INT16_MIN || parsed > INT16_MAX) throw std::out_of_range("Value exceeds int16_t range");
+                val = static_cast<int16_t>(parsed);
                 break;
             }
             case PropertyGatherer::PropertyStorageVariantType_E::Signed32BitInt:
             {
-                val = static_cast<int32_t>(INT32_MAX / 2);
+                val = static_cast<int32_t>(std::stol(widgetValString));
                 break;
             }
             case PropertyGatherer::PropertyStorageVariantType_E::Signed64BitInt:
             {
-                val = static_cast<int64_t>(INT64_MAX / 2);
+                val = std::stoll(widgetValString);
                 break;
             }
             case PropertyGatherer::PropertyStorageVariantType_E::Float:
             {
-                val = 3.3f;
+                val = std::stof(widgetValString);
                 break;
             }
             case PropertyGatherer::PropertyStorageVariantType_E::Double:
             {
-                val = 4.4;
+                val = std::stod(widgetValString);
                 break;
             }
             case PropertyGatherer::PropertyStorageVariantType_E::Boolean:
             {
-                val = true;
+                auto lowerStr = widgetValString;
+                std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(), ::tolower);
+                val = (lowerStr == "true" || lowerStr == "1");
                 break;
             }
             default:
@@ -212,27 +249,7 @@ void PropertyConsumerApp_C::Gui_OnConfigFileSet(bool status)
             std::cout << "Widget ID: " << widgetId << ", Widget Name: " << widgetDesc.widgetName << "\n";
             
             _widgetNameToIdMap[widgetDesc.widgetName] = widgetId;
-            if (widgetDesc.widgetName == "Get Property List") 
-            {
-                _widgetCallbacks[widgetId] = [this](WidgetValueVariant_T) {
-                    auto propListReqStatus = _propertyConsumer->SendPropertyListRequest();
-                    if (PropertyGatherer::PropertyConsumerStatus_E::Success != propListReqStatus) {
-                    std::cout << "Failed to request property list\n";
-                    }
-                };
-            }
-            else if (widgetDesc.widgetName == "Get Widget List")
-            {
-                _widgetCallbacks[widgetId] = [this](WidgetValueVariant_T) {
-                    std::cout << "Requesting Widget List\n";
-                    auto guiClientStatus = _guiClient->SendWidgetListRequest();
-                    if (GuiProtocol::GuiClientStatus_E::Success != guiClientStatus)
-                    {
-                        std::cout << "Failed to request widget list, error: " << static_cast<uint8_t>(guiClientStatus) << "\n";
-                    }
-                };
-            }
-            else if (widgetDesc.widgetName == "Start Gui Client Thread")
+            if (widgetDesc.widgetName == "Start Gui Client Thread")
             {
                 _widgetCallbacks[widgetId] = [this](WidgetValueVariant_T) {
                     std::cout << "Starting Gui Client Thread\n";
@@ -277,6 +294,7 @@ void PropertyConsumerApp_C::RunTest()
 
 void PropertyConsumerApp_C::RunGuiClientTest()
 {
+    auto guiClientTestWindow = _gui.CreateGuiWindow("Gui Client Tester");
     while (false == _isQuit)
     {
         _guiClient->ProcessTimedActivities();
@@ -289,6 +307,52 @@ void PropertyConsumerApp_C::RunGuiClientTest()
 
 void PropertyConsumerApp_C::RunPropertyConsumerTest()
 {
+    auto propertyConsumerTestWindow = _gui.CreateGuiWindow("Property Consumer Tester");
+    
+    std::shared_ptr<AddWidgetInfo_T> propertyListButtonAddInfo = std::make_shared<AddWidgetInfo_T>();
+    propertyListButtonAddInfo->windowId = propertyConsumerTestWindow;
+    propertyListButtonAddInfo->widgetType = WidgetTypes_E::Button;
+    propertyListButtonAddInfo->widgetName = "Get Property List";
+    auto propertyListButtonDesc = _gui.AddWidgetToWindow(propertyListButtonAddInfo);
+    _widgetNameToIdMap[propertyListButtonDesc.widgetName] = propertyListButtonDesc.widgetId;
+    
+    std::shared_ptr<AddRadioWidgetInfo_T> propertyValRadioInfo = std::make_shared<AddRadioWidgetInfo_T>();
+    propertyValRadioInfo->windowId = propertyConsumerTestWindow;
+    propertyValRadioInfo->widgetType = WidgetTypes_E::Radio;
+    propertyValRadioInfo->widgetName = PROPERTY_VALUE_OPTIONS_WIDGET_NAME;
+    propertyValRadioInfo->radioWidgetOptionsList = {};
+    auto propertyValRadioDesc = _gui.AddWidgetToWindow(propertyValRadioInfo);
+    _widgetNameToIdMap[propertyValRadioDesc.widgetName] = propertyValRadioDesc.widgetId;
+    
+    std::shared_ptr<AddWidgetInfo_T> getValTextAddInfo = std::make_shared<AddWidgetInfo_T>();
+    getValTextAddInfo->windowId = propertyConsumerTestWindow;
+    getValTextAddInfo->widgetType = WidgetTypes_E::Text;
+    getValTextAddInfo->widgetName = "Get Value Output";
+    getValTextAddInfo->defaultValue = "";
+    auto getValTextDesc = _gui.AddWidgetToWindow(getValTextAddInfo);
+    _widgetNameToIdMap[getValTextDesc.widgetName] = getValTextDesc.widgetId;
+    
+    std::shared_ptr<AddWidgetInfo_T> getValButtonInfo = std::make_shared<AddWidgetInfo_T>();
+    getValButtonInfo->windowId = propertyConsumerTestWindow;
+    getValButtonInfo->widgetType = WidgetTypes_E::Button;
+    getValButtonInfo->widgetName = "Get Property Value";
+    auto getValButtonDesc = _gui.AddWidgetToWindow(getValButtonInfo);
+    _widgetNameToIdMap[getValButtonDesc.widgetName] = getValButtonDesc.widgetId;
+    
+    std::shared_ptr<AddWidgetInfo_T> setValInputTextInfo = std::make_shared<AddWidgetInfo_T>();
+    setValInputTextInfo->windowId = propertyConsumerTestWindow;
+    setValInputTextInfo->widgetType = WidgetTypes_E::InputText;
+    setValInputTextInfo->widgetName = PROPERTY_SET_VALUE_INPUT_WIDGET_NAME;
+    auto setValInputTextDesc = _gui.AddWidgetToWindow(setValInputTextInfo);
+    _widgetNameToIdMap[setValInputTextDesc.widgetName] = setValInputTextDesc.widgetId;
+    
+    std::shared_ptr<AddWidgetInfo_T> setValButtonInfo = std::make_shared<AddWidgetInfo_T>();
+    setValButtonInfo->windowId = propertyConsumerTestWindow;
+    setValButtonInfo->widgetType = WidgetTypes_E::Button;
+    setValButtonInfo->widgetName = "Set Property Value";
+    auto setValButtonDesc = _gui.AddWidgetToWindow(setValButtonInfo);
+    _widgetNameToIdMap[setValButtonDesc.widgetName] = setValButtonDesc.widgetId;
+
     while (false == _isQuit)
     {
         _propertyConsumer->ProcessTimedActivities();
@@ -469,6 +533,29 @@ void PropertyConsumerApp_C::PropertyConsumer_OnPropertyGetValueReplyRecieved(Pro
         std::cout << "Property Value: ";
         PrintVariant(value);
         std::cout << "\n";
+    }
+
+    auto widget = _gui.GetWidget("Get Value Output");
+    if (widget && std::dynamic_pointer_cast<WidgetText_C>(widget))
+    {
+        auto textWidget = std::dynamic_pointer_cast<WidgetText_C>(widget);
+        std::string propertyDisplayInfoStr = "Property Value: [";
+        std::visit([&propertyDisplayInfoStr](auto&& arg) {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, std::string>) {
+                propertyDisplayInfoStr += arg;
+            } else if constexpr (std::is_same_v<T, bool>) {
+                propertyDisplayInfoStr += arg ? "true" : "false";
+            } else {
+                propertyDisplayInfoStr += std::to_string(arg);
+            }
+        }, values[0]);
+        propertyDisplayInfoStr += "]";
+        textWidget->SetWidgetValue(propertyDisplayInfoStr);
+    }
+    else
+    {
+        std::cout << "No Text widget found for Get Value Output\n";
     }
     // Handle the reply here
 }

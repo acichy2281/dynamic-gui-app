@@ -1,4 +1,9 @@
 set(GUI_LIBRARY_COMMON_SRC 
+    "src/command_line_parser.cpp"
+    "src/dynamic_gui.cpp"
+    "src/event_button_press.cpp"
+    "src/event_checkbox_toggle.cpp"
+    "src/event_input_text_changed.cpp"
     "src/event_radio_selected.cpp"
     "src/event_slider_set.cpp"
     "src/event_widget_close.cpp"
@@ -7,15 +12,13 @@ set(GUI_LIBRARY_COMMON_SRC
     "src/widget_button.cpp"
     "src/widget_checkbox.cpp"
     "src/widget_factory.cpp"
+    "src/widget_image.cpp"
+    "src/widget_input_text.cpp"
     "src/widget_menu_item.cpp"
     "src/widget_menu.cpp"
     "src/widget_radio.cpp"
     "src/widget_slider.cpp"
     "src/widget_text.cpp"
-    "src/command_line_parser.cpp"
-    "src/dynamic_gui.cpp"
-    "src/event_button_press.cpp"
-    "src/event_checkbox_toggle.cpp"
     
     "${CMAKE_SOURCE_DIR}/shared/common/src/common_functions.cpp"
 )

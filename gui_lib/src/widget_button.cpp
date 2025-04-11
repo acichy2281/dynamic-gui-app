@@ -4,7 +4,10 @@
 
 WidgetButton_C::WidgetButton_C(const std::shared_ptr<const AddWidgetInfo_T>& info) : WidgetInterface_I(info) 
 {
-
+    _isWritable = false;
+    _isReadable = true;
+    _isInteractable = true;
+    _isStatic = false;
 }
 
 WidgetButton_C::~WidgetButton_C()

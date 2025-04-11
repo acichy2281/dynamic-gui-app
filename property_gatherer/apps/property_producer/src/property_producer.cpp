@@ -100,9 +100,7 @@ void PropertyProducerApp_C::RunProducerTest()
         
         std::shared_ptr<AddWidgetInfo_T> testStringAddWidgetInfo = std::make_shared<AddWidgetInfo_T>();
         testStringAddWidgetInfo->windowId = 0;
-        testStringAddWidgetInfo->flags = (Readable | Writeable);
         testStringAddWidgetInfo->widgetType = WidgetTypes_E::Text;
-        testStringAddWidgetInfo->dataType = WidgetDataTypes_E::String;
         testStringAddWidgetInfo->widgetName = desc.propertyName;
         auto widgetDesc = _gui.AddWidgetToWindow(testStringAddWidgetInfo);
         std::string propertyDisplayInfoStr = "ID: " + std::to_string(desc.propertyId) + ", Name: " + desc.propertyName + ", Value: ";
