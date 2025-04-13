@@ -3,33 +3,6 @@
     "Windows" :
     [
         {
-            "Title" : "Gui Client Test Window",
-            "WidgetList":
-            [
-                {
-                    "Name": "Get Widget List",
-                    "Type": "button"
-                },
-                {
-                    "Name": "Widget Value Options",
-                    "Type": "radio",
-                    "Options": []
-                },
-                {
-                    "Name": "Get Widget Value",
-                    "Type": "button"
-                },
-                {
-                    "Name": "Set Widget Input",
-                    "Type": "input_text"
-                },
-                {
-                    "Name": "Set Widget Value",
-                    "Type": "button"
-                }
-            ]
-        },
-        {
             "Title" : "Thread Starter Window",
             "WidgetList":
             [

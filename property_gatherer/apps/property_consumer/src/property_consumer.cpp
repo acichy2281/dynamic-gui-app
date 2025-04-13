@@ -295,6 +295,51 @@ void PropertyConsumerApp_C::RunTest()
 void PropertyConsumerApp_C::RunGuiClientTest()
 {
     auto guiClientTestWindow = _gui.CreateGuiWindow("Gui Client Tester");
+    
+    std::shared_ptr<AddWidgetInfo_T> widgetListButtonAddInfo = std::make_shared<AddWidgetInfo_T>();
+    widgetListButtonAddInfo->windowId = guiClientTestWindow;
+    widgetListButtonAddInfo->widgetType = WidgetTypes_E::Button;
+    widgetListButtonAddInfo->widgetName = "Get Widget List";
+    auto widgetListButtonDesc = _gui.AddWidgetToWindow(widgetListButtonAddInfo);
+    _widgetNameToIdMap[widgetListButtonDesc.widgetName] = widgetListButtonDesc.widgetId;
+    
+    std::shared_ptr<AddRadioWidgetInfo_T> widgetValRadioInfo = std::make_shared<AddRadioWidgetInfo_T>();
+    widgetValRadioInfo->windowId = guiClientTestWindow;
+    widgetValRadioInfo->widgetType = WidgetTypes_E::Radio;
+    widgetValRadioInfo->widgetName = WIDGET_VALUE_OPTIONS_WIDGET_NAME;
+    widgetValRadioInfo->radioWidgetOptionsList = {};
+    auto widgetValRadioDesc = _gui.AddWidgetToWindow(widgetValRadioInfo);
+    _widgetNameToIdMap[widgetValRadioDesc.widgetName] = widgetValRadioDesc.widgetId;
+    
+    std::shared_ptr<AddWidgetInfo_T> getValTextAddInfo = std::make_shared<AddWidgetInfo_T>();
+    getValTextAddInfo->windowId = guiClientTestWindow;
+    getValTextAddInfo->widgetType = WidgetTypes_E::Text;
+    getValTextAddInfo->widgetName = WIDGET_VALUE_OUTPUT_WIDGET_NAME;
+    getValTextAddInfo->defaultValue = "";
+    auto getValTextDesc = _gui.AddWidgetToWindow(getValTextAddInfo);
+    _widgetNameToIdMap[getValTextDesc.widgetName] = getValTextDesc.widgetId;
+    
+    std::shared_ptr<AddWidgetInfo_T> getValButtonInfo = std::make_shared<AddWidgetInfo_T>();
+    getValButtonInfo->windowId = guiClientTestWindow;
+    getValButtonInfo->widgetType = WidgetTypes_E::Button;
+    getValButtonInfo->widgetName = "Get Widget Value";
+    auto getValButtonDesc = _gui.AddWidgetToWindow(getValButtonInfo);
+    _widgetNameToIdMap[getValButtonDesc.widgetName] = getValButtonDesc.widgetId;
+    
+    std::shared_ptr<AddWidgetInfo_T> setValInputTextInfo = std::make_shared<AddWidgetInfo_T>();
+    setValInputTextInfo->windowId = guiClientTestWindow;
+    setValInputTextInfo->widgetType = WidgetTypes_E::InputText;
+    setValInputTextInfo->widgetName = WIDGET_SET_VALUE_INPUT_WIDGET_NAME;
+    auto setValInputTextDesc = _gui.AddWidgetToWindow(setValInputTextInfo);
+    _widgetNameToIdMap[setValInputTextDesc.widgetName] = setValInputTextDesc.widgetId;
+    
+    std::shared_ptr<AddWidgetInfo_T> setValButtonInfo = std::make_shared<AddWidgetInfo_T>();
+    setValButtonInfo->windowId = guiClientTestWindow;
+    setValButtonInfo->widgetType = WidgetTypes_E::Button;
+    setValButtonInfo->widgetName = "Set Widget Value";
+    auto setValButtonDesc = _gui.AddWidgetToWindow(setValButtonInfo);
+    _widgetNameToIdMap[setValButtonDesc.widgetName] = setValButtonDesc.widgetId;
+    
     while (false == _isQuit)
     {
         _guiClient->ProcessTimedActivities();
@@ -327,7 +372,7 @@ void PropertyConsumerApp_C::RunPropertyConsumerTest()
     std::shared_ptr<AddWidgetInfo_T> getValTextAddInfo = std::make_shared<AddWidgetInfo_T>();
     getValTextAddInfo->windowId = propertyConsumerTestWindow;
     getValTextAddInfo->widgetType = WidgetTypes_E::Text;
-    getValTextAddInfo->widgetName = "Get Value Output";
+    getValTextAddInfo->widgetName = PROPERTY_VALUE_OUTPUT_WIDGET_NAME;
     getValTextAddInfo->defaultValue = "";
     auto getValTextDesc = _gui.AddWidgetToWindow(getValTextAddInfo);
     _widgetNameToIdMap[getValTextDesc.widgetName] = getValTextDesc.widgetId;
@@ -535,7 +580,7 @@ void PropertyConsumerApp_C::PropertyConsumer_OnPropertyGetValueReplyRecieved(Pro
         std::cout << "\n";
     }
 
-    auto widget = _gui.GetWidget("Get Value Output");
+    auto widget = _gui.GetWidget(PROPERTY_VALUE_OUTPUT_WIDGET_NAME);
     if (widget && std::dynamic_pointer_cast<WidgetText_C>(widget))
     {
         auto textWidget = std::dynamic_pointer_cast<WidgetText_C>(widget);
