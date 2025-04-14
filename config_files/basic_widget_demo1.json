@@ -1,0 +1,28 @@
+{
+    "Title" : "Dynamic GUI App",
+    "Windows" :
+    [
+        {
+            "Title" : "WidgetWindow Example",
+            "WidgetList":
+            [
+                {
+                    "Name" : "Text Box Name",
+                    "Type" : "text",
+                    "Value" : "Hello Senior Engineering Design Conference"
+                },
+                {
+                    "Name" : "Button Name",
+                    "Type" : "button"
+                },
+                {
+                    "Name": "Slider Name",
+                    "Type": "slider",
+                    "Value": 50.0,
+                    "MaxValue": 100.0,
+                    "MinValue": 0.0
+                }
+            ]
+        }
+    ]
+}

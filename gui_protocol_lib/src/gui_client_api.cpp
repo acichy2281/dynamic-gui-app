@@ -103,13 +103,10 @@ namespace GuiProtocol
 
     void GuiClient_C::ProcessTimedActivities()
     {
+        ProcessStateMachine();
         if (false == _msgQueue.IsQueueEmpty())
         {
             ProcessReceivedMessageQueue();
-        }
-        else
-        {
-            ProcessStateMachine();
         }
     }
 
@@ -501,12 +498,7 @@ namespace GuiProtocol
 
     void GuiClient_C::ProcessReceivedWidgetEventNotification(Message_T& msg)
     {
-        if (GuiClientState_E::Error != _state)
-        {
-            std::cout << "Error! cannot process Widget Event notification\n";
-            return;
-        }
-        else
+        if (GuiClientState_E::Ready == _state)
         {
             WidgetEventNotification_T notification;
             std::vector<uint8_t> msgBuf(msg.data.get(), msg.data.get() + msg.size);
@@ -528,6 +520,10 @@ namespace GuiProtocol
             {
                 std::cout << "Failed to send Widget Event Notification Ack\n";
             }
+        }
+        else 
+        {
+            std::cout << "Error! Not able to process Widget Event Notification\n";
         }
     }
 
@@ -559,30 +555,4 @@ namespace GuiProtocol
             _addWidgetReplyReceived = true;
         }
     }
-
-    // std::vector<WidgetValueStorage_T> GuiClient_C::GenerateWidgetValueList(WidgetSetValueIdentifier_T& widgetKeyValPairs)
-    // {
-    //     std::vector<WidgetValueStorage_T> retVal;
-    //     for (auto& [key, value] : widgetKeyValPairs)
-    //     {
-    //         auto it = _widgetList.find(key);
-    //         if (it != _widgetList.end())
-    //         {
-    //             it->second.val = value;
-    //             if (it->second.desc.flags & WidgetFlags_E::Writeable)
-    //             {
-    //                 retVal.push_back(it->second);
-    //             }
-    //             else
-    //             {
-    //                 std::cout << "Widget " << it->first << " is not writeable\n";
-    //             }
-    //         }
-    //         else
-    //         {
-    //             std::cout << "Failed to find " << key << " in the widget list\n";
-    //         }
-    //     }
-    //     return retVal;
-    // }
 }

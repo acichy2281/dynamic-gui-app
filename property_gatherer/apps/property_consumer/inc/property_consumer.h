@@ -6,12 +6,23 @@
 #include "gui_client_api.h"
 #include "dynamic_gui.h"
 
+/* Property Consumer widget macros */
+#define PROPERTY_CONSUMER_THREAD_BUTTON "Start Property Consumer Thread"
+#define GET_PROPERTY_LIST_BUTTON "Get Property List"
 #define PROPERTY_VALUE_OPTIONS_WIDGET_NAME "Property Value Options"
 #define PROPERTY_VALUE_OUTPUT_WIDGET_NAME "Get Property Value Output"
+#define GET_PROPERTY_VALUE_BUTTON "Get Property Value"
 #define PROPERTY_SET_VALUE_INPUT_WIDGET_NAME "Set Property Input"
+#define SET_PROPERTY_VALUE_BUTTON "Set Property Value"
+
+/* GUI Client Widget macros */
+#define GUI_CLIENT_THREAD_BUTTON "Start Gui Client Thread"
+#define GET_WIDGET_LIST_BUTTON "Get Widget List"
 #define WIDGET_VALUE_OPTIONS_WIDGET_NAME "Widget Value Options"
 #define WIDGET_VALUE_OUTPUT_WIDGET_NAME "Get Widget Value Output"
+#define GET_WIDGET_VALUE_BUTTON "Get Widget Value"
 #define WIDGET_SET_VALUE_INPUT_WIDGET_NAME "Set Widget Input"
+#define SET_WIDGET_VALUE_BUTTON "Set Widget Value"
 #define ADD_WIDGET_WIDGET_NAME "Add Widget Button"
 
 struct PropertyConsumerInitParams_C
@@ -42,11 +53,17 @@ class PropertyConsumerApp_C
         void GuiClient_OnWidgetEventNotificationReceived(uint32_t widgetId, WidgetValueVariant_T updatedValue);
         void GuiClient_OnAddWidgetReplyReceived(GuiProtocol::WidgetReplyStatus_E status);
 
+        /* GUI Client Test Functions */
+        void RunWidgetListRequestTest();
+        void RunWidgetGetValueRequestTest();
+        void RunWidgetSetValueRequestTest();
+        void RunAddWidgetRequestTest();
+        std::vector<nlohmann::json> _propertyWidgetDataList;
+
         /* GUI Functions */
         void Gui_OnGuiWindowClosed();
         void Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, WidgetValueVariant_T val);
         void Gui_OnConfigFileSet(bool status);
-        void RunSetWidgetValueTest();
         std::unordered_map<uint32_t, std::function<void(WidgetValueVariant_T)>> _widgetCallbacks;
         std::unordered_map<std::string, uint32_t> _widgetNameToIdMap;
         std::string _configFile;
@@ -57,6 +74,13 @@ class PropertyConsumerApp_C
         void PropertyConsumer_OnPropertyListReplyReceived(PropertyGatherer::PropertyGathererReplyStatus_E status, std::vector<PropertyGatherer::PropertyDescriptor_T> &descList);
         void PropertyConsumer_OnPropertyGetValueReplyRecieved(PropertyGatherer::PropertyGathererReplyStatus_E status, std::vector<PropertyGatherer::PropertyStorageVariant> &values);
         void PropertyConsumer_OnPropertySetValueReplyRecieved(PropertyGatherer::PropertyGathererReplyStatus_E status, PropertyGatherer::PropertyStorageVariant &values);
+
+        /* Property Consumer Test Functions */
+        void RunPropertyListRequestTest();
+        void RunPropertyGetValueRequestTest();
+        void RunPropertySetValueRequestTest();
+        
+
 
         std::shared_ptr<TransportInterface> _transport;
         std::shared_ptr<GuiProtocol::GuiClient_C> _guiClient;
@@ -70,6 +94,8 @@ class PropertyConsumerApp_C
         std::string _guiAppDevKey;
         std::string _producerAppDevKey;
         bool _runSetValTest = false;
+        bool _propertyConsumerStarted = false;
+        bool _guiClientStarted = false;
         DynamicGui_C _gui;
 };
 

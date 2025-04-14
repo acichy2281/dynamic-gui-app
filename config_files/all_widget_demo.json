@@ -3,24 +3,13 @@
     "Windows" :
     [
         {
-            "Title" : "WidgetWindow1",
+            "Title" : "Basic Text Window",
             "WidgetList":
             [
                 {
                     "Name" : "Generic Text box 1",
                     "Type" : "text",
                     "Value" : "Sample Text 1"
-                }
-            ]
-        },
-        {
-            "Title" : "WidgetWindow2",
-            "WidgetList":
-            [
-                {
-                    "Name" : "Generic Text box 2",
-                    "Type" : "text",
-                    "Value" : "Sample Text 2"
                 }
             ]
         },
@@ -34,6 +23,11 @@
                     "Options": ["Option 1", "Option 2", "Option 3"]
                 },
                 {
+                    "Name" : "Generic Text box 1",
+                    "Type" : "text",
+                    "Value" : "This Window Has more complex Widgets!"
+                },
+                {
                     "Name": "Generic button 1",
                     "Type": "button"
                 },
@@ -45,13 +39,7 @@
                     "Name": "Test Radio",
                     "Type" : "radio",
                     "Options" : ["Option 1", "Option 2", "Option 3"]
-                }
-            ]
-        },
-        {
-            "Title" : "Slider Demo",
-            "WidgetList":
-            [
+                },
                 {
                     "Name": "Generic slider 1",
                     "Type": "slider",
@@ -59,6 +47,7 @@
                     "MaxValue": 100.0,
                     "MinValue": 0.0
                 }
+
             ]
         }
     ]

@@ -1,0 +1,17 @@
+{
+    "Title" : "Basic Demo App",
+    "Windows" :
+    [
+        {
+            "Title" : "Basic Text Window",
+            "WidgetList":
+            [
+                {
+                    "Name" : "Generic Text box 1",
+                    "Type" : "text",
+                    "Value" : "Sample Text 1"
+                }
+            ]
+        }
+    ]
+}

@@ -79,7 +79,6 @@ class DynamicGui_C
          */
         const std::map<uint32_t, WidgetDescriptor_T>& GetWidgetList() const;
         
-
         /** 
          * @brief Get the Widget Value object
          */

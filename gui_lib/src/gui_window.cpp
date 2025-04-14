@@ -45,31 +45,40 @@ std::shared_ptr<WidgetInterface_I> GuiWindow_C::AddWidget(std::shared_ptr<AddWid
 bool GuiWindow_C::ShowWindow() 
 {
     bool retVal = false;
-    ImGuiWindowFlags flags = 0;
-    if (0 != _menuCount)
+    if (0 < _generalWidgetCount)
     {
-        flags |= ImGuiWindowFlags_MenuBar;
-    }
-    if (true == ImGui::Begin(_windowName.c_str(), nullptr, flags))
-    {
-        // Create a Menu bar if this window has a Menu
-        if (0 != _menuCount && ImGui::BeginMenuBar())
+        ImGuiWindowFlags flags = 0;
+        if (0 != _menuCount)
         {
-            for (const auto& [key, menu] : _menuList)
+            flags |= ImGuiWindowFlags_MenuBar;
+        }
+        if (true == ImGui::Begin(_windowName.c_str(), nullptr, flags))
+        {
+            // Create a Menu bar if this window has a Menu
+            if (0 != _menuCount && ImGui::BeginMenuBar())
             {
-                menu->ShowWidget();
+                for (const auto& [key, menu] : _menuList)
+                {
+                    menu->ShowWidget();
+                }
+                ImGui::EndMenuBar();
             }
-            ImGui::EndMenuBar();
+            for (const auto& [key, widget] : _widgetList)
+            {
+                widget->ShowWidget();
+            }
+            ImGui::End();
+            retVal = true;
         }
-        for (const auto& [key, widget] : _widgetList)
+        else 
         {
-            widget->ShowWidget();
+            ImGui::End();
         }
-        ImGui::End();
-        retVal = true;
     }
-    else {
-        ImGui::End();
+    else
+    {
+        // No widgets to show. Don't draw window
+        retVal = true;
     }
     return retVal;
 }

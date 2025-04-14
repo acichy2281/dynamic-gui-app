@@ -5,7 +5,7 @@
 
 WidgetInputText_C::WidgetInputText_C(const std::shared_ptr<const AddWidgetInfo_T>& info) : WidgetInterface_I(info) 
 {
-    _isWritable = false;
+    _isWritable = true;
     _isReadable = true;
     _isInteractable = true;
     _isStatic = false;
@@ -40,6 +40,17 @@ WidgetValueVariant_T WidgetInputText_C::GetWidgetValue()
 
 bool WidgetInputText_C::SetWidgetValue(WidgetValueVariant_T val)
 {
-    // This is not a writeable widget
-    return false;
+    // Set the input buffer and the widget text to the new value
+    if (std::holds_alternative<std::string>(val))
+    {
+        _widgetText = std::get<std::string>(val);
+        strncpy(_inputBuffer, _widgetText.c_str(), sizeof(_inputBuffer));
+        _inputBuffer[sizeof(_inputBuffer) - 1] = '\0'; // Ensure null-termination
+    }
+    else
+    {
+        std::cerr << "Invalid value type for Input Text widget\n";
+        return false;
+    }
+    return true;
 }

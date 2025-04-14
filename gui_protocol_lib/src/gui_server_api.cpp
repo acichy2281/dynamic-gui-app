@@ -103,13 +103,10 @@ namespace GuiProtocol
 
     void GuiServer_C::ProcessTimedActivities()
     {
+        ProcessStateMachine();
         if (false == _msgQueue.IsQueueEmpty())
         {
             ProcessReceivedMessageQueue();
-        }
-        else
-        {
-            ProcessStateMachine();
         }
     }
     
