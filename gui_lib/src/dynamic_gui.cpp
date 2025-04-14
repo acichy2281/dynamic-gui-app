@@ -4,7 +4,7 @@
 
 DynamicGui_C::DynamicGui_C() : _guiServer(std::make_shared<GuiProtocol::GuiServer_C>())
 {
-
+    
 }
 
 
@@ -47,39 +47,24 @@ bool DynamicGui_C::SetConfigFile(const std::string& configFilePath)
     if (true == _configFile.is_open())
     {
         _jsonData = nlohmann::json::parse(_configFile);
-        try {
-            if (true == _jsonSchemaValidationEnabled) { _jsonDataSchemaValidator.validate(_jsonData); }
-            ParseJsonData();
-            std::cout << "Valid JSON!" << std::endl;
-            _isConfigFileSet = true;
-            retVal = true;
+        if (true == _jsonSchemaValidationEnabled)
+        {
+            try {
+                _jsonDataSchemaValidator.validate(_jsonData);
+                std::cout << "Valid JSON!" << std::endl;
+            }
+            catch (const std::exception& e) {
+                std::cerr << "Validation Error: " << e.what() << std::endl;
+            }
+                
         }
-        catch (const std::exception& e) {
-            std::cerr << "Validation Error: " << e.what() << std::endl;
-        }
+        ParseJsonData();
+        _isConfigFileSet = true;
+        retVal = true;
 
         if (nullptr != _onConfigFileSet) _onConfigFileSet(retVal);
     }
     return retVal;
-}
-
-void DynamicGui_C::SetWidgetList(std::vector<WidgetDescriptor_T>& descList)
-{
-    _widgetMap = std::make_shared<std::map<uint32_t, WidgetDescriptor_T>>();
-    for (auto& desc : descList)
-    {
-        auto it = (*_widgetMap).find(desc.widgetId);
-        if (it == (*_widgetMap).end())
-        {
-            (*_widgetMap)[desc.widgetId] = desc;
-            std::cout << "Added widget " << desc.widgetId << ":" << desc.widgetName << " to the Widget Map\n";
-        }
-        else
-        {
-            std::cout << "Cannot add duplicate widget " << desc.widgetId << ":" << desc.widgetName << "\n";
-        }
-    }
-    _guiServer->SetWidgetList(_widgetMap);
 }
 
 void DynamicGui_C::SetCallbacks(const DynamicGuiCallbacks_T& callBacks)
@@ -346,44 +331,65 @@ void DynamicGui_C::ParseJsonData()
 {
     std::vector<WidgetDescriptor_T> widgetDescList;
     _mainWindowName = _jsonData["Title"];
-    uint16_t numWindows = 0;
+    uint16_t windowIndex = 0;
     for (const auto& window : _jsonData["Windows"])
     {
-        GuiWindow_C newWindow(window["Title"], numWindows);
+        GuiWindow_C newWindow(window["Title"], windowIndex);
+        _windowList.push_back(newWindow);
         for (const auto& widget : window["WidgetList"])
         {
-            /* Parse Widget Info */
-            auto parsedWidgetInfo = _widgetFactory.ParseWidgetData(widget);
-            parsedWidgetInfo->eventQueue = _eventQueue;
-
-            /* Add Widget to Window */
-            auto newWidget = newWindow.AddWidget(parsedWidgetInfo);
-
             /* Populate widget Descriptor List */
-            widgetDescList.push_back(newWidget->GetDescriptor());
-
-            std::cout << "Added Widget ID: " << newWidget->GetDescriptor().widgetId << ", Name: " << newWidget->GetDescriptor().widgetName << "\n";
-            if (WidgetTypes_E::Menu == newWidget->GetWidgetType())
-            {
-                /* Loop through menu items to retreive widget descriptors */
-                for (const auto& menuItem : std::dynamic_pointer_cast<WidgetMenu_C>(newWidget)->GetMenuItems())
-                {
-                    widgetDescList.push_back(menuItem->GetDescriptor());
-                    std::cout << "Added Widget ID: " << menuItem->GetDescriptor().widgetId << ", Name: " << menuItem->GetDescriptor().widgetName << "\n";
-                }
-            }
+            nlohmann::json widgetData = widget;
+            widgetData["window_id"] = windowIndex;
+            auto newWidget = AddWidgetToWindow(widgetData);
         }
-        _windowList.push_back(newWindow);
-        numWindows++;
+        windowIndex++;
     }
-    SetWidgetList(widgetDescList);
 }
 
 WidgetDescriptor_T DynamicGui_C::AddWidgetToWindow(std::shared_ptr<AddWidgetInfo_T> addWidgetInfo)
 {
     addWidgetInfo->eventQueue = _eventQueue;
     auto newWidget = _windowList.at(addWidgetInfo->windowId).AddWidget(addWidgetInfo);
-    _widgetMap->insert({ newWidget->GetDescriptor().widgetId, newWidget->GetDescriptor() });
+    _widgetMap.insert({ newWidget->GetDescriptor().widgetId, newWidget->GetDescriptor() });
+
+    std::cout << "Added Widget ID: " << newWidget->GetDescriptor().widgetId << ", Name: " << newWidget->GetDescriptor().widgetName << "\n";
+    if (WidgetTypes_E::Menu == static_cast<WidgetTypes_E>(newWidget->GetDescriptor().widgetType))
+    {
+        /* Loop through menu items to retreive widget descriptors */
+        for (const auto& menuItem : std::dynamic_pointer_cast<WidgetMenu_C>(newWidget)->GetMenuItems())
+        {
+            _widgetMap.insert({ menuItem->GetDescriptor().widgetId, menuItem->GetDescriptor() });
+            std::cout << "Added Widget ID: " << menuItem->GetDescriptor().widgetId << ", Name: " << menuItem->GetDescriptor().widgetName << "\n";
+        }
+    }
+    
+    return newWidget->GetDescriptor();
+}
+
+WidgetDescriptor_T DynamicGui_C::AddWidgetToWindow(const nlohmann::json& widgetData)
+{
+    /* Parse Widget Info */
+    auto addWidgetInfo = _widgetFactory.ParseWidgetData(widgetData);
+
+    /* Set Event Queue */
+    addWidgetInfo->eventQueue = _eventQueue;
+    
+    /* Create widget and place it in Widget Map */
+    auto newWidget = _windowList.at(addWidgetInfo->windowId).AddWidget(addWidgetInfo);
+    _widgetMap.insert({ newWidget->GetDescriptor().widgetId, newWidget->GetDescriptor() });
+
+    std::cout << "Added Widget ID: " << newWidget->GetDescriptor().widgetId << ", Name: " << newWidget->GetDescriptor().widgetName << "\n";
+    if (WidgetTypes_E::Menu == static_cast<WidgetTypes_E>(newWidget->GetDescriptor().widgetType))
+    {
+        /* Loop through menu items to retreive widget descriptors */
+        for (const auto& menuItem : std::dynamic_pointer_cast<WidgetMenu_C>(newWidget)->GetMenuItems())
+        {
+            _widgetMap.insert({ menuItem->GetDescriptor().widgetId, menuItem->GetDescriptor() });
+            std::cout << "Added Widget ID: " << menuItem->GetDescriptor().widgetId << ", Name: " << menuItem->GetDescriptor().widgetName << "\n";
+        }
+    }
+    
     return newWidget->GetDescriptor();
 }
 
@@ -406,14 +412,9 @@ void DynamicGui_C::DeInitialize()
     _initialized = false;
 }
 
-// WidgetDescriptor_T& DynamicGui_C::GetWidgetDescriptor(uint32_t widgetId)
-// {
-//     return _guiServer->GetWidgetDescriptor(widgetId);
-// }
-
 const std::map<uint32_t, WidgetDescriptor_T>& DynamicGui_C::GetWidgetList() const
 {
-    return *_widgetMap;
+    return _widgetMap;
 }
 
 const WidgetValueVariant_T DynamicGui_C::GetWidgetValue(uint32_t widgetId)
@@ -508,7 +509,7 @@ bool DynamicGui_C::RunGuiServer(const GuiServerInitParams_T& initParams)
     /* Populate callbacks */
     GuiProtocol::GuiServerInitParams_T initServerParams;
     initServerParams.callbacks.sendMessage = std::bind(&DynamicGui_C::GuiServer_SendMessage, this, std::placeholders::_1);
-    initServerParams.callbacks.onWidgetListRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetListRequestReceived, this);
+    initServerParams.callbacks.onWidgetListRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetListRequestReceived, this, std::placeholders::_1);
     initServerParams.callbacks.onWidgetSetValueRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived, this, std::placeholders::_1);
     initServerParams.callbacks.onWidgetEventNotificationAckReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     initServerParams.callbacks.onWidgetGetValueRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetGetValueRequestReceived, this, std::placeholders::_1, std::placeholders::_2);
@@ -612,9 +613,14 @@ bool DynamicGui_C::GuiServer_ValidateInitParams(const GuiServerInitParams_T& ini
     return true;
 }
 
-void DynamicGui_C::GuiServer_OnWidgetListRequestReceived()
+void DynamicGui_C::GuiServer_OnWidgetListRequestReceived(std::vector<WidgetDescriptor_T>& descList)
 {
     std::cout << "Widget List Request Received\n";
+    for (auto& widget : _widgetMap)
+    {
+        descList.push_back(widget.second);
+        std::cout << "Widget ID: " << widget.second.widgetId << ", Name: " << widget.second.widgetName << "\n";
+    }
 }
 
 int32_t DynamicGui_C::GuiServer_SendMessage(const std::vector<uint8_t>& message)
@@ -622,21 +628,23 @@ int32_t DynamicGui_C::GuiServer_SendMessage(const std::vector<uint8_t>& message)
     return _guiServerTransport->TransportSendMessage(_guiClientPortInfo.destIp, _guiClientPortInfo.destPort, message);
 }
 
-GuiProtocol::WidgetReplyStatus_E DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>& widgetSetValueList)
+GuiProtocol::WidgetReplyStatus_E DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& widgetSetValueList)
 {
     auto retVal = GuiProtocol::WidgetReplyStatus_E::Error;
     uint16_t numSetValSuccess = 0;
     for (auto& widgetSetValue : widgetSetValueList)
     {
+        uint16_t windowId = widgetSetValue.widgetId >> 16;
+        uint16_t widgetId = widgetSetValue.widgetId & 0xFFFF;
         std::shared_ptr<WidgetInterface_I> outWidget;
-        if (false == _windowList.at(widgetSetValue.windowId).GetWidgetAt(widgetSetValue.widgetId, outWidget))
+        if (false == _windowList.at(windowId).GetWidgetAt(widgetId, outWidget))
         {
             widgetSetValue.status = static_cast<uint16_t>(GuiProtocol::WidgetReplyStatus_E::InvalidWidgetId);
         }
-        else if (true == outWidget->SetWidgetValue(widgetSetValue.val))
+        else if (true == outWidget->SetWidgetValue(widgetSetValue.value))
         {
             numSetValSuccess++;
-            std::cout << "Successfuly set widget " << widgetSetValue.windowId << "." << widgetSetValue.widgetId << " value\n";
+            std::cout << "Successfuly set widget " << windowId << "." << widgetId << " value\n";
             widgetSetValue.status = static_cast<uint16_t>(GuiProtocol::WidgetReplyStatus_E::Success);
         }
     }
@@ -702,17 +710,9 @@ GuiProtocol::WidgetReplyStatus_E DynamicGui_C::GuiServer_OnAddWidgetRequestRecei
     uint16_t numWidgetsAdded = 0;
     for (auto& widgetData : widgetDataList)
     {
-        /* Parse Widget Info */
-        auto parsedWidgetInfo = _widgetFactory.ParseWidgetData(widgetData);
-        parsedWidgetInfo->eventQueue = _eventQueue;
-
-        /* Add to window 0 this should be fixed in the future */
-        parsedWidgetInfo->windowId = 0;
-
         /* Add Widget to Window */
-        descList.push_back(AddWidgetToWindow(parsedWidgetInfo));
+        descList.push_back(AddWidgetToWindow(widgetData));
         numWidgetsAdded++;
-        std::cout << "Added Widget ID: " << parsedWidgetInfo->widgetId << ", Name: " << parsedWidgetInfo->widgetName << "\n";
     }
 
     if (widgetDataList.size() == numWidgetsAdded)

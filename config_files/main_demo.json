@@ -1,0 +1,12 @@
+{
+    "Title" : "Dynamic GUI App",
+    "Windows" :
+    [
+        {
+            "Title" : "GUI Server Test Window",
+            "WidgetList":
+            [
+            ]
+        }
+    ]
+}

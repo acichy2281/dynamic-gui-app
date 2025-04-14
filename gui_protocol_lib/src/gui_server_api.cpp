@@ -179,14 +179,6 @@ namespace GuiProtocol
                 }
                 break;
             case GuiServerState_E::Initialized:
-                if (true == _widgetListPopulated)
-                {
-                    _state = GuiServerState_E::WidgetListPopulated;
-                    std::cout << "Setting State to Widget List Populated\n";
-                }
-                break;
-
-            case GuiServerState_E::WidgetListPopulated:
                 if (true == _widgetListReplySent)
                 {
                     _state = GuiServerState_E::Ready;
@@ -263,17 +255,15 @@ namespace GuiProtocol
 
     void GuiServer_C::ProcessReceivedWidgetListRequest()
     {
-        if (GuiServerState_E::WidgetListPopulated == _state)
+        if (GuiServerState_E::Initialized == _state)
         {
             std::vector<uint8_t> buffer;
             
             /* Construct a list of widget descriptors */
             std::vector<WidgetDescriptor_T> descList;
-            for (auto& [widgetId, widgetDesc] : *_widgetMap)
-            {
-                descList.push_back(widgetDesc);
-                std::cout << "Added Widget ID: " << widgetDesc.widgetId << ", Name: " << widgetDesc.widgetName << " to the Widget List Request\n";
-            }
+
+            /* Call user callback for them to populate descList */
+            OnWidgetListRequestReceived(descList);
 
             /* Generate a WidgetListReply serialized message */
             auto status = WidgetReplyStatus_E::Success;
@@ -284,16 +274,10 @@ namespace GuiProtocol
                 _widgetListReplySent = true;
             }
         }
-        else if (GuiServerState_E::Initialized == _state)
-        {
-            std::cout << "Error! Widget List not populated yet!\n";
-        }
         else
         {
-            std::cout << "Error! Widget List already received!\n";
+            std::cout << "Error! Not able to process widget list request!\n";
         }
-        /* Call user callback */
-        OnWidgetListRequestReceived();
     }
 
     void GuiServer_C::ProcessReceivedWidgetSetValueRequest(Message_T& msg)
@@ -306,27 +290,22 @@ namespace GuiProtocol
             _msgSerializer.Deserialize(reqMsg, msgBuf);
 
             /* Generate a list of Widget Set Value requests for widgets */
-            std::vector<GuiProtocol::WidgetSetValueResponseReturn_T> widgetSetValueResponseList;
-            for (auto& widgetToSet : reqMsg.setValuesList)
+            std::vector<WidgetSetValueReplyContainer_T> widgetSetValueReplyList;
+            for (auto& widgetSetVal : reqMsg.setValuesList)
             {
-                auto it = (*_widgetMap).find(widgetToSet.widgetId);
-                if (it != (*_widgetMap).end())
-                {
-                    /* Populate a struct to pass too the GUI app for it to use to Set value */
-                    WidgetSetValueResponseReturn_T widgetSetValueResponse;
-                    widgetSetValueResponse.windowId = static_cast<uint16_t>(widgetToSet.widgetId >> 16);
-                    widgetSetValueResponse.widgetId = static_cast<uint16_t>(widgetToSet.widgetId & 0xFFFF);
-                    widgetSetValueResponse.widgetType = it->second.widgetType;
-                    widgetSetValueResponse.dataType = it->second.dataType;
-                    widgetSetValueResponse.val = widgetToSet.value;
-                    widgetSetValueResponse.status = static_cast<uint16_t>(WidgetReplyStatus_E::Error);
-                    widgetSetValueResponseList.push_back(widgetSetValueResponse);
-                }
+                WidgetSetValueReplyContainer_T widgetSetValueReply;
+                widgetSetValueReply.widgetId = static_cast<uint32_t>(widgetSetVal.widgetId);
+                widgetSetValueReply.value = widgetSetVal.value;
+                widgetSetValueReply.status = static_cast<uint16_t>(WidgetReplyStatus_E::Error);
+                widgetSetValueReplyList.push_back(widgetSetValueReply);
             }
-            auto status = OnWidgetSetValueRequestReceived(widgetSetValueResponseList);
 
+            /* Call user callback for them to Set Widget values */
+            auto status = OnWidgetSetValueRequestReceived(widgetSetValueReplyList);
+
+            /* Generate a WidgetSetValueReply serialized message */
             std::vector<uint8_t> buffer;
-            auto widgetSetValReply = GetWidgetSetValueReply(widgetSetValueResponseList, status);
+            auto widgetSetValReply = GetWidgetSetValueReply(widgetSetValueReplyList, status);
             _msgSerializer.Serialize(widgetSetValReply, buffer);
             if (0 < SendMessage(buffer))
             {

@@ -128,6 +128,15 @@ std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseWidgetData(const nlohmann
         else if (widgetData["Value"].is_number_float())
             retVal->defaultValue = widgetData["Value"].get<float>();
     }
+    if (widgetData.find("window_id") != widgetData.end())
+    {
+        retVal->windowId = widgetData["window_id"].get<uint16_t>();
+    }
+    else
+    {
+        // Default to 0
+        retVal->windowId = 0;
+    }
     return retVal;
 }
 

@@ -74,11 +74,6 @@ class DynamicGui_C
          */
         bool RunGuiServer(const GuiServerInitParams_T& initParams);
         
-        // /**
-        //  * @brief Get the Widget Descriptor object
-        //  */
-        // WidgetDescriptor_T& GetWidgetDescriptor(uint32_t widgetId);
-        
         /**
          * @brief Get the Widget List object
          */
@@ -118,8 +113,19 @@ class DynamicGui_C
         /**
          * @brief Add a widget to the GUI window
          * 
+         * @param widgetData widget to add to the window as a struct 
+         * 
          */
         WidgetDescriptor_T AddWidgetToWindow(std::shared_ptr<AddWidgetInfo_T> addWidgetInfo);
+
+        /**
+         * @brief Add a widget to the GUI window
+         * 
+         * @param widgetData widget to add to the window in JSON form
+         * 
+         * @return WidgetDescriptor_T 
+         */
+        WidgetDescriptor_T AddWidgetToWindow(const nlohmann::json& widgetDataList);
 
         /** 
          * @brief Closes the GUI window
@@ -128,8 +134,6 @@ class DynamicGui_C
 
     private: 
         /* Functions */
-
-        void SetWidgetList(std::vector<WidgetDescriptor_T>& descList);
 
         /**
          * @brief Set the Callbacks object
@@ -172,9 +176,9 @@ class DynamicGui_C
 
         /* Gui Server functions  */
         bool GuiServer_ValidateInitParams(const GuiServerInitParams_T& initParams);
-        void GuiServer_OnWidgetListRequestReceived();
+        void GuiServer_OnWidgetListRequestReceived(std::vector<WidgetDescriptor_T>& descList);
         int32_t GuiServer_SendMessage(const std::vector<uint8_t>& message);
-        GuiProtocol::WidgetReplyStatus_E GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>& widgetSetValueList);
+        GuiProtocol::WidgetReplyStatus_E GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& widgetSetValueList);
         GuiProtocol::WidgetReplyStatus_E GuiServer_OnWidgetGetValueRequestReceived(uint32_t widgetId, WidgetValueVariant_T& val);
         void GuiServer_OnWidgetEventNotificationAckReceived(GuiProtocol::WidgetReplyStatus_E status, uint16_t windowId, uint16_t widgetId);
         GuiProtocol::WidgetReplyStatus_E GuiServer_OnAddWidgetRequestReceived(std::vector<nlohmann::json>&, std::vector<WidgetDescriptor_T>& descList);
@@ -203,7 +207,7 @@ class DynamicGui_C
         SDL_GLContext                                                       _glContext;
         SDL_Window*                                                         _window;
         WidgetFactory_C                                                     _widgetFactory;
-        std::shared_ptr<std::map<uint32_t, WidgetDescriptor_T>>             _widgetMap;
+        std::map<uint32_t, WidgetDescriptor_T>                              _widgetMap;
         
         // Event member variables
         ThreadSafeQueue_C<std::shared_ptr<EventInterface_I>>                _eventQueue;

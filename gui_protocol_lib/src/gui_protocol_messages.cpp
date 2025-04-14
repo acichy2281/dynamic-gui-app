@@ -53,20 +53,12 @@ namespace GuiProtocol
         return retVal;
     }
     
-    WidgetSetValueReply_T GetWidgetSetValueReply(std::vector<WidgetSetValueResponseReturn_T>& widgetSetVals, WidgetReplyStatus_E status)
+    WidgetSetValueReply_T GetWidgetSetValueReply(std::vector<WidgetSetValueReplyContainer_T>& widgetSetVals, WidgetReplyStatus_E status)
     {
         WidgetSetValueReply_T retVal;
         retVal.header.messageId = static_cast<uint16_t>(MessageId_E::WidgetSetValueReply);
         retVal.numWidgetSetValues = static_cast<uint16_t>(widgetSetVals.size());
-
-        for (auto& widgetSetVal : widgetSetVals)
-        {
-            WidgetSetValueReplyContainer_T setValCont;
-            setValCont.widgetId = static_cast<uint32_t>(widgetSetVal.windowId << 16) | static_cast<uint32_t>(widgetSetVal.widgetId);
-            setValCont.value = widgetSetVal.val;
-            setValCont.status = widgetSetVal.status;
-            retVal.setValuesList.push_back(setValCont);
-        }
+        retVal.setValuesList = widgetSetVals;
         retVal.status = static_cast<uint16_t>(status);
         return retVal;
     }

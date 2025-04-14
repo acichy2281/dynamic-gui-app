@@ -20,7 +20,6 @@ namespace GuiProtocol
     {
         Uninitialized,
         Initialized,
-        WidgetListPopulated,
         Ready,
         WidgetEventNotificationSent,
         Error,
@@ -41,8 +40,8 @@ namespace GuiProtocol
     struct GuiServerCallbacks_T
     {
         std::function<int32_t(const std::vector<uint8_t>&)> sendMessage;
-        std::function<void()> onWidgetListRequestReceived;
-        std::function<WidgetReplyStatus_E(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>&)> onWidgetSetValueRequestReceived;
+        std::function<void(std::vector<WidgetDescriptor_T>&)> onWidgetListRequestReceived;
+        std::function<WidgetReplyStatus_E(std::vector<WidgetSetValueReplyContainer_T>&)> onWidgetSetValueRequestReceived;
         std::function<WidgetReplyStatus_E(uint32_t, WidgetValueVariant_T&)> onWidgetGetValueRequestReceived;
         std::function<void(WidgetReplyStatus_E, uint16_t, uint16_t)> onWidgetEventNotificationAckReceived;
         std::function<WidgetReplyStatus_E(std::vector<nlohmann::json>&, std::vector<WidgetDescriptor_T>&)> onAddWidgetRequestReceived;
@@ -62,21 +61,21 @@ namespace GuiProtocol
             GuiServerStatus_E ProcessReceivedMessage(std::unique_ptr<char[]>& msg, uint16_t size);
             void ProcessTimedActivities();
             GuiServerStatus_E SendWidgetEventNotification(uint16_t windowId, uint16_t widgetId, WidgetValueVariant_T val);
-            WidgetDescriptor_T& GetWidgetDescriptor(uint32_t widgetId)
-            {
-                return (*_widgetMap)[widgetId];
-            }
-            const std::map<uint32_t, WidgetDescriptor_T>& GetWidgetList() const
-            {
-                return *_widgetMap;
-            }
-            bool SetWidgetList(std::shared_ptr<std::map<uint32_t, WidgetDescriptor_T>>& descList)
-            {
-                std::cout << "Setting widget list\n";
-                _widgetMap = descList;
-                _widgetListPopulated = true;
-                return true;
-            }
+            // WidgetDescriptor_T& GetWidgetDescriptor(uint32_t widgetId)
+            // {
+            //     return (*_widgetMap)[widgetId];
+            // }
+            // const std::map<uint32_t, WidgetDescriptor_T>& GetWidgetList() const
+            // {
+            //     return *_widgetMap;
+            // }
+            // bool SetWidgetList(std::shared_ptr<std::map<uint32_t, WidgetDescriptor_T>>& descList)
+            // {
+            //     std::cout << "Setting widget list\n";
+            //     _widgetMap = descList;
+            //     _widgetListPopulated = true;
+            //     return true;
+            // }
 
             /* Callbacks */
             /**
@@ -97,8 +96,8 @@ namespace GuiProtocol
 
             /* Callbacks */
             std::function<int32_t(const std::vector<uint8_t>&)> SendMessage;
-            std::function<void()> OnWidgetListRequestReceived;
-            std::function<WidgetReplyStatus_E(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>&)>  OnWidgetSetValueRequestReceived;
+            std::function<void(std::vector<WidgetDescriptor_T>&)> OnWidgetListRequestReceived;
+            std::function<WidgetReplyStatus_E(std::vector<WidgetSetValueReplyContainer_T>&)>  OnWidgetSetValueRequestReceived;
             std::function<WidgetReplyStatus_E(uint32_t, WidgetValueVariant_T&)> OnWidgetGetValueRequestReceived;
             std::function<void(WidgetReplyStatus_E, uint16_t, uint16_t)> OnWidgetEventNotificationAckReceived;
             std::function<WidgetReplyStatus_E(std::vector<nlohmann::json>&, std::vector<WidgetDescriptor_T>&)> OnAddWidgetRequestReceived;
@@ -107,10 +106,9 @@ namespace GuiProtocol
             GuiServerState_E _state = GuiServerState_E::Initialized;
             ThreadSafeQueue_C<Message_T> _msgQueue;
             GuiProtocolMessageSerializer _msgSerializer;
-            std::shared_ptr<std::map<uint32_t, WidgetDescriptor_T>> _widgetMap;
+            // std::shared_ptr<std::map<uint32_t, WidgetDescriptor_T>> _widgetMap;
             bool _initialized = false;
             bool _errorOccured = false;
-            bool _widgetListPopulated = false;
             bool _widgetListReplySent = false;
             bool _widgetSetValueReplySent = false;
             bool _widgetGetValueReplySent = false;

@@ -222,7 +222,7 @@ namespace GuiProtocol
     WidgetListRequest_T GetWidgetListRequest();
     WidgetListReply_T GetWidgetListReply(std::vector<WidgetDescriptor_T>& descList, WidgetReplyStatus_E status);
     WidgetSetValueRequest_T GetWidgetSetValueRequest(WidgetSetValueIdentifier_T& widgetSetVals);
-    WidgetSetValueReply_T GetWidgetSetValueReply(std::vector<WidgetSetValueResponseReturn_T>& widgetSetVals, WidgetReplyStatus_E status);
+    WidgetSetValueReply_T GetWidgetSetValueReply(std::vector<WidgetSetValueReplyContainer_T>& widgetSetVals, WidgetReplyStatus_E status);
     WidgetGetValueRequest_T GetWidgetGetValueRequest(uint32_t widgetId);
     WidgetGetValueReply_T GetWidgetGetValueReply(uint32_t widgetId, WidgetValueVariant_T value, WidgetReplyStatus_E status);
     WidgetEventNotification_T GetWidgetEventNotification(uint16_t windowId, uint16_t widgetId, WidgetValueVariant_T updatedValue);
