@@ -164,9 +164,9 @@ std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseSliderWidgetData(const nl
         retVal->sliderMax = widgetData["MaxValue"].get<float>();
     }
 
-    /* Verify both are float or int */
-    if (false == (std::holds_alternative<int>(retVal->sliderMin) && std::holds_alternative<int>(retVal->sliderMax)) ||
-        false == (std::holds_alternative<float>(retVal->sliderMin) && std::holds_alternative<float>(retVal->sliderMax)))
+    /* Verify both are the same type (either both float or both int) */
+    if (false == ((std::holds_alternative<int>(retVal->sliderMin) && std::holds_alternative<int>(retVal->sliderMax)) ||
+                  (std::holds_alternative<float>(retVal->sliderMin) && std::holds_alternative<float>(retVal->sliderMax))))
     {
         throw std::invalid_argument("Slider Widget data type mismatch.");
     }

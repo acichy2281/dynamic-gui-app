@@ -45,6 +45,7 @@ namespace GuiProtocol
         std::function<WidgetReplyStatus_E(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>&)> onWidgetSetValueRequestReceived;
         std::function<WidgetReplyStatus_E(uint32_t, WidgetValueVariant_T&)> onWidgetGetValueRequestReceived;
         std::function<void(WidgetReplyStatus_E, uint16_t, uint16_t)> onWidgetEventNotificationAckReceived;
+        std::function<WidgetReplyStatus_E(std::vector<nlohmann::json>&, std::vector<WidgetDescriptor_T>&)> onAddWidgetRequestReceived;
     };
 
     struct GuiServerInitParams_T
@@ -92,6 +93,7 @@ namespace GuiProtocol
             void ProcessReceivedWidgetSetValueRequest(Message_T& msg);
             void ProcessReceivedWidgetGetValueRequest(Message_T& msg);
             void ProcessReceivedWidgetEventNotificationAck(Message_T& msg);
+            void ProcessReceivedAddWidgetRequest(Message_T& msg);
 
             /* Callbacks */
             std::function<int32_t(const std::vector<uint8_t>&)> SendMessage;
@@ -99,6 +101,7 @@ namespace GuiProtocol
             std::function<WidgetReplyStatus_E(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>&)>  OnWidgetSetValueRequestReceived;
             std::function<WidgetReplyStatus_E(uint32_t, WidgetValueVariant_T&)> OnWidgetGetValueRequestReceived;
             std::function<void(WidgetReplyStatus_E, uint16_t, uint16_t)> OnWidgetEventNotificationAckReceived;
+            std::function<WidgetReplyStatus_E(std::vector<nlohmann::json>&, std::vector<WidgetDescriptor_T>&)> OnAddWidgetRequestReceived;
 
             /* Member Variables */
             GuiServerState_E _state = GuiServerState_E::Initialized;
@@ -113,7 +116,7 @@ namespace GuiProtocol
             bool _widgetGetValueReplySent = false;
             bool _widgetEventNotificationSent = false;
             bool _widgetEventNotificationAckReceived = false;
-
+            bool _addWidgetReplySent = false;
     };
 }
 

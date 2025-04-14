@@ -20,6 +20,7 @@ PropertyConsumerApp_C::PropertyConsumerApp_C(PropertyConsumerInitParams_C initPa
     guiClientCallBacks.onWidgetSetValueReplyReceived = std::bind(&PropertyConsumerApp_C::GuiClient_OnWidgetSetValueReplyReceived, this, std::placeholders::_1, std::placeholders::_2);
     guiClientCallBacks.onWidgetGetValueReplyReceived = std::bind(&PropertyConsumerApp_C::GuiClient_OnWidgetGetValueReplyReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     guiClientCallBacks.onWidgetEventNotificationReceived = std::bind(&PropertyConsumerApp_C::GuiClient_OnWidgetEventNotificationReceived, this, std::placeholders::_1, std::placeholders::_2);
+    guiClientCallBacks.onAddWidgetReplyReceived = std::bind(&PropertyConsumerApp_C::GuiClient_OnAddWidgetReplyReceived, this, std::placeholders::_1);
 
     GuiProtocol::GuiClientInitParams_T guiClientInitParams{guiClientCallBacks};
     _guiClient->Initialize(guiClientInitParams);
@@ -229,6 +230,28 @@ void PropertyConsumerApp_C::Gui_OnWidgetEvent(WidgetDescriptor_T& widgetDesc, Wi
     {
         RunSetWidgetValueTest();
     }
+    else if (widgetDesc.widgetName == ADD_WIDGET_WIDGET_NAME)
+    {
+        std::cout << "Requesting Add Widget\n";
+
+        // Test json data 
+        nlohmann::json widgetData1 = {
+            {"Name", "New Widget 1"},
+            {"Type", "text"},
+            {"Value", "New Value 1"}
+        };
+        nlohmann::json widgetData2 = {
+            {"Name", "New Widget 2"},
+            {"Type", "text"},
+            {"Value", "New Value 2"}
+        };
+        std::vector<nlohmann::json> widgetDataList = {widgetData1, widgetData2};
+        auto guiClientStatus = _guiClient->SendAddWidgetRequest(widgetDataList);
+        if (GuiProtocol::GuiClientStatus_E::Success != guiClientStatus)
+        {
+            std::cout << "Failed to request add widget, error: " << static_cast<uint8_t>(guiClientStatus) << "\n";
+        }
+    }
 }
 
 void PropertyConsumerApp_C::Gui_OnGuiWindowClosed()
@@ -302,6 +325,13 @@ void PropertyConsumerApp_C::RunGuiClientTest()
     widgetListButtonAddInfo->widgetName = "Get Widget List";
     auto widgetListButtonDesc = _gui.AddWidgetToWindow(widgetListButtonAddInfo);
     _widgetNameToIdMap[widgetListButtonDesc.widgetName] = widgetListButtonDesc.widgetId;
+    
+    std::shared_ptr<AddWidgetInfo_T> addWidgetButtonAddInfo = std::make_shared<AddWidgetInfo_T>();
+    addWidgetButtonAddInfo->windowId = guiClientTestWindow;
+    addWidgetButtonAddInfo->widgetType = WidgetTypes_E::Button;
+    addWidgetButtonAddInfo->widgetName = ADD_WIDGET_WIDGET_NAME;
+    auto addWidgetButtonDesc = _gui.AddWidgetToWindow(addWidgetButtonAddInfo);
+    _widgetNameToIdMap[addWidgetButtonDesc.widgetName] = addWidgetButtonDesc.widgetId;
     
     std::shared_ptr<AddRadioWidgetInfo_T> widgetValRadioInfo = std::make_shared<AddRadioWidgetInfo_T>();
     widgetValRadioInfo->windowId = guiClientTestWindow;
@@ -541,6 +571,18 @@ void PropertyConsumerApp_C::GuiClient_OnWidgetEventNotificationReceived(uint32_t
     std::cout << "Updated value: ";
     PrintVariant(updatedValue);
     std::cout << "\n";
+}
+
+void PropertyConsumerApp_C::GuiClient_OnAddWidgetReplyReceived(GuiProtocol::WidgetReplyStatus_E status)
+{
+    if (GuiProtocol::WidgetReplyStatus_E::Success == status)
+    {
+        std::cout << "Add Widget reply received with status success!\n";
+    }
+    else
+    {
+        std::cout << "Add Widget reply status was not success!\n";
+    }
 }
 
 int32_t PropertyConsumerApp_C::PropertyConsumer_SendMessage(const std::vector<uint8_t>& message)

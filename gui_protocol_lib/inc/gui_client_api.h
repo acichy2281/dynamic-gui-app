@@ -23,6 +23,7 @@ namespace GuiProtocol
         WidgetListRequested,
         WidgetSetValueRequestSent,
         WidgetGetValueRequestSent,
+        AddWidgetRequestSent,
         Ready,
         Error,
     };
@@ -46,6 +47,7 @@ namespace GuiProtocol
         std::function<void(WidgetReplyStatus_E, std::vector<WidgetSetValueReplyContainer_T>&)> onWidgetSetValueReplyReceived;
         std::function<void(uint32_t, WidgetValueVariant_T, WidgetReplyStatus_E)> onWidgetGetValueReplyReceived;
         std::function<void(uint32_t, WidgetValueVariant_T)> onWidgetEventNotificationReceived;
+        std::function<void(WidgetReplyStatus_E)> onAddWidgetReplyReceived;
     };
 
     struct GuiClientInitParams_T
@@ -64,6 +66,7 @@ namespace GuiProtocol
             GuiClientStatus_E SendWidgetListRequest();
             GuiClientStatus_E SendSetValueRequest(WidgetSetValueIdentifier_T& widgetKeyValPairs);
             GuiClientStatus_E SendGetValueRequest(uint32_t widgetId);
+            GuiClientStatus_E SendAddWidgetRequest(std::vector<nlohmann::json>& widgetData);
 
             const std::map<uint32_t, WidgetDescriptor_T>& WidgetList() const
             {
@@ -79,6 +82,7 @@ namespace GuiProtocol
             void ProcessReceivedWidgetSetValueReply(Message_T& msg);
             void ProcessReceivedWidgetGetValueReply(Message_T& msg);
             void ProcessReceivedWidgetEventNotification(Message_T& msg);   
+            void ProcessReceivedAddWidgetReply(Message_T& msg);
             // std::vector<WidgetValueStorage_T> GenerateWidgetValueList(WidgetSetValueIdentifier_T& widgetKeyValPairs);
 
             /* Callbacks */
@@ -87,6 +91,7 @@ namespace GuiProtocol
             std::function<void(WidgetReplyStatus_E, std::vector<WidgetSetValueReplyContainer_T>&)> OnWidgetSetValueReplyReceived;
             std::function<void(uint32_t, WidgetValueVariant_T, WidgetReplyStatus_E)> OnWidgetGetValueReplyReceived;
             std::function<void(uint32_t, WidgetValueVariant_T)> OnWidgetEventNotificationReceived;
+            std::function<void(WidgetReplyStatus_E)> OnAddWidgetReplyReceived;
 
             /* Member Variables */
             GuiClientState_E _state = GuiClientState_E::Initialized;
@@ -100,6 +105,8 @@ namespace GuiProtocol
             bool _widgetSetValueReplyReceived = false;
             bool _widgetGetValueReqSent = false;
             bool _widgetGetValueReplyReceived = false;
+            bool _addWidgetReqSent = false;
+            bool _addWidgetReplyReceived = false;
             std::map<uint32_t, WidgetDescriptor_T> _widgetList;
             std::vector<std::string> _updatedWidgets;
     };

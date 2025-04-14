@@ -53,6 +53,10 @@ namespace GuiProtocol
         {
             std::cout << "Error! onWidgetEventNotificationAckReceived callback is null\n";
         }
+        else if (nullptr == callbacks.onAddWidgetRequestReceived)
+        {
+            std::cout << "Error! onAddWidgetRequestReceived callback is null\n";
+        }
         else
         {
             SendMessage = callbacks.sendMessage;
@@ -60,6 +64,7 @@ namespace GuiProtocol
             OnWidgetSetValueRequestReceived = callbacks.onWidgetSetValueRequestReceived;
             OnWidgetGetValueRequestReceived = callbacks.onWidgetGetValueRequestReceived;
             OnWidgetEventNotificationAckReceived = callbacks.onWidgetEventNotificationAckReceived;
+            OnAddWidgetRequestReceived = callbacks.onAddWidgetRequestReceived;
             retVal = true;
         }
         return retVal;
@@ -244,6 +249,11 @@ namespace GuiProtocol
                     ProcessReceivedWidgetEventNotificationAck(msg);
                     break;
 
+                case MessageId_E::AddWidgetReq:
+                    std::cout << "Received Add Widget Request\n";
+                    ProcessReceivedAddWidgetRequest(msg);
+                    break;
+
                 default:
                     std::cout << "Unknown message received with Message ID " << msgId << "\n";
                     break;
@@ -376,6 +386,33 @@ namespace GuiProtocol
             auto windowId = static_cast<uint16_t>(reply.widgetId >> 16);
             auto widgetId = static_cast<uint16_t>(reply.widgetId & 0xFFFF);
             OnWidgetEventNotificationAckReceived(static_cast<WidgetReplyStatus_E>(reply.status), windowId, widgetId);
+        }
+    }
+
+    void GuiServer_C::ProcessReceivedAddWidgetRequest(Message_T& msg)
+    {
+        if (GuiServerState_E::Ready == _state)
+        {
+            AddWidgetRequest_T reqMsg;
+            std::vector<uint8_t> msgBuf(msg.data.get(), msg.data.get() + msg.size);
+            _msgSerializer.Deserialize(reqMsg, msgBuf);
+
+            /* Call user callback */
+            std::vector<WidgetDescriptor_T> widgetDescList;
+            widgetDescList.reserve(reqMsg.numWidgets);
+            auto status = OnAddWidgetRequestReceived(reqMsg.widgetDataList, widgetDescList);
+
+            std::vector<uint8_t> buffer;
+            auto addWidgetReply = GetAddWidgetReply(widgetDescList, status);
+            _msgSerializer.Serialize(addWidgetReply, buffer);
+            if (0 < SendMessage(buffer))
+            {
+                _addWidgetReplySent = true;
+            }
+        }
+        else
+        {
+            std::cout << "Error! Not able to process request\n";
         }
     }
 }

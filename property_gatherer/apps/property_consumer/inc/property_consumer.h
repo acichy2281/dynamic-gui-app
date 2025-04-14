@@ -12,6 +12,7 @@
 #define WIDGET_VALUE_OPTIONS_WIDGET_NAME "Widget Value Options"
 #define WIDGET_VALUE_OUTPUT_WIDGET_NAME "Get Widget Value Output"
 #define WIDGET_SET_VALUE_INPUT_WIDGET_NAME "Set Widget Input"
+#define ADD_WIDGET_WIDGET_NAME "Add Widget Button"
 
 struct PropertyConsumerInitParams_C
 {
@@ -39,6 +40,7 @@ class PropertyConsumerApp_C
         void GuiClient_OnWidgetSetValueReplyReceived(GuiProtocol::WidgetReplyStatus_E status, std::vector<GuiProtocol::WidgetSetValueReplyContainer_T>& setValuesList);
         void GuiClient_OnWidgetGetValueReplyReceived(uint32_t widgetId, WidgetValueVariant_T updatedValue, GuiProtocol::WidgetReplyStatus_E status);
         void GuiClient_OnWidgetEventNotificationReceived(uint32_t widgetId, WidgetValueVariant_T updatedValue);
+        void GuiClient_OnAddWidgetReplyReceived(GuiProtocol::WidgetReplyStatus_E status);
 
         /* GUI Functions */
         void Gui_OnGuiWindowClosed();

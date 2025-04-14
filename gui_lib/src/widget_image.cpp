@@ -17,11 +17,21 @@ WidgetImage_C::WidgetImage_C(const std::shared_ptr<const AddImageWidgetInfo_T>& 
 
 WidgetImage_C::~WidgetImage_C()
 {
-    SDL_DestroySurface(_sdlSurface);
+    if (_sdlSurface != nullptr) {
+        SDL_DestroySurface(_sdlSurface);
+        _sdlSurface = nullptr;
+    }
+    if (_cameraTexture != 0) {
+        glDeleteTextures(1, &_cameraTexture);
+        _cameraTexture = 0;
+    }
 }
 
 void WidgetImage_C::ShowWidget()
 {
+    if (_sdlSurface == nullptr) {
+        return;
+    }
     CreateTexture();
     if (_cameraTexture == 0) 
     {
@@ -45,6 +55,15 @@ bool WidgetImage_C::SetWidgetValue(WidgetValueVariant_T val)
 
 void WidgetImage_C::LoadImageFromFile(const std::string &filePath)
 {
+    // Check if file exists
+    std::ifstream fileCheck(filePath.c_str());
+    if (!fileCheck) {
+        fprintf(stderr, "Error: Image file '%s' does not exist\n", filePath.c_str());
+        _sdlSurface = nullptr;
+        return;
+    }
+    fileCheck.close();
+    
     _sdlSurface = IMG_Load(filePath.c_str());
     if (!_sdlSurface) {
         fprintf(stderr, "IMG_Load failed\n");

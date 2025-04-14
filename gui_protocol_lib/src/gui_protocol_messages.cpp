@@ -108,6 +108,25 @@ namespace GuiProtocol
         return retVal;
     }
 
+    AddWidgetRequest_T GetAddWidgetRequest(std::vector<nlohmann::json>& addWidgetInfo)
+    {
+        AddWidgetRequest_T retVal;
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::AddWidgetReq);
+        retVal.numWidgets = static_cast<uint16_t>(addWidgetInfo.size());
+        retVal.widgetDataList = addWidgetInfo;
+        return retVal;
+    }
+
+    AddWidgetReply_T GetAddWidgetReply(std::vector<WidgetDescriptor_T>& descList, WidgetReplyStatus_E status)
+    {
+        AddWidgetReply_T retVal;
+        retVal.header.messageId = static_cast<uint16_t>(MessageId_E::AddWidgetReply);
+        retVal.numWidgets = static_cast<uint16_t>(descList.size());
+        retVal.widgetDescriptorList = descList;
+        retVal.status = static_cast<uint16_t>(status);
+        return retVal;
+    }
+
     GuiProtocolMessageSerializer::GuiProtocolMessageSerializer()
     {
 
@@ -337,6 +356,51 @@ namespace GuiProtocol
         outBuff.resize(bufSize + sizeof(pMessage.widgetId));
         std::memcpy(outBuff.data() + bufSize, &pMessage.widgetId, sizeof(pMessage.widgetId));
         bufSize = outBuff.size();
+
+        /* Serialize status */
+        bufSize = outBuff.size();
+        outBuff.resize(bufSize + sizeof(pMessage.status));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.status, sizeof(pMessage.status));
+        bufSize = outBuff.size();
+
+        return bufSize;
+    }
+
+    uint16_t GuiProtocolMessageSerializer::Serialize(AddWidgetRequest_T& pMessage, std::vector<uint8_t>& outBuff)
+    {
+        SerializeHeader(pMessage.header, outBuff);
+        uint16_t bufSize = outBuff.size();
+
+        /* Serialize Number of Widgets */
+        outBuff.resize(bufSize + sizeof(pMessage.numWidgets));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.numWidgets, sizeof(pMessage.numWidgets));
+        bufSize = outBuff.size();
+
+        nlohmann::json j = pMessage.widgetDataList; // automatic conversion to json array
+        
+        /* Copy j into buff using to_cbor */
+        outBuff.resize(bufSize + nlohmann::json::to_cbor(j).size());
+        std::memcpy(outBuff.data() + bufSize, nlohmann::json::to_cbor(j).data(), nlohmann::json::to_cbor(j).size());
+        bufSize = outBuff.size();
+
+        return bufSize;
+    }
+
+    uint16_t GuiProtocolMessageSerializer::Serialize(AddWidgetReply_T& pMessage, std::vector<uint8_t>& outBuff)
+    {
+        SerializeHeader(pMessage.header, outBuff);
+        uint16_t bufSize = outBuff.size();
+
+        /* Serialize Number of Widgets */
+        outBuff.resize(bufSize + sizeof(pMessage.numWidgets));
+        std::memcpy(outBuff.data() + bufSize, &pMessage.numWidgets, sizeof(pMessage.numWidgets));
+        bufSize = outBuff.size();
+
+        /* Serialize List of Widget Descriptors */
+        for (auto& widgetDesc : pMessage.widgetDescriptorList)
+        {
+            bufSize += SerializeWidgetDescriptor(widgetDesc, outBuff);
+        }
 
         /* Serialize status */
         bufSize = outBuff.size();
@@ -584,6 +648,48 @@ namespace GuiProtocol
         /* Deserialize Widget ID */
         std::memcpy(&pMessage.widgetId, msgBuf.data() + bufIndex, sizeof(pMessage.widgetId));
         bufIndex += sizeof(pMessage.widgetId);
+
+        /* Deserialize status */
+        std::memcpy(&pMessage.status, msgBuf.data() + bufIndex, sizeof(pMessage.status));
+        bufIndex += sizeof(pMessage.status);
+
+        return true;
+    }
+
+    bool GuiProtocolMessageSerializer::Deserialize(AddWidgetRequest_T& pMessage, std::vector<uint8_t>& msgBuf)
+    {
+        DeserializeHeader(pMessage.header, msgBuf);
+        uint16_t bufIndex = sizeof(pMessage.header);
+
+        /* Deserialize number of widgets */
+        std::memcpy(&pMessage.numWidgets, msgBuf.data() + bufIndex, sizeof(pMessage.numWidgets));
+        bufIndex += sizeof(pMessage.numWidgets);
+
+        nlohmann::json parsed = nlohmann::json::from_cbor(msgBuf.begin() + bufIndex, msgBuf.end());
+        std::vector<nlohmann::json> deserializedWidgets = parsed.get<std::vector<nlohmann::json>>();
+
+        pMessage.widgetDataList = deserializedWidgets;
+        bufIndex += nlohmann::json::to_cbor(parsed).size(); // Move the buffer index to the end of the deserialized data
+
+        return true;
+    }
+
+    bool GuiProtocolMessageSerializer::Deserialize(AddWidgetReply_T& pMessage, std::vector<uint8_t>& msgBuf)
+    {
+        DeserializeHeader(pMessage.header, msgBuf);
+        uint16_t bufIndex = sizeof(pMessage.header);
+
+        /* Deserialize number of widgets */
+        std::memcpy(&pMessage.numWidgets, msgBuf.data() + bufIndex, sizeof(pMessage.numWidgets));
+        bufIndex += sizeof(pMessage.numWidgets);
+
+        /* Deserialize widget descriptors */
+        for (int i = 0; i < pMessage.numWidgets; i++)
+        {
+            WidgetDescriptor_T widgetDesc;
+            DeserializeWidgetDescriptor(widgetDesc, msgBuf, bufIndex);
+            pMessage.widgetDescriptorList.push_back(widgetDesc);
+        }
 
         /* Deserialize status */
         std::memcpy(&pMessage.status, msgBuf.data() + bufIndex, sizeof(pMessage.status));

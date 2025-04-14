@@ -53,6 +53,10 @@ namespace GuiProtocol
         {
             std::cout << "Error! onWidgetEventNotificationReceived callback is null\n";
         }
+        else if (nullptr == callbacks.onAddWidgetReplyReceived)
+        {
+            std::cout << "Error! onAddWidgetReplyReceived callback is null\n";
+        }
         else
         {
             SendMessage = callbacks.sendMessage;
@@ -60,6 +64,7 @@ namespace GuiProtocol
             OnWidgetSetValueReplyReceived = callbacks.onWidgetSetValueReplyReceived;
             OnWidgetGetValueReplyReceived = callbacks.onWidgetGetValueReplyReceived;
             OnWidgetEventNotificationReceived = callbacks.onWidgetEventNotificationReceived;
+            OnAddWidgetReplyReceived = callbacks.onAddWidgetReplyReceived;
             retVal = true;
         }
         return retVal;
@@ -242,6 +247,52 @@ namespace GuiProtocol
         return retVal;
     }
 
+    GuiClientStatus_E GuiClient_C::SendAddWidgetRequest(std::vector<nlohmann::json>& addWidgetInfo)
+    {
+        GuiClientStatus_E retVal = GuiClientStatus_E::Error;
+        if (GuiClientState_E::Ready == _state)
+        {
+            std::cout << "Sending Add Widget request\n";
+
+            std::vector<uint8_t> buffer;
+            auto addWidgetReq = GetAddWidgetRequest(addWidgetInfo);
+            _msgSerializer.Serialize(addWidgetReq, buffer);
+            if (0 < SendMessage(buffer))
+            {
+                retVal = GuiClientStatus_E::Success;
+                _addWidgetReqSent = true;
+                _addWidgetReplyReceived = false;
+                std::cout << "Sent Add Widget request\n";
+            }
+            else
+            {
+                retVal = GuiClientStatus_E::FailedToSendMsg;
+                std::cout << "Failed to send Add Widget request\n";
+            }
+        }
+        else if (GuiClientState_E::Initialized == _state)
+        {
+            retVal = GuiClientStatus_E::WidgetListNotReceived;
+            std::cout << "Error! Widget list not received!\n";
+        }
+        else if (GuiClientState_E::Error == _state)
+        {
+            retVal = GuiClientStatus_E::Error;
+            std::cout << "Error! Currently in Error State!\n";
+        }
+        else if (GuiClientState_E::Uninitialized == _state)
+        {
+            retVal = GuiClientStatus_E::NotInitialized;
+            std::cout << "Error! Initialize must be called first!\n";
+        }
+        else
+        {
+            retVal = GuiClientStatus_E::RequestInProgress;
+            std::cout << "Error! Request in progress\n";
+        }
+        return retVal;
+    }
+
     uint64_t GuiClient_C::GetCurrentTimeMs()
     {
         return static_cast<uint64_t>(
@@ -290,6 +341,10 @@ namespace GuiProtocol
                 {
                     _state = GuiClientState_E::WidgetGetValueRequestSent;
                 }
+                else if (true == _addWidgetReqSent)
+                {
+                    _state = GuiClientState_E::AddWidgetRequestSent;
+                }
                 break;
 
             case GuiClientState_E::WidgetSetValueRequestSent:
@@ -306,6 +361,15 @@ namespace GuiProtocol
                 {
                     _widgetGetValueReqSent = false;
                     _widgetGetValueReplyReceived = false;
+                    _state = GuiClientState_E::Ready;
+                }
+                break;
+
+            case GuiClientState_E::AddWidgetRequestSent:
+                if (true == _addWidgetReplyReceived)
+                {
+                    _addWidgetReqSent = false;
+                    _addWidgetReplyReceived = false;
                     _state = GuiClientState_E::Ready;
                 }
                 break;
@@ -345,6 +409,11 @@ namespace GuiProtocol
                 case MessageId_E::WidgetEventNotification:
                     std::cout << "Received a Widget Event Notification\n";
                     ProcessReceivedWidgetEventNotification(msg);
+                    break;
+
+                case MessageId_E::AddWidgetReply:
+                    std::cout << "Received a Add Widget Reply\n";
+                    ProcessReceivedAddWidgetReply(msg);
                     break;
 
                 default:
@@ -459,6 +528,35 @@ namespace GuiProtocol
             {
                 std::cout << "Failed to send Widget Event Notification Ack\n";
             }
+        }
+    }
+
+    void GuiClient_C::ProcessReceivedAddWidgetReply(Message_T& msg)
+    {
+        if (GuiClientState_E::AddWidgetRequestSent != _state)
+        {
+            std::cout << "Error! Add Widget Reply received, but no request was sent\n";
+            return;
+        }
+        else
+        {
+            AddWidgetReply_T reply;
+            std::vector<uint8_t> msgBuf(msg.data.get(), msg.data.get() + msg.size);
+            _msgSerializer.Deserialize(reply, msgBuf);
+
+            if (WidgetReplyStatus_E::Success == static_cast<WidgetReplyStatus_E>(reply.status))
+            {
+                /* Populate widget list from provided descriptors */
+                for (auto& desc : reply.widgetDescriptorList)
+                {
+                    _widgetList[desc.widgetId] = desc;
+
+                    std::cout << "Added Widget ID: " << desc.widgetId << ", Name: " << desc.widgetName << " to the Widget List\n";
+                }
+            }
+            /* Call user callback */
+            OnAddWidgetReplyReceived(static_cast<WidgetReplyStatus_E>(reply.status));
+            _addWidgetReplyReceived = true;
         }
     }
 

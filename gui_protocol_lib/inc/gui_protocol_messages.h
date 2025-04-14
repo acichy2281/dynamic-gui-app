@@ -18,6 +18,9 @@
 /* Shared include */
 #include "custom_types.h"
 
+/* 3rd Party include */
+#include "nlohmann/json.hpp"
+
 namespace GuiProtocol
 {
     /* Enum classes */
@@ -31,6 +34,8 @@ namespace GuiProtocol
         WidgetGetValueReply,
         WidgetEventNotification,
         WidgetEventNotificationAck,
+        AddWidgetReq,
+        AddWidgetReply,
     };
     enum class WidgetReplyStatus_E
     {
@@ -174,6 +179,34 @@ namespace GuiProtocol
         uint16_t status;
     };
 
+    /**
+     * @brief Message structure for requesting list of available widgets
+     */
+    struct AddWidgetRequest_T
+    {
+        Header_T header;
+        uint16_t numWidgets;
+        std::vector<nlohmann::json> widgetDataList;
+    };
+    /**
+     * @brief Message structure containing reply to widget list request
+     */
+    struct AddWidgetReply_T
+    {
+        Header_T header;
+        uint16_t numWidgets;
+        std::vector<WidgetDescriptor_T> widgetDescriptorList;
+        uint16_t status;
+    };
+
+    struct AddWidgetRequestInfo_T
+    {
+        uint16_t windowId;
+        uint16_t widgetId;
+        WidgetTypes_E widgetType;
+        std::string widgetName;
+    };
+
     /* Widget Descriptor Creator functions*/
     WidgetDescriptor_T GetWidgetDescriptor(uint16_t windowId, 
                                            uint16_t widgetId,
@@ -194,6 +227,8 @@ namespace GuiProtocol
     WidgetGetValueReply_T GetWidgetGetValueReply(uint32_t widgetId, WidgetValueVariant_T value, WidgetReplyStatus_E status);
     WidgetEventNotification_T GetWidgetEventNotification(uint16_t windowId, uint16_t widgetId, WidgetValueVariant_T updatedValue);
     WidgetEventNotificationAck_T GetWidgetEventNotificationAck(uint32_t widgetId, uint16_t status);
+    AddWidgetRequest_T GetAddWidgetRequest(std::vector<nlohmann::json>& addWidgetInfo);
+    AddWidgetReply_T GetAddWidgetReply(std::vector<WidgetDescriptor_T>& descList, WidgetReplyStatus_E status);
 
     class GuiProtocolMessageSerializer
     {
@@ -210,6 +245,8 @@ namespace GuiProtocol
             uint16_t Serialize(WidgetGetValueReply_T& pMessage, std::vector<uint8_t>& outBuff);
             uint16_t Serialize(WidgetEventNotification_T& pMessage, std::vector<uint8_t>& outBuff);
             uint16_t Serialize(WidgetEventNotificationAck_T& pMessage, std::vector<uint8_t>& outBuff);
+            uint16_t Serialize(AddWidgetRequest_T& pMessage, std::vector<uint8_t>& outBuff);
+            uint16_t Serialize(AddWidgetReply_T& pMessage, std::vector<uint8_t>& outBuff);
 
             /* Deserialization functions */
             bool Deserialize(WidgetListRequest_T& pMessage, std::vector<uint8_t>& msgBuf);
@@ -220,6 +257,8 @@ namespace GuiProtocol
             bool Deserialize(WidgetGetValueReply_T& pMessage, std::vector<uint8_t>& msgBuf);
             bool Deserialize(WidgetEventNotification_T& pMessage, std::vector<uint8_t>& msgBuf);
             bool Deserialize(WidgetEventNotificationAck_T& pMessage, std::vector<uint8_t>& msgBuf);
+            bool Deserialize(AddWidgetRequest_T& pMessage, std::vector<uint8_t>& msgBuf);
+            bool Deserialize(AddWidgetReply_T& pMessage, std::vector<uint8_t>& msgBuf);
 
         private:
             void SerializeHeader(Header_T& header, std::vector<uint8_t>& outBuff);

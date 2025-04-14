@@ -512,6 +512,7 @@ bool DynamicGui_C::RunGuiServer(const GuiServerInitParams_T& initParams)
     initServerParams.callbacks.onWidgetSetValueRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetSetValueRequestReceived, this, std::placeholders::_1);
     initServerParams.callbacks.onWidgetEventNotificationAckReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     initServerParams.callbacks.onWidgetGetValueRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnWidgetGetValueRequestReceived, this, std::placeholders::_1, std::placeholders::_2);
+    initServerParams.callbacks.onAddWidgetRequestReceived = std::bind(&DynamicGui_C::GuiServer_OnAddWidgetRequestReceived, this, std::placeholders::_1, std::placeholders::_2);
 
     if (GuiProtocol::GuiServerStatus_E::Success != _guiServer->Initialize(initServerParams))
     {
@@ -693,4 +694,40 @@ void DynamicGui_C::GuiServer_OnWidgetEventNotificationAckReceived(GuiProtocol::W
     {
         std::cout << "Error! Widget Event Notification Ack Failed\n";
     }
+}
+
+GuiProtocol::WidgetReplyStatus_E DynamicGui_C::GuiServer_OnAddWidgetRequestReceived(std::vector<nlohmann::json>& widgetDataList, std::vector<WidgetDescriptor_T>& descList)
+{
+    auto retVal = GuiProtocol::WidgetReplyStatus_E::Error;
+    uint16_t numWidgetsAdded = 0;
+    for (auto& widgetData : widgetDataList)
+    {
+        /* Parse Widget Info */
+        auto parsedWidgetInfo = _widgetFactory.ParseWidgetData(widgetData);
+        parsedWidgetInfo->eventQueue = _eventQueue;
+
+        /* Add to window 0 this should be fixed in the future */
+        parsedWidgetInfo->windowId = 0;
+
+        /* Add Widget to Window */
+        descList.push_back(AddWidgetToWindow(parsedWidgetInfo));
+        numWidgetsAdded++;
+        std::cout << "Added Widget ID: " << parsedWidgetInfo->widgetId << ", Name: " << parsedWidgetInfo->widgetName << "\n";
+    }
+
+    if (widgetDataList.size() == numWidgetsAdded)
+    {
+        retVal = GuiProtocol::WidgetReplyStatus_E::Success;
+        std::cout << "All widgets added successfully\n";
+    }
+    else if (0 < numWidgetsAdded)
+    {
+        retVal = GuiProtocol::WidgetReplyStatus_E::PartialSuccess;
+        std::cout << "Only " << numWidgetsAdded << "out of " << descList.size() << " widgets added successfully\n";
+    }
+    else
+    {
+        std::cout << "Error! No widgets added\n";
+    }
+    return retVal;
 }

@@ -177,6 +177,7 @@ class DynamicGui_C
         GuiProtocol::WidgetReplyStatus_E GuiServer_OnWidgetSetValueRequestReceived(std::vector<GuiProtocol::WidgetSetValueResponseReturn_T>& widgetSetValueList);
         GuiProtocol::WidgetReplyStatus_E GuiServer_OnWidgetGetValueRequestReceived(uint32_t widgetId, WidgetValueVariant_T& val);
         void GuiServer_OnWidgetEventNotificationAckReceived(GuiProtocol::WidgetReplyStatus_E status, uint16_t windowId, uint16_t widgetId);
+        GuiProtocol::WidgetReplyStatus_E GuiServer_OnAddWidgetRequestReceived(std::vector<nlohmann::json>&, std::vector<WidgetDescriptor_T>& descList);
 
         /* Variables */
 
