@@ -347,26 +347,6 @@ void DynamicGui_C::ParseJsonData()
     }
 }
 
-WidgetDescriptor_T DynamicGui_C::AddWidgetToWindow(std::shared_ptr<AddWidgetInfo_T> addWidgetInfo)
-{
-    addWidgetInfo->eventQueue = _eventQueue;
-    auto newWidget = _windowList.at(addWidgetInfo->windowId).AddWidget(addWidgetInfo);
-    _widgetMap.insert({ newWidget->GetDescriptor().widgetId, newWidget->GetDescriptor() });
-
-    std::cout << "Added Widget ID: " << newWidget->GetDescriptor().widgetId << ", Name: " << newWidget->GetDescriptor().widgetName << "\n";
-    if (WidgetTypes_E::Menu == static_cast<WidgetTypes_E>(newWidget->GetDescriptor().widgetType))
-    {
-        /* Loop through menu items to retreive widget descriptors */
-        for (const auto& menuItem : std::dynamic_pointer_cast<WidgetMenu_C>(newWidget)->GetMenuItems())
-        {
-            _widgetMap.insert({ menuItem->GetDescriptor().widgetId, menuItem->GetDescriptor() });
-            std::cout << "Added Widget ID: " << menuItem->GetDescriptor().widgetId << ", Name: " << menuItem->GetDescriptor().widgetName << "\n";
-        }
-    }
-    
-    return newWidget->GetDescriptor();
-}
-
 WidgetDescriptor_T DynamicGui_C::AddWidgetToWindow(const nlohmann::json& widgetData)
 {
     /* Parse Widget Info */

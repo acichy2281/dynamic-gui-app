@@ -113,14 +113,6 @@ class DynamicGui_C
         /**
          * @brief Add a widget to the GUI window
          * 
-         * @param widgetData widget to add to the window as a struct 
-         * 
-         */
-        WidgetDescriptor_T AddWidgetToWindow(std::shared_ptr<AddWidgetInfo_T> addWidgetInfo);
-
-        /**
-         * @brief Add a widget to the GUI window
-         * 
          * @param widgetData widget to add to the window in JSON form
          * 
          * @return WidgetDescriptor_T 

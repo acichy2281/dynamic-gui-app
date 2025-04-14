@@ -318,57 +318,56 @@ void PropertyConsumerApp_C::RunTest()
 void PropertyConsumerApp_C::RunGuiClientTest()
 {
     auto guiClientTestWindow = _gui.CreateGuiWindow("Gui Client Tester");
-    
-    std::shared_ptr<AddWidgetInfo_T> widgetListButtonAddInfo = std::make_shared<AddWidgetInfo_T>();
-    widgetListButtonAddInfo->windowId = guiClientTestWindow;
-    widgetListButtonAddInfo->widgetType = WidgetTypes_E::Button;
-    widgetListButtonAddInfo->widgetName = "Get Widget List";
-    auto widgetListButtonDesc = _gui.AddWidgetToWindow(widgetListButtonAddInfo);
-    _widgetNameToIdMap[widgetListButtonDesc.widgetName] = widgetListButtonDesc.widgetId;
-    
-    std::shared_ptr<AddWidgetInfo_T> addWidgetButtonAddInfo = std::make_shared<AddWidgetInfo_T>();
-    addWidgetButtonAddInfo->windowId = guiClientTestWindow;
-    addWidgetButtonAddInfo->widgetType = WidgetTypes_E::Button;
-    addWidgetButtonAddInfo->widgetName = ADD_WIDGET_WIDGET_NAME;
-    auto addWidgetButtonDesc = _gui.AddWidgetToWindow(addWidgetButtonAddInfo);
-    _widgetNameToIdMap[addWidgetButtonDesc.widgetName] = addWidgetButtonDesc.widgetId;
-    
-    std::shared_ptr<AddRadioWidgetInfo_T> widgetValRadioInfo = std::make_shared<AddRadioWidgetInfo_T>();
-    widgetValRadioInfo->windowId = guiClientTestWindow;
-    widgetValRadioInfo->widgetType = WidgetTypes_E::Radio;
-    widgetValRadioInfo->widgetName = WIDGET_VALUE_OPTIONS_WIDGET_NAME;
-    widgetValRadioInfo->radioWidgetOptionsList = {};
-    auto widgetValRadioDesc = _gui.AddWidgetToWindow(widgetValRadioInfo);
-    _widgetNameToIdMap[widgetValRadioDesc.widgetName] = widgetValRadioDesc.widgetId;
-    
-    std::shared_ptr<AddWidgetInfo_T> getValTextAddInfo = std::make_shared<AddWidgetInfo_T>();
-    getValTextAddInfo->windowId = guiClientTestWindow;
-    getValTextAddInfo->widgetType = WidgetTypes_E::Text;
-    getValTextAddInfo->widgetName = WIDGET_VALUE_OUTPUT_WIDGET_NAME;
-    getValTextAddInfo->defaultValue = "";
-    auto getValTextDesc = _gui.AddWidgetToWindow(getValTextAddInfo);
-    _widgetNameToIdMap[getValTextDesc.widgetName] = getValTextDesc.widgetId;
-    
-    std::shared_ptr<AddWidgetInfo_T> getValButtonInfo = std::make_shared<AddWidgetInfo_T>();
-    getValButtonInfo->windowId = guiClientTestWindow;
-    getValButtonInfo->widgetType = WidgetTypes_E::Button;
-    getValButtonInfo->widgetName = "Get Widget Value";
-    auto getValButtonDesc = _gui.AddWidgetToWindow(getValButtonInfo);
-    _widgetNameToIdMap[getValButtonDesc.widgetName] = getValButtonDesc.widgetId;
-    
-    std::shared_ptr<AddWidgetInfo_T> setValInputTextInfo = std::make_shared<AddWidgetInfo_T>();
-    setValInputTextInfo->windowId = guiClientTestWindow;
-    setValInputTextInfo->widgetType = WidgetTypes_E::InputText;
-    setValInputTextInfo->widgetName = WIDGET_SET_VALUE_INPUT_WIDGET_NAME;
-    auto setValInputTextDesc = _gui.AddWidgetToWindow(setValInputTextInfo);
-    _widgetNameToIdMap[setValInputTextDesc.widgetName] = setValInputTextDesc.widgetId;
-    
-    std::shared_ptr<AddWidgetInfo_T> setValButtonInfo = std::make_shared<AddWidgetInfo_T>();
-    setValButtonInfo->windowId = guiClientTestWindow;
-    setValButtonInfo->widgetType = WidgetTypes_E::Button;
-    setValButtonInfo->widgetName = "Set Widget Value";
-    auto setValButtonDesc = _gui.AddWidgetToWindow(setValButtonInfo);
-    _widgetNameToIdMap[setValButtonDesc.widgetName] = setValButtonDesc.widgetId;
+
+    std::vector<nlohmann::json> widgetDataList;
+    nlohmann::json widgetListButton = {
+        {"Name", "Get Widget List"},
+        {"Type", "button"},
+        {"window_id", guiClientTestWindow}
+    };
+    widgetDataList.push_back(widgetListButton);
+    nlohmann::json addWidgetButton = {
+        {"Name", ADD_WIDGET_WIDGET_NAME},
+        {"Type", "button"},
+        {"window_id", guiClientTestWindow}
+    };
+    widgetDataList.push_back(addWidgetButton);
+    nlohmann::json widgetValRadio = {
+        {"Name", WIDGET_VALUE_OPTIONS_WIDGET_NAME},
+        {"Type", "radio"},
+        {"window_id", guiClientTestWindow}
+    };
+    widgetDataList.push_back(widgetValRadio);
+    nlohmann::json getValText = {
+        {"Name", WIDGET_VALUE_OUTPUT_WIDGET_NAME},
+        {"Type", "text"},
+        {"window_id", guiClientTestWindow}
+    };
+    widgetDataList.push_back(getValText);
+    nlohmann::json getValButton = {
+        {"Name", "Get Widget Value"},
+        {"Type", "button"},
+        {"window_id", guiClientTestWindow}
+    };
+    widgetDataList.push_back(getValButton);
+    nlohmann::json setValInputText = {
+        {"Name", WIDGET_SET_VALUE_INPUT_WIDGET_NAME},
+        {"Type", "input_text"},
+        {"window_id", guiClientTestWindow}
+    };
+    widgetDataList.push_back(setValInputText);
+    nlohmann::json setValButton = {
+        {"Name", "Set Widget Value"},
+        {"Type", "button"},
+        {"window_id", guiClientTestWindow}
+    };
+    widgetDataList.push_back(setValButton);
+
+    for (auto& widgetData : widgetDataList)
+    {
+        auto widgetDesc = _gui.AddWidgetToWindow(widgetData);
+        _widgetNameToIdMap[widgetDesc.widgetName] = widgetDesc.widgetId;
+    }
     
     while (false == _isQuit)
     {
@@ -383,50 +382,50 @@ void PropertyConsumerApp_C::RunGuiClientTest()
 void PropertyConsumerApp_C::RunPropertyConsumerTest()
 {
     auto propertyConsumerTestWindow = _gui.CreateGuiWindow("Property Consumer Tester");
-    
-    std::shared_ptr<AddWidgetInfo_T> propertyListButtonAddInfo = std::make_shared<AddWidgetInfo_T>();
-    propertyListButtonAddInfo->windowId = propertyConsumerTestWindow;
-    propertyListButtonAddInfo->widgetType = WidgetTypes_E::Button;
-    propertyListButtonAddInfo->widgetName = "Get Property List";
-    auto propertyListButtonDesc = _gui.AddWidgetToWindow(propertyListButtonAddInfo);
-    _widgetNameToIdMap[propertyListButtonDesc.widgetName] = propertyListButtonDesc.widgetId;
-    
-    std::shared_ptr<AddRadioWidgetInfo_T> propertyValRadioInfo = std::make_shared<AddRadioWidgetInfo_T>();
-    propertyValRadioInfo->windowId = propertyConsumerTestWindow;
-    propertyValRadioInfo->widgetType = WidgetTypes_E::Radio;
-    propertyValRadioInfo->widgetName = PROPERTY_VALUE_OPTIONS_WIDGET_NAME;
-    propertyValRadioInfo->radioWidgetOptionsList = {};
-    auto propertyValRadioDesc = _gui.AddWidgetToWindow(propertyValRadioInfo);
-    _widgetNameToIdMap[propertyValRadioDesc.widgetName] = propertyValRadioDesc.widgetId;
-    
-    std::shared_ptr<AddWidgetInfo_T> getValTextAddInfo = std::make_shared<AddWidgetInfo_T>();
-    getValTextAddInfo->windowId = propertyConsumerTestWindow;
-    getValTextAddInfo->widgetType = WidgetTypes_E::Text;
-    getValTextAddInfo->widgetName = PROPERTY_VALUE_OUTPUT_WIDGET_NAME;
-    getValTextAddInfo->defaultValue = "";
-    auto getValTextDesc = _gui.AddWidgetToWindow(getValTextAddInfo);
-    _widgetNameToIdMap[getValTextDesc.widgetName] = getValTextDesc.widgetId;
-    
-    std::shared_ptr<AddWidgetInfo_T> getValButtonInfo = std::make_shared<AddWidgetInfo_T>();
-    getValButtonInfo->windowId = propertyConsumerTestWindow;
-    getValButtonInfo->widgetType = WidgetTypes_E::Button;
-    getValButtonInfo->widgetName = "Get Property Value";
-    auto getValButtonDesc = _gui.AddWidgetToWindow(getValButtonInfo);
-    _widgetNameToIdMap[getValButtonDesc.widgetName] = getValButtonDesc.widgetId;
-    
-    std::shared_ptr<AddWidgetInfo_T> setValInputTextInfo = std::make_shared<AddWidgetInfo_T>();
-    setValInputTextInfo->windowId = propertyConsumerTestWindow;
-    setValInputTextInfo->widgetType = WidgetTypes_E::InputText;
-    setValInputTextInfo->widgetName = PROPERTY_SET_VALUE_INPUT_WIDGET_NAME;
-    auto setValInputTextDesc = _gui.AddWidgetToWindow(setValInputTextInfo);
-    _widgetNameToIdMap[setValInputTextDesc.widgetName] = setValInputTextDesc.widgetId;
-    
-    std::shared_ptr<AddWidgetInfo_T> setValButtonInfo = std::make_shared<AddWidgetInfo_T>();
-    setValButtonInfo->windowId = propertyConsumerTestWindow;
-    setValButtonInfo->widgetType = WidgetTypes_E::Button;
-    setValButtonInfo->widgetName = "Set Property Value";
-    auto setValButtonDesc = _gui.AddWidgetToWindow(setValButtonInfo);
-    _widgetNameToIdMap[setValButtonDesc.widgetName] = setValButtonDesc.widgetId;
+
+    std::vector<nlohmann::json> widgetDataList;
+    nlohmann::json widgetListButton = {
+        {"Name", "Get Property List"},
+        {"Type", "button"},
+        {"window_id", propertyConsumerTestWindow}
+    };
+    widgetDataList.push_back(widgetListButton);
+    nlohmann::json widgetValRadio = {
+        {"Name", PROPERTY_VALUE_OPTIONS_WIDGET_NAME},
+        {"Type", "radio"},
+        {"window_id", propertyConsumerTestWindow}
+    };
+    widgetDataList.push_back(widgetValRadio);
+    nlohmann::json getValText = {
+        {"Name", PROPERTY_VALUE_OUTPUT_WIDGET_NAME},
+        {"Type", "text"},
+        {"window_id", propertyConsumerTestWindow}
+    };
+    widgetDataList.push_back(getValText);
+    nlohmann::json getValButton = {
+        {"Name", "Get Property Value"},
+        {"Type", "button"},
+        {"window_id", propertyConsumerTestWindow}
+    };
+    widgetDataList.push_back(getValButton);
+    nlohmann::json setValInputText = {
+        {"Name", PROPERTY_SET_VALUE_INPUT_WIDGET_NAME},
+        {"Type", "input_text"},
+        {"window_id", propertyConsumerTestWindow}
+    };
+    widgetDataList.push_back(setValInputText);
+    nlohmann::json setValButton = {
+        {"Name", "Set Property Value"},
+        {"Type", "button"},
+        {"window_id", propertyConsumerTestWindow}
+    };
+    widgetDataList.push_back(setValButton);
+
+    for (auto& widgetData : widgetDataList)
+    {
+        auto widgetDesc = _gui.AddWidgetToWindow(widgetData);
+        _widgetNameToIdMap[widgetDesc.widgetName] = widgetDesc.widgetId;
+    }
 
     while (false == _isQuit)
     {

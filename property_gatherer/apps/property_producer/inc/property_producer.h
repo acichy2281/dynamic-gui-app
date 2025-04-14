@@ -22,6 +22,7 @@ class PropertyProducerApp_C
     private:
         /* App Functions & Variables */
         void HandleMessage();
+        void GeneratePropertyDisplayStr(PropertyGatherer::PropertyDescriptor_T& desc, std::string& propertyDisplayInfoStr);
         std::shared_ptr<TransportInterface> _transport;
         bool _isQuit = false;
         uint32_t _rxBufferSize;

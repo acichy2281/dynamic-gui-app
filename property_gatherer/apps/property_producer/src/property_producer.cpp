@@ -98,101 +98,16 @@ void PropertyProducerApp_C::RunProducerTest()
     {
         std::cout << "Property ID: " << desc.propertyId << ", Name: " << desc.propertyName << "\n";
         
-        std::shared_ptr<AddWidgetInfo_T> testStringAddWidgetInfo = std::make_shared<AddWidgetInfo_T>();
-        testStringAddWidgetInfo->windowId = 0;
-        testStringAddWidgetInfo->widgetType = WidgetTypes_E::Text;
-        testStringAddWidgetInfo->widgetName = desc.propertyName;
-        auto widgetDesc = _gui.AddWidgetToWindow(testStringAddWidgetInfo);
+        nlohmann::json widgetJsonData = {
+            {"Name", desc.propertyName},
+            {"Type", "text"},
+            {"window_id", 0}
+        };
+        auto widgetDesc = _gui.AddWidgetToWindow(widgetJsonData);
+
+        /* Generate Value */
         std::string propertyDisplayInfoStr = "ID: " + std::to_string(desc.propertyId) + ", Name: " + desc.propertyName + ", Value: ";
-        switch (desc.propertyType)
-        {
-            case PropertyGatherer::PropertyStorageVariantType_E::String:
-            {
-                _propertyValuesMap[desc.propertyId] = desc.propertyName;
-                propertyDisplayInfoStr += desc.propertyName;
-                break;
-            }
-            case PropertyGatherer::PropertyStorageVariantType_E::Unsigned8BitInt:
-            {
-                auto val = static_cast<uint8_t>(UINT8_MAX);
-                _propertyValuesMap[desc.propertyId] = val;
-                propertyDisplayInfoStr += std::to_string(val);
-                break;
-            }
-            case PropertyGatherer::PropertyStorageVariantType_E::Unsigned16BitInt:
-            {
-                auto val = static_cast<uint16_t>(UINT16_MAX);
-                _propertyValuesMap[desc.propertyId] = val;
-                propertyDisplayInfoStr += std::to_string(val);
-                break;
-            }
-            case PropertyGatherer::PropertyStorageVariantType_E::Unsigned32BitInt:
-            {
-                auto val = static_cast<uint32_t>(UINT32_MAX);
-                _propertyValuesMap[desc.propertyId] = val;
-                propertyDisplayInfoStr += std::to_string(val);
-                break;
-            }
-            case PropertyGatherer::PropertyStorageVariantType_E::Unsigned64BitInt:
-            {
-                auto val = static_cast<uint64_t>(UINT64_MAX);
-                _propertyValuesMap[desc.propertyId] = val;
-                propertyDisplayInfoStr += std::to_string(val);
-                break;
-            }
-            case PropertyGatherer::PropertyStorageVariantType_E::Signed8BitInt:
-            {
-                auto val = static_cast<int8_t>(INT8_MAX);
-                _propertyValuesMap[desc.propertyId] = val;
-                propertyDisplayInfoStr += std::to_string(val);
-                break;
-            }
-            case PropertyGatherer::PropertyStorageVariantType_E::Signed16BitInt:
-            {
-                auto val = static_cast<int16_t>(INT16_MAX);
-                _propertyValuesMap[desc.propertyId] = val;
-                propertyDisplayInfoStr += std::to_string(val);
-                break;
-            }
-            case PropertyGatherer::PropertyStorageVariantType_E::Signed32BitInt:
-            {
-                auto val = static_cast<int32_t>(INT32_MAX);
-                _propertyValuesMap[desc.propertyId] = val;
-                propertyDisplayInfoStr += std::to_string(val);
-                break;
-            }
-            case PropertyGatherer::PropertyStorageVariantType_E::Signed64BitInt:
-            {
-                auto val = static_cast<int64_t>(INT64_MAX);
-                _propertyValuesMap[desc.propertyId] = val;
-                propertyDisplayInfoStr += std::to_string(val);
-                break;
-            }
-            case PropertyGatherer::PropertyStorageVariantType_E::Float:
-            {
-                auto val = 1.1f;
-                _propertyValuesMap[desc.propertyId] = val;
-                propertyDisplayInfoStr += std::to_string(val);
-                break;
-            }
-            case PropertyGatherer::PropertyStorageVariantType_E::Double:
-            {
-                auto val = 2.2;
-                _propertyValuesMap[desc.propertyId] = val;
-                propertyDisplayInfoStr += std::to_string(val);
-                break;
-            }
-            case PropertyGatherer::PropertyStorageVariantType_E::Boolean:
-            {
-                auto val = true;
-                _propertyValuesMap[desc.propertyId] = val;
-                propertyDisplayInfoStr += (val ? "true" : "false");
-                break;
-            }
-            default:
-                std::cout << "Unknown property type\n";
-                break;
-        }
+        GeneratePropertyDisplayStr(desc, propertyDisplayInfoStr);
         _gui.SetWidgetValue(widgetDesc.widgetId, propertyDisplayInfoStr);
         std::cout << propertyDisplayInfoStr << "\n";
     }
@@ -322,5 +237,98 @@ void PropertyProducerApp_C::HandleMessage()
     else
     {
         std::cout << "Unknown sender, known senders: " << _propertyConsumerDevKey << "\n";
+    }
+}
+
+void PropertyProducerApp_C::GeneratePropertyDisplayStr(PropertyGatherer::PropertyDescriptor_T& desc, std::string& propertyDisplayInfoStr)
+{
+    switch (desc.propertyType)
+    {
+        case PropertyGatherer::PropertyStorageVariantType_E::String:
+        {
+            _propertyValuesMap[desc.propertyId] = desc.propertyName;
+            propertyDisplayInfoStr += desc.propertyName;
+            break;
+        }
+        case PropertyGatherer::PropertyStorageVariantType_E::Unsigned8BitInt:
+        {
+            auto val = static_cast<uint8_t>(UINT8_MAX);
+            _propertyValuesMap[desc.propertyId] = val;
+            propertyDisplayInfoStr += std::to_string(val);
+            break;
+        }
+        case PropertyGatherer::PropertyStorageVariantType_E::Unsigned16BitInt:
+        {
+            auto val = static_cast<uint16_t>(UINT16_MAX);
+            _propertyValuesMap[desc.propertyId] = val;
+            propertyDisplayInfoStr += std::to_string(val);
+            break;
+        }
+        case PropertyGatherer::PropertyStorageVariantType_E::Unsigned32BitInt:
+        {
+            auto val = static_cast<uint32_t>(UINT32_MAX);
+            _propertyValuesMap[desc.propertyId] = val;
+            propertyDisplayInfoStr += std::to_string(val);
+            break;
+        }
+        case PropertyGatherer::PropertyStorageVariantType_E::Unsigned64BitInt:
+        {
+            auto val = static_cast<uint64_t>(UINT64_MAX);
+            _propertyValuesMap[desc.propertyId] = val;
+            propertyDisplayInfoStr += std::to_string(val);
+            break;
+        }
+        case PropertyGatherer::PropertyStorageVariantType_E::Signed8BitInt:
+        {
+            auto val = static_cast<int8_t>(INT8_MAX);
+            _propertyValuesMap[desc.propertyId] = val;
+            propertyDisplayInfoStr += std::to_string(val);
+            break;
+        }
+        case PropertyGatherer::PropertyStorageVariantType_E::Signed16BitInt:
+        {
+            auto val = static_cast<int16_t>(INT16_MAX);
+            _propertyValuesMap[desc.propertyId] = val;
+            propertyDisplayInfoStr += std::to_string(val);
+            break;
+        }
+        case PropertyGatherer::PropertyStorageVariantType_E::Signed32BitInt:
+        {
+            auto val = static_cast<int32_t>(INT32_MAX);
+            _propertyValuesMap[desc.propertyId] = val;
+            propertyDisplayInfoStr += std::to_string(val);
+            break;
+        }
+        case PropertyGatherer::PropertyStorageVariantType_E::Signed64BitInt:
+        {
+            auto val = static_cast<int64_t>(INT64_MAX);
+            _propertyValuesMap[desc.propertyId] = val;
+            propertyDisplayInfoStr += std::to_string(val);
+            break;
+        }
+        case PropertyGatherer::PropertyStorageVariantType_E::Float:
+        {
+            auto val = 1.1f;
+            _propertyValuesMap[desc.propertyId] = val;
+            propertyDisplayInfoStr += std::to_string(val);
+            break;
+        }
+        case PropertyGatherer::PropertyStorageVariantType_E::Double:
+        {
+            auto val = 2.2;
+            _propertyValuesMap[desc.propertyId] = val;
+            propertyDisplayInfoStr += std::to_string(val);
+            break;
+        }
+        case PropertyGatherer::PropertyStorageVariantType_E::Boolean:
+        {
+            auto val = true;
+            _propertyValuesMap[desc.propertyId] = val;
+            propertyDisplayInfoStr += (val ? "true" : "false");
+            break;
+        }
+        default:
+            std::cout << "Unknown property type\n";
+            break;
     }
 }

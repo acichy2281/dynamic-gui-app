@@ -193,9 +193,13 @@ std::shared_ptr<AddWidgetInfo_T> WidgetFactory_C::ParseRadioWidgetData(const nlo
     auto retVal = std::make_unique<AddRadioWidgetInfo_T>();
     if (widgetData.find("Options") == widgetData.end())
     {
-        throw std::invalid_argument("Radio Widget data missing required fields.");
+        // Create blank options menu if not provided
+        retVal->radioWidgetOptionsList = {};
     }
-    retVal->radioWidgetOptionsList = widgetData["Options"].get<std::vector<std::string>>();
+    else 
+    {
+        retVal->radioWidgetOptionsList = widgetData["Options"].get<std::vector<std::string>>();
+    }
     return retVal;
 }
 
