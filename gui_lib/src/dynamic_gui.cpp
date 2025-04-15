@@ -202,6 +202,12 @@ bool DynamicGui_C::ShowGui()
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     std::string filePath = "";
 
+    // Increase the default font size
+    float fontSize = 32.0f;
+    ImFontConfig config;
+    config.SizePixels = fontSize;
+    ImFont* bigFont = io.Fonts->AddFontDefault(&config);
+
     // Main loop
     _isGuiWindowRunning = true;
     std::cout << "Running GUI App\n";
@@ -244,6 +250,7 @@ bool DynamicGui_C::ShowGui()
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
 
+        ImGui::PushFont(bigFont);
         for (auto& window : _windowList)
         {
             window.ShowWindow();
@@ -257,6 +264,7 @@ bool DynamicGui_C::ShowGui()
         {
             ShowJsonFileSelectorWindow();
         }
+        ImGui::PopFont();
 
         // Rendering
         ImGui::Render();
